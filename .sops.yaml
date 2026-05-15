@@ -1,0 +1,6 @@
+keys:
+  - &meatwizard age1v5yvtm6h2fh29qlyakw5wwn35ez0hxk7l4jr8vxhgyul580rje0ql6nphh
+creation_rules:
+  - path_regex: secrets/[^/]+\.yaml$
+    age:
+      - *meatwizard
