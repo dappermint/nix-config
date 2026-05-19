@@ -6,6 +6,11 @@
   home.username = lib.mkForce "dappy";
   home.homeDirectory = lib.mkForce "/Users/dappy";
 
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+  };
+
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
