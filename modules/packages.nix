@@ -37,6 +37,6 @@
     woff2
     yamllint
   ]) ++ [
-    inputs.clownctl.packages.${pkgs.system}.default
+    inputs.clownctl.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 }

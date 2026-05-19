@@ -15,38 +15,34 @@
     enable = true;
     enableDefaultConfig = false;
 
-    matchBlocks = {
+    settings = {
       "*" = {
-        forwardAgent = false;
-        addKeysToAgent = "yes";
-        compression = false;
-        serverAliveInterval = 0;
-        serverAliveCountMax = 3;
-        hashKnownHosts = false;
-        userKnownHostsFile = "~/.ssh/known_hosts";
-        controlMaster = "no";
-        controlPath = "~/.ssh/master-%r@%n:%p";
-        controlPersist = "no";
+        ForwardAgent = false;
+        AddKeysToAgent = "yes";
+        Compression = false;
+        ServerAliveInterval = 0;
+        ServerAliveCountMax = 3;
+        HashKnownHosts = false;
+        UserKnownHostsFile = "~/.ssh/known_hosts";
+        ControlMaster = "no";
+        ControlPath = "~/.ssh/master-%r@%n:%p";
+        ControlPersist = "no";
       };
 
       "nix-builder-arm nix-builder-arm.clownway.org" = {
-        hostname = "nix-builder-arm.clownway.org";
-        user = "builder";
-        identityFile = "~/.ssh/nix_builder";
-        identitiesOnly = true;
-        extraOptions = {
-          StrictHostKeyChecking = "accept-new";
-        };
+        HostName = "nix-builder-arm.clownway.org";
+        User = "builder";
+        IdentityFile = "~/.ssh/nix_builder";
+        IdentitiesOnly = true;
+        StrictHostKeyChecking = "accept-new";
       };
 
       "nix-builder-x86 nix-builder-x86.clownway.org" = {
-        hostname = "nix-builder-x86.clownway.org";
-        user = "builder";
-        identityFile = "~/.ssh/nix_builder";
-        identitiesOnly = true;
-        extraOptions = {
-          StrictHostKeyChecking = "accept-new";
-        };
+        HostName = "nix-builder-x86.clownway.org";
+        User = "builder";
+        IdentityFile = "~/.ssh/nix_builder";
+        IdentitiesOnly = true;
+        StrictHostKeyChecking = "accept-new";
       };
     };
   };
