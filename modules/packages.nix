@@ -1,7 +1,7 @@
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 
 {
-  environment.systemPackages = with pkgs; [
+  environment.systemPackages = (with pkgs; [
     fastfetch
     micro
     fd
@@ -36,5 +36,7 @@
     vault
     woff2
     yamllint
+  ]) ++ [
+    inputs.clownctl.packages.${pkgs.system}.default
   ];
 }
