@@ -8,8 +8,8 @@
         ]
       },
       "locked": {
-        "lastModified": 1779177601,
-        "narHash": "sha256-9j+KfW3+D313z5sLjL6rItKk1TK9zpDk5WgSSPkQoaQ=",
+        "lastModified": 1779189263,
+        "narHash": "sha256-n5yolrjQZi8+waS9SX5xlAzu17RzD8+2v9ohDhnhuJw=",
         "path": "/Users/dappy/Documents/Werk/repos/conway/infra/ansible/tools/clownctl",
         "type": "path"
       },
