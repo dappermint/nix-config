@@ -9,11 +9,9 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-    clownctl.url = "path:/Users/dappy/Documents/Werk/repos/conway/infra/ansible/tools/clownctl";
-    clownctl.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, sops-nix, clownctl }: {
+  outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, sops-nix }: {
     darwinConfigurations."meatwizard" = nix-darwin.lib.darwinSystem {
       specialArgs = { inherit self inputs; };
       modules = [
