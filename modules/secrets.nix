@@ -8,6 +8,8 @@
     secrets.upcloud_token = { };
 
     templates."secrets.fish" = {
+      owner = "dappy";
+      mode = "0400";
       content = ''
         set -x UPCLOUD_TOKEN ${config.sops.placeholder.upcloud_token}
       '';
