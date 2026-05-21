@@ -1,4 +1,4 @@
-{ pkgs, inputs, ... }:
+{ pkgs, ... }:
 
 {
   environment.systemPackages = (with pkgs; [
@@ -36,7 +36,5 @@
     vault
     woff2
     yamllint
-  ]) ++ [
-    inputs.clownctl.packages.${pkgs.stdenv.hostPlatform.system}.default
-  ];
+  ]);
 }
