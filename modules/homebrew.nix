@@ -16,6 +16,7 @@
 
     brews = [
       "netbirdio/tap/netbird"
+      "rustnet"
     ];
 
     casks = [
