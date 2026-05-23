@@ -38,14 +38,14 @@
       narinfo-cache-negative-ttl = 3600;
 
       secret-key-files = "/var/root/nix-cache-priv.pem";
-      post-build-hook = toString (pkgs.writeShellScript "upload-to-cache" ''
-        set -eu
-        set -f
-        export IFS=' '
-        export AWS_SHARED_CREDENTIALS_FILE=/Users/dappy/.aws/credentials
-        exec ${pkgs.nix}/bin/nix copy --to \
-          's3://nix-cache-infra?region=eu-north-1&profile=nix-cache-writer&compression=zstd&compression-level=19&parallel-compression=true' $OUT_PATHS
-      '');
+      # post-build-hook = toString (pkgs.writeShellScript "upload-to-cache" ''
+      #   set -eu
+      #   set -f
+      #   export IFS=' '
+      #   export AWS_SHARED_CREDENTIALS_FILE=/Users/dappy/.aws/credentials
+      #   exec ${pkgs.nix}/bin/nix copy --to \
+      #     's3://nix-cache-infra?region=eu-north-1&profile=nix-cache-writer&compression=zstd&compression-level=19&parallel-compression=true' $OUT_PATHS
+      # '');
 
       substituters = [
         "https://cache.nixos.org"
