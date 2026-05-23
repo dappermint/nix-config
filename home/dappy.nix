@@ -21,7 +21,7 @@
       {
         type = "command";
         key = "Nix";
-        text = ''echo "Lix $(/run/current-system/sw/bin/nix --version | awk '{print $NF}')"'';
+        text = ''echo "Lix $(/run/current-system/sw/bin/nix --version | head -1 | awk '{print $NF}')"'';
       }
       "cpu"
       "gpu"
