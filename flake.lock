@@ -46,16 +46,17 @@
       "locked": {
         "lastModified": 1779475168,
         "narHash": "sha256-gm3D4FF9EcZlXK/ZnsC6IYzpEQplOoT+LPTurzOPyrk=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
+        "ref": "nixpkgs-unstable",
         "rev": "a0991c886dc83e6e9de01d5266e4842985b1850e",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "file:///Users/dappy/Code/nixpkgs"
       },
       "original": {
-        "owner": "NixOS",
         "ref": "nixpkgs-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "file:///Users/dappy/Code/nixpkgs"
       }
     },
     "root": {

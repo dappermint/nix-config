@@ -171,6 +171,38 @@
           $writer_id $writer_secret >> $creds
         chmod 0600 $creds
         echo "wrote [nix-cache] and [nix-cache-writer] profiles to $creds"
+
+        aws configure set s3.max_bandwidth 2MB/s --profile nix-cache-writer
+        aws configure set s3.max_concurrent_requests 2 --profile nix-cache-writer
+        echo "set s3.max_bandwidth=2MB/s and s3.max_concurrent_requests=2 for nix-cache-writer"
+      '';
+
+      nix-mirror-setup = ''
+        set -l mirror "$HOME/Code/nixpkgs"
+        if test -d $mirror/.git
+          echo "mirror already exists at $mirror"
+          return 0
+        end
+        mkdir -p (dirname $mirror)
+        echo "cloning nixpkgs (partial, blob:none) into $mirror ..."
+        git clone --filter=blob:none --no-checkout \
+          --branch nixpkgs-unstable \
+          https://github.com/NixOS/nixpkgs $mirror
+        git -C $mirror update-ref refs/heads/nixpkgs-unstable origin/nixpkgs-unstable
+        echo "done. local ref refs/heads/nixpkgs-unstable points at upstream tip"
+      '';
+
+      nix-mirror-update = ''
+        set -l mirror "$HOME/Code/nixpkgs"
+        if not test -d $mirror/.git
+          echo "mirror missing; run nix-mirror-setup first" >&2
+          return 1
+        end
+        echo "fetching origin/nixpkgs-unstable (partial) ..."
+        git -C $mirror fetch --filter=blob:none origin nixpkgs-unstable
+        git -C $mirror update-ref refs/heads/nixpkgs-unstable origin/nixpkgs-unstable
+        echo "updating flake input nixpkgs ..."
+        nix flake update nixpkgs --flake /etc/nix-darwin
       '';
 
       nix-cache-key-install = ''

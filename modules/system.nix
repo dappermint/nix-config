@@ -36,6 +36,7 @@
 
       narinfo-cache-positive-ttl = 86400;
       narinfo-cache-negative-ttl = 3600;
+      tarball-ttl = 604800;
 
       secret-key-files = "/var/root/nix-cache-priv.pem";
       # post-build-hook = toString (pkgs.writeShellScript "upload-to-cache" ''

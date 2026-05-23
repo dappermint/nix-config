@@ -2,7 +2,7 @@
   description = "meatwizard nix-darwin system flake";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "git+file:///Users/dappy/Code/nixpkgs?ref=nixpkgs-unstable&shallow=1";
     nix-darwin.url = "github:nix-darwin/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "github:nix-community/home-manager/master";
@@ -20,6 +20,7 @@
         ./modules/homebrew.nix
         ./modules/defaults.nix
         ./modules/aerospace.nix
+        ./modules/nix-cache-push.nix
         sops-nix.darwinModules.sops
         ./modules/secrets.nix
         home-manager.darwinModules.home-manager
