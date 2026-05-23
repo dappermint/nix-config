@@ -6,6 +6,34 @@
   home.username = lib.mkForce "dappy";
   home.homeDirectory = lib.mkForce "/Users/dappy";
 
+  home.file.".config/fastfetch/config.jsonc".text = builtins.toJSON {
+    "$schema" = "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json";
+    modules = [
+      "title"
+      "separator"
+      "os"
+      "host"
+      "kernel"
+      "uptime"
+      "packages"
+      "shell"
+      "terminal"
+      {
+        type = "command";
+        key = "Nix";
+        text = ''echo "Lix $(/run/current-system/sw/bin/nix --version | awk '{print $NF}')"'';
+      }
+      "cpu"
+      "gpu"
+      "memory"
+      "disk"
+      "battery"
+      "datetime"
+      "break"
+      "colors"
+    ];
+  };
+
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
