@@ -15,7 +15,7 @@
     registry = lib.mkForce {};
 
     settings = {
-      experimental-features = "nix-command flakes";
+      experimental-features = "nix-command flakes pipe-operator";
 
       always-allow-substitutes = true;
       builders-use-substitutes = true;
