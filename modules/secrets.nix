@@ -7,6 +7,12 @@
 
     secrets.upcloud_token = { };
 
+    secrets."nix-cache-priv-key" = {
+      key = "nix_cache_priv_key";
+      owner = "root";
+      mode = "0400";
+    };
+
     templates."secrets.fish" = {
       owner = "dappy";
       mode = "0400";

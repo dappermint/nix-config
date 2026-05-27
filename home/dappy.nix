@@ -2,6 +2,7 @@
 
 {
   home.stateVersion = "25.05";
+  home.enableNixpkgsReleaseCheck = false;
 
   home.username = lib.mkForce "dappy";
   home.homeDirectory = lib.mkForce "/Users/dappy";
@@ -37,6 +38,17 @@
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
+  };
+
+  programs.atuin = {
+    enable = true;
+    enableFishIntegration = true;
+    flags = [ "--disable-up-arrow" ];
+  };
+
+  programs.zoxide = {
+    enable = true;
+    enableFishIntegration = true;
   };
 
   programs.ssh = {
@@ -233,16 +245,23 @@
         nix flake update nixpkgs --flake /etc/nix-darwin
       '';
 
-      nix-cache-key-install = ''
-        set -l src "$HOME/Documents/Werk/repos/conway/infra/tofu/environments/infra/secrets/nix-cache-priv.pem"
-        set -l dst /var/root/nix-cache-priv.pem
-        if not test -f $src
-          echo "signing key not found at $src" >&2
+      nix-update = ''
+        set -l mirror "$HOME/Code/nixpkgs"
+        if not test -d $mirror/.git
+          echo "mirror missing; run nix-mirror-setup first" >&2
           return 1
         end
-        sudo install -o root -g wheel -m 0400 $src $dst
-        echo "installed signing key to $dst"
+        echo "fetching origin/nixpkgs-unstable (partial) ..."
+        git -C $mirror fetch --filter=blob:none origin nixpkgs-unstable
+        or return $status
+        git -C $mirror update-ref refs/heads/nixpkgs-unstable origin/nixpkgs-unstable
+        echo "updating flake inputs ..."
+        nix flake update --flake /etc/nix-darwin
+        or return $status
+        echo "darwin-rebuild switch ..."
+        sudo darwin-rebuild switch --flake /etc/nix-darwin --override-input nixpkgs "git+file://$mirror?ref=nixpkgs-unstable"
       '';
+
     };
   };
 }

@@ -20,13 +20,13 @@
     ];
 
     casks = [
+      "antigravity-cli"
       "aptakube"
       "arc"
       "claude"
       "claude-code@latest"
       "comet"
       "discord@ptb"
-      "google-gemini"
       "mixxx"
       "netbirdio/tap/netbird-ui"
       "nordvpn"

@@ -1,4 +1,4 @@
-{ pkgs, lib, self, ... }:
+{ pkgs, lib, self, config, ... }:
 
 {
   nixpkgs.config.allowUnfree = true;
@@ -38,15 +38,7 @@
       narinfo-cache-negative-ttl = 3600;
       tarball-ttl = 604800;
 
-      secret-key-files = "/var/root/nix-cache-priv.pem";
-      # post-build-hook = toString (pkgs.writeShellScript "upload-to-cache" ''
-      #   set -eu
-      #   set -f
-      #   export IFS=' '
-      #   export AWS_SHARED_CREDENTIALS_FILE=/Users/dappy/.aws/credentials
-      #   exec ${pkgs.nix}/bin/nix copy --to \
-      #     's3://nix-cache-infra?region=eu-north-1&profile=nix-cache-writer&compression=zstd&compression-level=19&parallel-compression=true' $OUT_PATHS
-      # '');
+      secret-key-files = config.sops.secrets."nix-cache-priv-key".path;
 
       substituters = [
         "https://cache.nixos.org"
@@ -96,11 +88,6 @@
       options = "--delete-older-than 7d";
     };
 
-    optimise = {
-      automatic = true;
-      interval = { Weekday = 0; };
-    };
-
     linux-builder.enable = false;
   };
 
@@ -116,7 +103,11 @@
     done
   '';
 
+  services.nix-cache-push.enable = true;
+
   programs.fish.enable = true;
+
+  programs.nix-index.enable = true;
 
   security.pam.services.sudo_local.touchIdAuth = true;
 
