@@ -1,19 +1,11 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, config, ... }:
 
 let
-  cfg = {
-    profile = "nix-cache-writer";
-    bucket = "nix-cache-infra";
-    region = "eu-north-1";
-    staging = "/Users/dappy/.cache/nix-cache-staging";
-    safeSSIDs = [ "_PUT_HOME_SSID_HERE_" ];
-    intervalSeconds = 3 * 60 * 60;
-    logDir = "/Users/dappy/Library/Logs/nix-cache-push";
-  };
+  cfg = config.services.nix-cache-push;
 
   pushScript = pkgs.writeShellApplication {
     name = "nix-cache-push";
-    runtimeInputs = with pkgs; [ awscli2 nix coreutils gnugrep gawk gnused ];
+    runtimeInputs = with pkgs; [ awscli2 config.nix.package coreutils gnugrep gawk gnused ];
     text = ''
       set -euo pipefail
 
@@ -50,39 +42,93 @@ let
         fi
       fi
 
-      mkdir -p ${cfg.staging}
-      echo "staging closure -> ${cfg.staging}"
-      nix copy --to "file://${cfg.staging}?compression=zstd&compression-level=19&parallel-compression=true" "''${PATHS[@]}"
+      mkdir -p "${cfg.stagingDir}"
+      echo "staging closure -> ${cfg.stagingDir}"
+      nix copy --to "file://${cfg.stagingDir}?compression=zstd&compression-level=${toString cfg.compressionLevel}&parallel-compression=true" "''${PATHS[@]}"
 
       echo "syncing -> s3://${cfg.bucket}"
-      aws --profile ${cfg.profile} --region ${cfg.region} \
-        s3 sync ${cfg.staging} s3://${cfg.bucket}/ --no-progress
+      aws --profile "${cfg.profile}" --region "${cfg.region}" \
+        s3 sync "${cfg.stagingDir}" "s3://${cfg.bucket}/" --no-progress
     '';
   };
 in {
-  system.activationScripts.nixCachePushLogDir.text = ''
-    mkdir -p ${cfg.logDir}
-    chown dappy:staff ${cfg.logDir} || true
-  '';
+  options.services.nix-cache-push = {
+    enable = lib.mkEnableOption "nix-cache-push service";
 
-  launchd.user.agents.nix-cache-push = {
-    serviceConfig = {
-      Label = "org.dappy.nix-cache-push";
-      ProgramArguments = [ "${pushScript}/bin/nix-cache-push" ];
-      StartInterval = cfg.intervalSeconds;
-      RunAtLoad = false;
-      StandardOutPath = "${cfg.logDir}/out.log";
-      StandardErrorPath = "${cfg.logDir}/err.log";
-      Nice = 10;
-      LowPriorityIO = true;
-      EnvironmentVariables = {
-        HOME = "/Users/dappy";
-        AWS_SHARED_CREDENTIALS_FILE = "/Users/dappy/.aws/credentials";
-        AWS_CONFIG_FILE = "/Users/dappy/.aws/config";
-        PATH = "/run/current-system/sw/bin:/usr/bin:/bin:/usr/sbin:/sbin";
-      };
+    profile = lib.mkOption {
+      type = lib.types.str;
+      default = "nix-cache-writer";
+      description = "AWS CLI profile name to use.";
+    };
+
+    bucket = lib.mkOption {
+      type = lib.types.str;
+      default = "nix-cache-infra";
+      description = "S3 bucket to sync to.";
+    };
+
+    region = lib.mkOption {
+      type = lib.types.str;
+      default = "eu-north-1";
+      description = "AWS region of the S3 bucket.";
+    };
+
+    stagingDir = lib.mkOption {
+      type = lib.types.path;
+      default = "/Users/${config.system.primaryUser}/.cache/nix-cache-staging";
+      description = "Local staging directory for closures.";
+    };
+
+    logDir = lib.mkOption {
+      type = lib.types.path;
+      default = "/Users/${config.system.primaryUser}/Library/Logs/nix-cache-push";
+      description = "Directory for launchd logs.";
+    };
+
+    safeSSIDs = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ "_PUT_HOME_SSID_HERE_" ];
+      description = "Wi-Fi SSIDs where caching is permitted.";
+    };
+
+    intervalSeconds = lib.mkOption {
+      type = lib.types.int;
+      default = 10800; # 3 hours
+      description = "Sync interval in seconds.";
+    };
+
+    compressionLevel = lib.mkOption {
+      type = lib.types.int;
+      default = 19;
+      description = "ZSTD compression level used for closures (1-19).";
     };
   };
 
-  environment.systemPackages = [ pushScript ];
+  config = lib.mkIf cfg.enable {
+    system.activationScripts.nixCachePushLogDir.text = ''
+      mkdir -p "${cfg.logDir}"
+      chown ${config.system.primaryUser}:staff "${cfg.logDir}" || true
+    '';
+
+    launchd.user.agents.nix-cache-push = {
+      serviceConfig = {
+        Label = "org.dappy.nix-cache-push";
+        ProgramArguments = [ "${pushScript}/bin/nix-cache-push" ];
+        StartInterval = cfg.intervalSeconds;
+        RunAtLoad = false;
+        StandardOutPath = "${cfg.logDir}/out.log";
+        StandardErrorPath = "${cfg.logDir}/err.log";
+        Nice = 10;
+        LowPriorityIO = true;
+        EnvironmentVariables = {
+          HOME = "/Users/${config.system.primaryUser}";
+          AWS_SHARED_CREDENTIALS_FILE = "/Users/${config.system.primaryUser}/.aws/credentials";
+          AWS_CONFIG_FILE = "/Users/${config.system.primaryUser}/.aws/config";
+          PATH = "/run/current-system/sw/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+        };
+      };
+    };
+
+    environment.systemPackages = [ pushScript ];
+  };
 }

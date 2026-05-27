@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 {
-  environment.systemPackages = (with pkgs; [
+  environment.systemPackages = with pkgs; [
     fastfetch
     micro
     fd
@@ -24,6 +24,7 @@
     kubernetes-helm
     lazygit
     neovim
+    nh
     nodejs
     opentofu
     pre-commit
@@ -36,5 +37,5 @@
     vault
     woff2
     yamllint
-  ]);
+  ];
 }
