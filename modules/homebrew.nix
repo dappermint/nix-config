@@ -8,6 +8,7 @@
       autoUpdate = true;
       upgrade = true;
       cleanup = "uninstall";
+      extraFlags = [ "--force-cleanup" ];
     };
 
     taps = [
@@ -32,6 +33,7 @@
       "netbirdio/tap/netbird-ui"
       "nordvpn"
       "orbstack"
+      "orcaslicer"
       "orion"
       "osu"
       "qflipper"
