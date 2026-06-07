@@ -13,6 +13,12 @@
       mode = "0400";
     };
 
+    secrets.conway_kubeconfig = {
+      owner = "dappy";
+      mode = "0400";
+      path = "/Users/dappy/.kube/conway";
+    };
+
     templates."secrets.fish" = {
       owner = "dappy";
       mode = "0400";
