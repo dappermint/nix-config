@@ -7,6 +7,9 @@
   home.username = lib.mkForce "dappy";
   home.homeDirectory = lib.mkForce "/Users/dappy";
 
+  # merge the conway k8s cluster (sops-managed at ~/.kube/conway) with existing contexts
+  home.sessionVariables.KUBECONFIG = "/Users/dappy/.kube/config:/Users/dappy/.kube/conway";
+
   home.file.".config/fastfetch/config.jsonc".text = builtins.toJSON {
     "$schema" = "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json";
     modules = [
@@ -34,6 +37,42 @@
       "colors"
     ];
   };
+
+  home.file."justfile".text = ''
+    default:
+        @just --list
+
+    # update everything: netbird + gitlab
+    clownupdate: clownupdate-netbird clownupdate-gitlab
+
+    # update netbird quadlets on the clownway netbird server to latest stable
+    clownupdate-netbird:
+        #!/usr/bin/env bash
+        set -euo pipefail
+        nb=$(curl -sf https://api.github.com/repos/netbirdio/netbird/releases/latest | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
+        dash=$(curl -sf https://api.github.com/repos/netbirdio/dashboard/releases/latest | grep '"tag_name"' | sed 's/.*"\(v[^"]*\)".*/\1/')
+        echo "netbird -> v''${nb}, dashboard -> ''${dash}"
+        ssh ubuntu@16.171.108.167 bash << ENDSSH
+        set -euo pipefail
+        sudo sed -i "s|netbirdio/management:[0-9.]*-arm64v8|netbirdio/management:''${nb}-arm64v8|" /etc/containers/systemd/netbird-management.container
+        sudo sed -i "s|netbirdio/relay:[0-9.]*-arm64v8|netbirdio/relay:''${nb}-arm64v8|" /etc/containers/systemd/netbird-relay.container
+        sudo sed -i "s|netbirdio/signal:[0-9.]*-arm64v8|netbirdio/signal:''${nb}-arm64v8|" /etc/containers/systemd/netbird-signal.container
+        sudo sed -i "s|netbirdio/dashboard:v[0-9.]*|netbirdio/dashboard:''${dash}|" /etc/containers/systemd/netbird-dashboard.container
+        sudo systemctl daemon-reload
+        sudo systemctl restart netbird-management netbird-relay netbird-signal netbird-dashboard
+        systemctl is-active netbird-management netbird-relay netbird-signal netbird-dashboard
+        ENDSSH
+
+    # apt update + upgrade on the clownway gitlab server
+    clownupdate-gitlab:
+        #!/usr/bin/env bash
+        set -euo pipefail
+        ssh ubuntu@10.0.7.178 bash << ENDSSH
+        set -euo pipefail
+        sudo apt-get update -q
+        sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
+        ENDSSH
+  '';
 
   programs.direnv = {
     enable = true;
