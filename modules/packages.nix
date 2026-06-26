@@ -1,10 +1,29 @@
 { pkgs, ... }:
 
+let
+  kubernetes-helm-fixed = pkgs.kubernetes-helm.overrideAttrs (oldAttrs: {
+    preCheck = builtins.replaceStrings
+      [
+        "cmd/helm/dependency_build_test.go"
+        "cmd/helm/dependency_update_test.go"
+        "cmd/helm/install_test.go"
+        "cmd/helm/pull_test.go"
+      ]
+      [
+        "pkg/cmd/dependency_build_test.go"
+        "pkg/cmd/dependency_update_test.go"
+        "pkg/cmd/install_test.go"
+        "pkg/cmd/pull_test.go"
+      ]
+      oldAttrs.preCheck;
+  });
+in
 {
   environment.systemPackages = with pkgs; [
     fastfetch
     micro
     fd
+    dust
     hyfetch
     ansible
     ansible-lint
@@ -12,6 +31,7 @@
     bat
     bottom
     bun
+    codex
     eksctl
     elvish
     eza
@@ -19,9 +39,8 @@
     gh
     go
     just
-    k9s
     kubectl
-    kubernetes-helm
+    kubernetes-helm-fixed
     lazygit
     neovim
     nh

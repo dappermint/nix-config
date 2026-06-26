@@ -34,7 +34,7 @@
       autohide-time-modifier = 0.2;
       orientation = "bottom";
       tilesize = 64;
-      mineffect = "scale";
+      mineffect = "genie";
       show-recents = false;
       mru-spaces = false;
       expose-animation-duration = 0.1;
@@ -86,9 +86,9 @@
 
     menuExtraClock = {
       Show24Hour = true;
-      ShowSeconds = false;
+      ShowSeconds = true;
       ShowDate = 1;
-      ShowDayOfWeek = true;
+      ShowDayOfWeek = false;
     };
   };
 
