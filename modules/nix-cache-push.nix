@@ -105,7 +105,7 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    system.activationScripts.nixCachePushLogDir.text = ''
+    system.activationScripts.extraActivation.text = ''
       mkdir -p "${cfg.logDir}"
       chown ${config.system.primaryUser}:staff "${cfg.logDir}" || true
     '';

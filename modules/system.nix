@@ -8,6 +8,9 @@
   system.stateVersion = 6;
   system.configurationRevision = self.rev or self.dirtyRev or null;
 
+  documentation.enable = false;
+  system.tools.darwin-uninstaller.enable = false;
+
   nix = {
     package = pkgs.lixPackageSets.lix_2_95.lix;
 
@@ -91,14 +94,14 @@
     linux-builder.enable = false;
   };
 
-  system.activationScripts.trimGenerations.text = ''
+  system.activationScripts.postActivation.text = ''
     for prof in /nix/var/nix/profiles/system \
                 /nix/var/nix/profiles/per-user/root/profile \
                 /nix/var/nix/profiles/per-user/dappy/profile \
                 /Users/dappy/.local/state/nix/profiles/home-manager \
                 /Users/dappy/.local/state/nix/profiles/profile; do
       if [ -e "$prof" ]; then
-        ${pkgs.nix}/bin/nix-env --profile "$prof" --delete-generations +1 || true
+        ${config.nix.package}/bin/nix-env --profile "$prof" --delete-generations +3 || true
       fi
     done
   '';

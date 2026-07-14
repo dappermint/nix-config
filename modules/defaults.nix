@@ -59,7 +59,7 @@
     };
 
     screencapture = {
-      location = "~/Pictures/Screenshots";
+      location = "/Users/dappy/Pictures/Screenshots";
       type = "png";
       disable-shadow = true;
     };
@@ -92,14 +92,9 @@
     };
   };
 
-  system.keyboard = {
-    enableKeyMapping = true;
-    remapCapsLockToControl = true;
-  };
-
   system.startup.chime = false;
 
-  system.activationScripts.screenshotsDir.text = ''
+  system.activationScripts.extraActivation.text = ''
     mkdir -p /Users/dappy/Pictures/Screenshots
     chown dappy:staff /Users/dappy/Pictures/Screenshots
   '';
