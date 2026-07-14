@@ -5,18 +5,18 @@ let
     class Netbird < Formula
       desc "NetBird client"
       homepage "https://netbird.io/"
-      version "0.75.0-rc.5"
+      version "0.75.0-rc.6"
       license "BSD-3-Clause"
 
       on_macos do
         if Hardware::CPU.arm?
           url "https://github.com/netbirdio/netbird/releases/download/v#{version}/netbird_#{version}_darwin_arm64.tar.gz"
-          sha256 "b22242e73b00c7139049116a8000d453d2ac508b94ca77efa08189494c67e3f8"
+          sha256 "6a7e9bfeb28f053087b7857f128032cc8e298b4f13d01397f790209de8fd63a9"
         end
 
         if Hardware::CPU.intel?
           url "https://github.com/netbirdio/netbird/releases/download/v#{version}/netbird_#{version}_darwin_amd64.tar.gz"
-          sha256 "60a106bc3abc31530e58552173bd9d84070a4bd562801c90e36e3ad0c046cc66"
+          sha256 "a6df4c1f1fe3c58c7b586787918c0d8506feb9206cc96b601fec9a46feb31a97"
         end
       end
 
@@ -32,8 +32,8 @@ let
 
   netbirdUiRcCask = pkgs.writeText "netbird-ui-rc.rb" ''
     cask "netbird-ui-rc" do
-      version "0.75.0-rc.5"
-      sha256 "c4e519c69be6c951c7dceec18efd8217ad41553d12c37185bb17ce415ff96e74"
+      version "0.75.0-rc.6"
+      sha256 "0fc493a22b46757c87f98895ce60baba85eac4edf45f935f265a66e11a27eebf"
 
       url "https://github.com/netbirdio/netbird/releases/download/v#{version}/netbird_#{version}_darwin.pkg",
           verified: "github.com/netbirdio/netbird/"
