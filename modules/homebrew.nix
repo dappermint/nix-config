@@ -5,18 +5,18 @@ let
     class Netbird < Formula
       desc "NetBird client"
       homepage "https://netbird.io/"
-      version "0.75.0-rc.4"
+      version "0.75.0-rc.5"
       license "BSD-3-Clause"
 
       on_macos do
         if Hardware::CPU.arm?
           url "https://github.com/netbirdio/netbird/releases/download/v#{version}/netbird_#{version}_darwin_arm64.tar.gz"
-          sha256 "4c9e483584271220db366be1cea3835f714504dde88c2c279b6a70584bf38a68"
+          sha256 "b22242e73b00c7139049116a8000d453d2ac508b94ca77efa08189494c67e3f8"
         end
 
         if Hardware::CPU.intel?
           url "https://github.com/netbirdio/netbird/releases/download/v#{version}/netbird_#{version}_darwin_amd64.tar.gz"
-          sha256 "3d0874fc3fdfef68a16e16af193c90447e9863e0cb9abe0006daec3c4ba3aa54"
+          sha256 "60a106bc3abc31530e58552173bd9d84070a4bd562801c90e36e3ad0c046cc66"
         end
       end
 
@@ -32,8 +32,8 @@ let
 
   netbirdUiRcCask = pkgs.writeText "netbird-ui-rc.rb" ''
     cask "netbird-ui-rc" do
-      version "0.75.0-rc.4"
-      sha256 "b079d4e728b95948ae8fdba4bf58f627f6062939b749c333f7c5910bdf14e71d"
+      version "0.75.0-rc.5"
+      sha256 "c4e519c69be6c951c7dceec18efd8217ad41553d12c37185bb17ce415ff96e74"
 
       url "https://github.com/netbirdio/netbird/releases/download/v#{version}/netbird_#{version}_darwin.pkg",
           verified: "github.com/netbirdio/netbird/"
@@ -87,29 +87,33 @@ in
     ];
 
     casks = [
-      "atoll"
       "antigravity-cli"
       "aptakube"
+      "atoll"
+      "anydesk"
       "claude-code@latest"
       "comet"
-      "thebrowsercompany-dia"
-      "discord@ptb"
-      "firefox@nightly"
-      "mixxx"
       "dappy/netbird-rc/netbird-ui-rc"
-      "nordvpn"
-      "pearcleaner"
+      "discord@ptb"
+      "figma"
+      "firefox@nightly"
+      "freecad"
       "linear"
+      "nordvpn"
       "orbstack"
       "orcaslicer"
       "osu"
+      "pearcleaner"
+      "rekordbox"
       "signal@beta"
       "spotify"
       "steam"
       "telegram"
+      "thebrowsercompany-dia"
       "transmission"
       "utm"
       "warp@preview"
+      "winbox"
       "zed"
       "zen"
       "zerotier-one"
