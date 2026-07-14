@@ -54,10 +54,10 @@
         echo "netbird -> v''${nb}, dashboard -> ''${dash}"
         ssh ubuntu@16.171.108.167 bash << ENDSSH
         set -euo pipefail
-        sudo sed -i "s|netbirdio/management:[0-9.]*-arm64v8|netbirdio/management:''${nb}-arm64v8|" /etc/containers/systemd/netbird-management.container
-        sudo sed -i "s|netbirdio/relay:[0-9.]*-arm64v8|netbirdio/relay:''${nb}-arm64v8|" /etc/containers/systemd/netbird-relay.container
-        sudo sed -i "s|netbirdio/signal:[0-9.]*-arm64v8|netbirdio/signal:''${nb}-arm64v8|" /etc/containers/systemd/netbird-signal.container
-        sudo sed -i "s|netbirdio/dashboard:v[0-9.]*|netbirdio/dashboard:''${dash}|" /etc/containers/systemd/netbird-dashboard.container
+        sudo sed -i "s|netbirdio/management:.*|netbirdio/management:''${nb}|" /etc/containers/systemd/netbird-management.container
+        sudo sed -i "s|netbirdio/relay:.*|netbirdio/relay:''${nb}|" /etc/containers/systemd/netbird-relay.container
+        sudo sed -i "s|netbirdio/signal:.*|netbirdio/signal:''${nb}|" /etc/containers/systemd/netbird-signal.container
+        sudo sed -i "s|netbirdio/dashboard:.*|netbirdio/dashboard:''${dash}|" /etc/containers/systemd/netbird-dashboard.container
         sudo systemctl daemon-reload
         sudo systemctl restart netbird-management netbird-relay netbird-signal netbird-dashboard
         systemctl is-active netbird-management netbird-relay netbird-signal netbird-dashboard
@@ -166,6 +166,53 @@
     enable = true;
 
     functions = {
+      clownupdate = ''
+        just --justfile $HOME/justfile clownupdate $argv
+      '';
+
+      eks-login = ''
+        set -l profile fyffe
+        set -l region eu-north-1
+        set -l cluster infra
+        set -l sso_start_url https://ssoins-6508d9799401466e.portal.eu-north-1.app.aws
+        set -l sso_account_id 490224159551
+        set -l sso_role AdministratorAccess
+
+        echo "==> configuring sso profile '$profile' (account $sso_account_id, cluster $cluster)"
+        aws configure set sso_start_url $sso_start_url --profile $profile
+        aws configure set sso_region $region --profile $profile
+        aws configure set sso_account_id $sso_account_id --profile $profile
+        aws configure set sso_role_name $sso_role --profile $profile
+        aws configure set region $region --profile $profile
+        aws configure set output json --profile $profile
+
+        set -gx AWS_PROFILE $profile
+        set -gx AWS_REGION $region
+        set -gx AWS_DEFAULT_REGION $region
+
+        echo "==> sso login"
+        aws sso login --profile $profile
+        or begin
+          echo "sso login failed" >&2
+          return 1
+        end
+
+        aws sts get-caller-identity --profile $profile
+        or begin
+          echo "aws auth failed" >&2
+          return 1
+        end
+
+        echo "==> updating kubeconfig for '$cluster'"
+        aws eks update-kubeconfig --name $cluster --region $region --profile $profile --alias $cluster
+        or begin
+          echo "failed to update kubeconfig" >&2
+          return 1
+        end
+
+        kubectl cluster-info
+      '';
+
       nix-builder-up = ''
         set -l names nix-builder-arm nix-builder-x86
         if test (count $argv) -gt 0
@@ -284,6 +331,16 @@
         nix flake update nixpkgs --flake /etc/nix-darwin
       '';
 
+      # newest trunk rev where hydra finished codex on aarch64-darwin; channel tip
+      # is often ahead of hydra's darwin builds, and codex drags livekit-libwebrtc
+      # in, so following tip means compiling webrtc from source
+      nixpkgs-cached-rev = ''
+        set -l job https://hydra.nixos.org/job/nixpkgs/trunk/codex.aarch64-darwin/latest
+        set -l eval (curl -sfLm 30 -H "Accept: application/json" $job | jq -re 'select(.buildstatus == 0) | .jobsetevals[0]')
+        or return 1
+        curl -sfLm 30 -H "Accept: application/json" https://hydra.nixos.org/eval/$eval | jq -re '.jobsetevalinputs.nixpkgs.revision'
+      '';
+
       nix-update = ''
         set -l mirror "$HOME/Code/nixpkgs"
         if not test -d $mirror/.git
@@ -294,11 +351,27 @@
         git -C $mirror fetch --filter=blob:none origin nixpkgs-unstable
         or return $status
         git -C $mirror update-ref refs/heads/nixpkgs-unstable origin/nixpkgs-unstable
+
+        set -l nixpkgs_src "git+file://$mirror?ref=nixpkgs-unstable"
+        echo "querying hydra for newest darwin-cached nixpkgs rev ..."
+        set -l rev (nixpkgs-cached-rev)
+        if test -n "$rev"
+          echo "fetching $rev into mirror ..."
+          if git -C $mirror fetch --filter=blob:none origin $rev
+            set nixpkgs_src "git+file://$mirror?rev=$rev"
+            echo "pinning nixpkgs to $rev"
+          else
+            echo "fetch of $rev failed; using channel tip (may build from source)" >&2
+          end
+        else
+          echo "hydra query failed; using channel tip (may build from source)" >&2
+        end
+
         echo "updating flake inputs ..."
         nix flake update --flake /etc/nix-darwin
         or return $status
         echo "darwin-rebuild switch ..."
-        sudo darwin-rebuild switch --flake /etc/nix-darwin --override-input nixpkgs "git+file://$mirror?ref=nixpkgs-unstable"
+        sudo darwin-rebuild switch --flake /etc/nix-darwin --override-input nixpkgs $nixpkgs_src
       '';
 
     };
