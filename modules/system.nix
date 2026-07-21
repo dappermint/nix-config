@@ -11,10 +11,62 @@
 
 let
   builderKey = "${primaryHomeDirectory}/.ssh/nix_builder";
+  geistMonoNerdFontOverlay = final: _: {
+    geist-mono-nerd-font = final.stdenvNoCC.mkDerivation {
+      pname = "geist-mono-nerd-font";
+      inherit (final.geist-font) version;
+
+      dontUnpack = true;
+
+      nativeBuildInputs = [ final.nerd-font-patcher ];
+
+      buildPhase = ''
+        runHook preBuild
+
+        mkdir patched
+        for style in Regular Italic Bold BoldItalic; do
+          nerd-font-patcher \
+            --complete \
+            --careful \
+            --mono \
+            --no-progressbars \
+            --outputdir patched \
+            --quiet \
+            "${final.geist-font}/share/fonts/opentype/GeistMono-$style.otf"
+        done
+
+        runHook postBuild
+      '';
+
+      installPhase = ''
+        runHook preInstall
+
+        install -d "$out/share/fonts/opentype"
+        install -m444 patched/*.otf "$out/share/fonts/opentype/"
+
+        runHook postInstall
+      '';
+
+      meta = {
+        description = "Geist Mono patched with Nerd Fonts glyphs";
+        homepage = "https://vercel.com/font";
+        license = with lib.licenses; [
+          mit
+          ofl
+        ];
+        platforms = lib.platforms.all;
+      };
+    };
+  };
 in
 {
+  networking.hostName = "meatwizard";
+  networking.computerName = "meatwizard";
+  networking.localHostName = "meatwizard";
+
   nixpkgs.config.allowUnfree = true;
   nixpkgs.hostPlatform = system;
+  nixpkgs.overlays = [ geistMonoNerdFontOverlay ];
 
   system.primaryUser = primaryUsername;
   system.stateVersion = 6;
@@ -145,8 +197,6 @@ in
   programs.nix-index.enable = true;
 
   security.pam.services.sudo_local.touchIdAuth = true;
-
-  fonts.packages = [ pkgs.nerd-fonts.fira-code ];
 
   environment.etc."ssh/ssh_config.d/200-nix-builders.conf".text = ''
     Host nix-builder-arm.clownway.org nix-builder-x86.clownway.org

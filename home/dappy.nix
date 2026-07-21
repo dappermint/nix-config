@@ -1,4 +1,6 @@
 {
+  lib,
+  pkgs,
   system,
   primaryHomeDirectory,
   ...
@@ -8,6 +10,8 @@ let
   awsProfile = "fyffe";
   awsRegion = "eu-north-1";
   builderNames = "nix-builder-arm nix-builder-x86";
+  monoFontFamily = "GeistMono Nerd Font Mono";
+  monoFontPostScriptName = "GeistMonoNFM-Regular";
   nixDarwinDirectory = "/etc/nix-darwin";
   nixpkgsBranch = "nixpkgs-unstable";
   nixpkgsMirror = "$HOME/Code/nixpkgs";
@@ -100,6 +104,49 @@ in
     enable = true;
     enableFishIntegration = true;
   };
+
+  programs.zed-editor = {
+    enable = true;
+    package = null;
+    userSettings = {
+      ui_font_family = "Geist";
+      buffer_font_family = monoFontFamily;
+      terminal.font_family = monoFontFamily;
+    };
+  };
+
+  home.activation.fontDefaults = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run /usr/bin/defaults write NSGlobalDomain NSFixedPitchFont -string "${monoFontPostScriptName}"
+    run /usr/bin/defaults write dev.warp.Warp-Preview FontName -string '"${monoFontFamily}"'
+  '';
+
+  home.activation.installGeistFonts = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    run mkdir -p "$HOME/Library/Fonts"
+    run ${pkgs.coreutils}/bin/install -m 0644 \
+      "${pkgs.geist-font}/share/fonts/opentype/Geist-Regular.otf" \
+      "$HOME/Library/Fonts/Geist-Regular.otf"
+    run ${pkgs.coreutils}/bin/install -m 0644 \
+      "${pkgs.geist-font}/share/fonts/opentype/Geist-RegularItalic.otf" \
+      "$HOME/Library/Fonts/Geist-Italic.otf"
+    run ${pkgs.coreutils}/bin/install -m 0644 \
+      "${pkgs.geist-font}/share/fonts/opentype/Geist-Bold.otf" \
+      "$HOME/Library/Fonts/Geist-Bold.otf"
+    run ${pkgs.coreutils}/bin/install -m 0644 \
+      "${pkgs.geist-font}/share/fonts/opentype/Geist-BoldItalic.otf" \
+      "$HOME/Library/Fonts/Geist-BoldItalic.otf"
+    run ${pkgs.coreutils}/bin/install -m 0644 \
+      "${pkgs.geist-mono-nerd-font}/share/fonts/opentype/GeistMonoNerdFontMono-Regular.otf" \
+      "$HOME/Library/Fonts/GeistMonoNerdFontMono-Regular.otf"
+    run ${pkgs.coreutils}/bin/install -m 0644 \
+      "${pkgs.geist-mono-nerd-font}/share/fonts/opentype/GeistMonoNerdFontMono-Italic.otf" \
+      "$HOME/Library/Fonts/GeistMonoNerdFontMono-Italic.otf"
+    run ${pkgs.coreutils}/bin/install -m 0644 \
+      "${pkgs.geist-mono-nerd-font}/share/fonts/opentype/GeistMonoNerdFontMono-Bold.otf" \
+      "$HOME/Library/Fonts/GeistMonoNerdFontMono-Bold.otf"
+    run ${pkgs.coreutils}/bin/install -m 0644 \
+      "${pkgs.geist-mono-nerd-font}/share/fonts/opentype/GeistMonoNerdFontMono-BoldItalic.otf" \
+      "$HOME/Library/Fonts/GeistMonoNerdFontMono-BoldItalic.otf"
+  '';
 
   programs.ssh = {
     enable = true;
