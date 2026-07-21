@@ -1,12 +1,25 @@
-{ pkgs, lib, self, config, ... }:
+{
+  pkgs,
+  lib,
+  self,
+  config,
+  system,
+  primaryUsername,
+  primaryHomeDirectory,
+  ...
+}:
 
+let
+  builderKey = "${primaryHomeDirectory}/.ssh/nix_builder";
+in
 {
   nixpkgs.config.allowUnfree = true;
-  nixpkgs.hostPlatform = "aarch64-darwin";
+  nixpkgs.hostPlatform = system;
 
-  system.primaryUser = "dappy";
+  system.primaryUser = primaryUsername;
   system.stateVersion = 6;
   system.configurationRevision = self.rev or self.dirtyRev or null;
+  users.users.${primaryUsername}.home = primaryHomeDirectory;
 
   documentation.enable = false;
   system.tools.darwin-uninstaller.enable = false;
@@ -15,10 +28,14 @@
     package = pkgs.lixPackageSets.lix_2_95.lix;
 
     channel.enable = false;
-    registry = lib.mkForce {};
+    registry = lib.mkForce { };
 
     settings = {
-      experimental-features = "nix-command flakes pipe-operator";
+      experimental-features = [
+        "flakes"
+        "nix-command"
+        "pipe-operator"
+      ];
 
       always-allow-substitutes = true;
       builders-use-substitutes = true;
@@ -27,8 +44,8 @@
       keep-outputs = false;
       keep-derivations = false;
 
-      min-free = 1073741824;
-      max-free = 10737418240;
+      min-free = 21474836480;
+      max-free = 42949672960;
 
       max-jobs = "auto";
       cores = 0;
@@ -41,7 +58,7 @@
       narinfo-cache-negative-ttl = 3600;
       tarball-ttl = 604800;
 
-      secret-key-files = config.sops.secrets."nix-cache-priv-key".path;
+      secret-key-files = [ config.sops.secrets."nix-cache-priv-key".path ];
 
       substituters = [
         "https://cache.nixos.org"
@@ -56,11 +73,14 @@
         "nix-cache-conway:UzHXLOUOfz/ztSgyJ/v0J9BmbX0dLeCJVQp6lGpk78I="
       ];
 
-      trusted-users = [ "root" "dappy" ];
+      trusted-users = [
+        "root"
+        primaryUsername
+      ];
     };
 
     envVars = {
-      AWS_SHARED_CREDENTIALS_FILE = "/Users/dappy/.aws/credentials";
+      AWS_SHARED_CREDENTIALS_FILE = "${primaryHomeDirectory}/.aws/credentials";
     };
 
     distributedBuilds = true;
@@ -68,26 +88,38 @@
       {
         hostName = "nix-builder-arm.clownway.org";
         sshUser = "builder";
-        sshKey = "/Users/dappy/.ssh/nix_builder";
+        sshKey = builderKey;
         systems = [ "aarch64-linux" ];
         maxJobs = 4;
         speedFactor = 2;
-        supportedFeatures = [ "kvm" "big-parallel" "benchmark" ];
+        supportedFeatures = [
+          "kvm"
+          "big-parallel"
+          "benchmark"
+        ];
       }
       {
         hostName = "nix-builder-x86.clownway.org";
         sshUser = "builder";
-        sshKey = "/Users/dappy/.ssh/nix_builder";
+        sshKey = builderKey;
         systems = [ "x86_64-linux" ];
         maxJobs = 4;
         speedFactor = 2;
-        supportedFeatures = [ "kvm" "big-parallel" "benchmark" ];
+        supportedFeatures = [
+          "kvm"
+          "big-parallel"
+          "benchmark"
+        ];
       }
     ];
 
     gc = {
       automatic = true;
-      interval = { Weekday = 0; };
+      interval = {
+        Weekday = 0;
+        Hour = 4;
+        Minute = 0;
+      };
       options = "--delete-older-than 7d";
     };
 
@@ -97,9 +129,9 @@
   system.activationScripts.postActivation.text = ''
     for prof in /nix/var/nix/profiles/system \
                 /nix/var/nix/profiles/per-user/root/profile \
-                /nix/var/nix/profiles/per-user/dappy/profile \
-                /Users/dappy/.local/state/nix/profiles/home-manager \
-                /Users/dappy/.local/state/nix/profiles/profile; do
+                /nix/var/nix/profiles/per-user/${primaryUsername}/profile \
+                ${primaryHomeDirectory}/.local/state/nix/profiles/home-manager \
+                ${primaryHomeDirectory}/.local/state/nix/profiles/profile; do
       if [ -e "$prof" ]; then
         ${config.nix.package}/bin/nix-env --profile "$prof" --delete-generations +3 || true
       fi
@@ -119,7 +151,7 @@
   environment.etc."ssh/ssh_config.d/200-nix-builders.conf".text = ''
     Host nix-builder-arm.clownway.org nix-builder-x86.clownway.org
       User builder
-      IdentityFile /Users/dappy/.ssh/nix_builder
+      IdentityFile ${builderKey}
       IdentitiesOnly yes
       StrictHostKeyChecking accept-new
       UserKnownHostsFile /var/root/.ssh/known_hosts_builders

@@ -1,14 +1,25 @@
-{ pkgs, lib, ... }:
-
 {
-  home.stateVersion = "25.05";
-  home.enableNixpkgsReleaseCheck = false;
+  system,
+  primaryHomeDirectory,
+  ...
+}:
 
-  home.username = lib.mkForce "dappy";
-  home.homeDirectory = lib.mkForce "/Users/dappy";
+let
+  awsProfile = "fyffe";
+  awsRegion = "eu-north-1";
+  builderNames = "nix-builder-arm nix-builder-x86";
+  nixDarwinDirectory = "/etc/nix-darwin";
+  nixpkgsBranch = "nixpkgs-unstable";
+  nixpkgsMirror = "$HOME/Code/nixpkgs";
+in
+{
+  home = {
+    stateVersion = "25.05";
+    enableNixpkgsReleaseCheck = false;
+  };
 
   # merge the conway k8s cluster (sops-managed at ~/.kube/conway) with existing contexts
-  home.sessionVariables.KUBECONFIG = "/Users/dappy/.kube/config:/Users/dappy/.kube/conway";
+  home.sessionVariables.KUBECONFIG = "${primaryHomeDirectory}/.kube/config:${primaryHomeDirectory}/.kube/conway";
 
   home.file.".config/fastfetch/config.jsonc".text = builtins.toJSON {
     "$schema" = "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json";
@@ -155,10 +166,9 @@
       help.autocorrect = "prompt";
       commit.verbose = true;
       log.date = "iso";
-      core.fsmonitor = true;
       core.untrackedCache = true;
-      credential."https://github.com".helper = "!${pkgs.gh}/bin/gh auth git-credential";
-      credential."https://gist.github.com".helper = "!${pkgs.gh}/bin/gh auth git-credential";
+      credential."https://github.com".helper = "!/run/current-system/sw/bin/gh auth git-credential";
+      credential."https://gist.github.com".helper = "!/run/current-system/sw/bin/gh auth git-credential";
     };
   };
 
@@ -171,8 +181,8 @@
       '';
 
       eks-login = ''
-        set -l profile fyffe
-        set -l region eu-north-1
+        set -l profile ${awsProfile}
+        set -l region ${awsRegion}
         set -l cluster infra
         set -l sso_start_url https://ssoins-6508d9799401466e.portal.eu-north-1.app.aws
         set -l sso_account_id 490224159551
@@ -214,13 +224,13 @@
       '';
 
       nix-builder-up = ''
-        set -l names nix-builder-arm nix-builder-x86
+        set -l names ${builderNames}
         if test (count $argv) -gt 0
           set names $argv
         end
         set -l ids
         for name in $names
-          set -l id (aws --profile fyffe --region eu-north-1 ec2 describe-instances \
+          set -l id (aws --profile ${awsProfile} --region ${awsRegion} ec2 describe-instances \
             --filters "Name=tag:Name,Values=$name" "Name=instance-state-name,Values=stopped,stopping,pending,running" \
             --query 'Reservations[0].Instances[0].InstanceId' --output text)
           if test -z "$id" -o "$id" = None
@@ -228,11 +238,11 @@
             continue
           end
           echo "starting $name ($id)..."
-          aws --profile fyffe --region eu-north-1 ec2 start-instances --instance-ids $id >/dev/null
+          aws --profile ${awsProfile} --region ${awsRegion} ec2 start-instances --instance-ids $id >/dev/null
           set ids $ids $id
         end
         if test (count $ids) -gt 0
-          aws --profile fyffe --region eu-north-1 ec2 wait instance-running --instance-ids $ids
+          aws --profile ${awsProfile} --region ${awsRegion} ec2 wait instance-running --instance-ids $ids
           echo "waiting for ssh..."
           for name in $names
             while not ssh -o ConnectTimeout=3 -o BatchMode=yes $name true 2>/dev/null
@@ -244,24 +254,24 @@
       '';
 
       nix-builder-down = ''
-        set -l names nix-builder-arm nix-builder-x86
+        set -l names ${builderNames}
         if test (count $argv) -gt 0
           set names $argv
         end
         for name in $names
-          set -l id (aws --profile fyffe --region eu-north-1 ec2 describe-instances \
+          set -l id (aws --profile ${awsProfile} --region ${awsRegion} ec2 describe-instances \
             --filters "Name=tag:Name,Values=$name" "Name=instance-state-name,Values=running,pending" \
             --query 'Reservations[0].Instances[0].InstanceId' --output text)
           if test -n "$id" -a "$id" != None
             echo "stopping $name ($id)..."
-            aws --profile fyffe --region eu-north-1 ec2 stop-instances --instance-ids $id >/dev/null
+            aws --profile ${awsProfile} --region ${awsRegion} ec2 stop-instances --instance-ids $id >/dev/null
           end
         end
       '';
 
       nix-builder-status = ''
-        for name in nix-builder-arm nix-builder-x86
-          set -l state (aws --profile fyffe --region eu-north-1 ec2 describe-instances \
+        for name in ${builderNames}
+          set -l state (aws --profile ${awsProfile} --region ${awsRegion} ec2 describe-instances \
             --filters "Name=tag:Name,Values=$name" \
             --query 'Reservations[0].Instances[0].[InstanceId,State.Name,PrivateIpAddress]' --output text)
           echo "$name: $state"
@@ -304,7 +314,7 @@
       '';
 
       nix-mirror-setup = ''
-        set -l mirror "$HOME/Code/nixpkgs"
+        set -l mirror "${nixpkgsMirror}"
         if test -d $mirror/.git
           echo "mirror already exists at $mirror"
           return 0
@@ -312,47 +322,47 @@
         mkdir -p (dirname $mirror)
         echo "cloning nixpkgs (partial, blob:none) into $mirror ..."
         git clone --filter=blob:none --no-checkout \
-          --branch nixpkgs-unstable \
+          --branch ${nixpkgsBranch} \
           https://github.com/NixOS/nixpkgs $mirror
-        git -C $mirror update-ref refs/heads/nixpkgs-unstable origin/nixpkgs-unstable
-        echo "done. local ref refs/heads/nixpkgs-unstable points at upstream tip"
+        git -C $mirror update-ref refs/heads/${nixpkgsBranch} origin/${nixpkgsBranch}
+        echo "done. local ref refs/heads/${nixpkgsBranch} points at upstream tip"
       '';
 
       nix-mirror-update = ''
-        set -l mirror "$HOME/Code/nixpkgs"
+        set -l mirror "${nixpkgsMirror}"
         if not test -d $mirror/.git
           echo "mirror missing; run nix-mirror-setup first" >&2
           return 1
         end
-        echo "fetching origin/nixpkgs-unstable (partial) ..."
-        git -C $mirror fetch --filter=blob:none origin nixpkgs-unstable
-        git -C $mirror update-ref refs/heads/nixpkgs-unstable origin/nixpkgs-unstable
+        echo "fetching origin/${nixpkgsBranch} (partial) ..."
+        git -C $mirror fetch --filter=blob:none origin ${nixpkgsBranch}
+        git -C $mirror update-ref refs/heads/${nixpkgsBranch} origin/${nixpkgsBranch}
         echo "updating flake input nixpkgs ..."
-        nix flake update nixpkgs --flake /etc/nix-darwin
+        nix flake update nixpkgs --flake ${nixDarwinDirectory}
       '';
 
-      # newest trunk rev where hydra finished codex on aarch64-darwin; channel tip
+      # newest trunk rev where hydra finished codex on this system; channel tip
       # is often ahead of hydra's darwin builds, and codex drags livekit-libwebrtc
       # in, so following tip means compiling webrtc from source
       nixpkgs-cached-rev = ''
-        set -l job https://hydra.nixos.org/job/nixpkgs/trunk/codex.aarch64-darwin/latest
+        set -l job https://hydra.nixos.org/job/nixpkgs/trunk/codex.${system}/latest
         set -l eval (curl -sfLm 30 -H "Accept: application/json" $job | jq -re 'select(.buildstatus == 0) | .jobsetevals[0]')
         or return 1
         curl -sfLm 30 -H "Accept: application/json" https://hydra.nixos.org/eval/$eval | jq -re '.jobsetevalinputs.nixpkgs.revision'
       '';
 
       nix-update = ''
-        set -l mirror "$HOME/Code/nixpkgs"
+        set -l mirror "${nixpkgsMirror}"
         if not test -d $mirror/.git
           echo "mirror missing; run nix-mirror-setup first" >&2
           return 1
         end
-        echo "fetching origin/nixpkgs-unstable (partial) ..."
-        git -C $mirror fetch --filter=blob:none origin nixpkgs-unstable
+        echo "fetching origin/${nixpkgsBranch} (partial) ..."
+        git -C $mirror fetch --filter=blob:none origin ${nixpkgsBranch}
         or return $status
-        git -C $mirror update-ref refs/heads/nixpkgs-unstable origin/nixpkgs-unstable
+        git -C $mirror update-ref refs/heads/${nixpkgsBranch} origin/${nixpkgsBranch}
 
-        set -l nixpkgs_src "git+file://$mirror?ref=nixpkgs-unstable"
+        set -l nixpkgs_src "git+file://$mirror?ref=${nixpkgsBranch}"
         echo "querying hydra for newest darwin-cached nixpkgs rev ..."
         set -l rev (nixpkgs-cached-rev)
         if test -n "$rev"
@@ -368,10 +378,10 @@
         end
 
         echo "updating flake inputs ..."
-        nix flake update --flake /etc/nix-darwin
+        nix flake update --flake ${nixDarwinDirectory}
         or return $status
         echo "darwin-rebuild switch ..."
-        sudo darwin-rebuild switch --flake /etc/nix-darwin --override-input nixpkgs $nixpkgs_src
+        sudo darwin-rebuild switch --flake ${nixDarwinDirectory} --override-input nixpkgs $nixpkgs_src
       '';
 
     };

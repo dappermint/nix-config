@@ -1,11 +1,13 @@
 { config, pkgs, ... }:
 
 let
+  netbirdVersion = "0.75.0-rc.6";
+
   netbirdRcFormula = pkgs.writeText "netbird.rb" ''
     class Netbird < Formula
       desc "NetBird client"
       homepage "https://netbird.io/"
-      version "0.75.0-rc.6"
+      version "${netbirdVersion}"
       license "BSD-3-Clause"
 
       on_macos do
@@ -32,7 +34,7 @@ let
 
   netbirdUiRcCask = pkgs.writeText "netbird-ui-rc.rb" ''
     cask "netbird-ui-rc" do
-      version "0.75.0-rc.6"
+      version "${netbirdVersion}"
       sha256 "0fc493a22b46757c87f98895ce60baba85eac4edf45f935f265a66e11a27eebf"
 
       url "https://github.com/netbirdio/netbird/releases/download/v#{version}/netbird_#{version}_darwin.pkg",
@@ -82,15 +84,16 @@ in
     ];
 
     brews = [
+      "awscli"
       "dappy/netbird-rc/netbird"
       "rustnet"
     ];
 
     casks = [
       "antigravity-cli"
+      "anydesk"
       "aptakube"
       "atoll"
-      "anydesk"
       "claude-code@latest"
       "comet"
       "dappy/netbird-rc/netbird-ui-rc"
@@ -99,6 +102,7 @@ in
       "firefox@nightly"
       "freecad"
       "linear"
+      "lm-studio"
       "nordvpn"
       "orbstack"
       "orcaslicer"
@@ -109,7 +113,9 @@ in
       "spotify"
       "steam"
       "telegram"
+      "telegram-desktop"
       "thebrowsercompany-dia"
+      "tor-browser"
       "transmission"
       "utm"
       "warp@preview"
@@ -126,5 +132,12 @@ in
     install -d "$netbirdTap/Casks"
     install -m 0644 ${netbirdRcFormula} "$netbirdTap/Formula/netbird.rb"
     install -m 0644 ${netbirdUiRcCask} "$netbirdTap/Casks/netbird-ui-rc.rb"
+
+    # brew cleanup removes the imperative daemon during version bumps
+    netbird="${config.homebrew.prefix}/bin/netbird"
+    if [ -x "$netbird" ] && [ ! -f /Library/LaunchDaemons/netbird.plist ]; then
+      "$netbird" service install || true
+      "$netbird" service start || true
+    fi
   '';
 }

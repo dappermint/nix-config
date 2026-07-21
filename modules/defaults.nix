@@ -1,7 +1,12 @@
-{ ... }:
+{ primaryHomeDirectory, primaryUsername, ... }:
 
+let
+  screenshotsDirectory = "${primaryHomeDirectory}/Pictures/Screenshots";
+in
 {
   system.defaults = {
+    SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true;
+
     NSGlobalDomain = {
       AppleInterfaceStyle = "Dark";
       AppleShowAllExtensions = true;
@@ -59,7 +64,7 @@
     };
 
     screencapture = {
-      location = "/Users/dappy/Pictures/Screenshots";
+      location = screenshotsDirectory;
       type = "png";
       disable-shadow = true;
     };
@@ -95,7 +100,6 @@
   system.startup.chime = false;
 
   system.activationScripts.extraActivation.text = ''
-    mkdir -p /Users/dappy/Pictures/Screenshots
-    chown dappy:staff /Users/dappy/Pictures/Screenshots
+    install -d -o ${primaryUsername} -g staff "${screenshotsDirectory}"
   '';
 }

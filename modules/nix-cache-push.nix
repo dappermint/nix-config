@@ -1,15 +1,48 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  primaryUsername,
+  primaryHomeDirectory,
+  ...
+}:
 
 let
   cfg = config.services.nix-cache-push;
+  aws = "${config.homebrew.prefix}/bin/aws";
+  logMaxBytes = 5 * 1024 * 1024;
 
   pushScript = pkgs.writeShellApplication {
     name = "nix-cache-push";
-    runtimeInputs = with pkgs; [ awscli2 config.nix.package coreutils gnugrep gawk gnused ];
+    runtimeInputs = [
+      config.nix.package
+      pkgs.coreutils
+      pkgs.gawk
+      pkgs.gnugrep
+      pkgs.gnused
+    ];
     text = ''
       set -euo pipefail
 
+      mkdir -p "${cfg.logDir}" "${cfg.stateDir}"
+
+      rotate_log() {
+        local log=$1
+        [ -f "$log" ] || return 0
+        if [ "$(wc -c < "$log")" -gt ${toString logMaxBytes} ]; then
+          cp "$log" "$log.1"
+          : > "$log"
+        fi
+      }
+
+      if [ "''${NIX_CACHE_PUSH_BACKGROUND:-0}" = 1 ]; then
+        rotate_log "${cfg.logDir}/out.log"
+        rotate_log "${cfg.logDir}/err.log"
+        exec >>"${cfg.logDir}/out.log" 2>>"${cfg.logDir}/err.log"
+      fi
+
       FORCE=0
+      DEFAULT_PATHS=0
       PATHS=()
       for arg in "$@"; do
         case "$arg" in
@@ -17,16 +50,31 @@ let
           *) PATHS+=("$arg") ;;
         esac
       done
-      [ ''${#PATHS[@]} -eq 0 ] && PATHS=(/run/current-system)
+      if [ ''${#PATHS[@]} -eq 0 ]; then
+        DEFAULT_PATHS=1
+        PATHS=(/run/current-system)
+      fi
+
+      current_system=$(readlink /run/current-system)
+      if [ "$DEFAULT_PATHS" -eq 1 ] && [ "$FORCE" -ne 1 ] \
+        && [ -r "${cfg.stateDir}/last-system" ] \
+        && [ "$(cat "${cfg.stateDir}/last-system")" = "$current_system" ]; then
+        echo "system already uploaded; skipping"
+        exit 0
+      fi
 
       if [ "$FORCE" -ne 1 ]; then
         IFACE=$(/sbin/route -n get default 2>/dev/null | awk '/interface:/ {print $2}' || true)
         if [ -z "''${IFACE:-}" ]; then
-          echo "no default route; skipping" >&2; exit 0
+          echo "no default route; skipping" >&2
+          exit 0
         fi
         case "$IFACE" in
           en*|bridge*) : ;;
-          *) echo "iface $IFACE not whitelisted; skipping" >&2; exit 0 ;;
+          *)
+            echo "iface $IFACE not whitelisted; skipping" >&2
+            exit 0
+            ;;
         esac
         SSID=$(/usr/sbin/networksetup -getairportnetwork "$IFACE" 2>/dev/null \
           | sed -E 's/^Current Wi-Fi Network: //' || true)
@@ -37,21 +85,34 @@ let
             [ "$SSID" = "$s" ] && OK=1
           done
           if [ "$OK" -ne 1 ]; then
-            echo "wifi '$SSID' not in safe list; skipping" >&2; exit 0
+            echo "wifi '$SSID' not in safe list; skipping" >&2
+            exit 0
           fi
         fi
       fi
+
+      if ! mkdir "${cfg.stateDir}/lock" 2>/dev/null; then
+        echo "another cache operation is running; skipping"
+        exit 0
+      fi
+      trap 'rmdir "${cfg.stateDir}/lock"' EXIT
 
       mkdir -p "${cfg.stagingDir}"
       echo "staging closure -> ${cfg.stagingDir}"
       nix copy --to "file://${cfg.stagingDir}?compression=zstd&compression-level=${toString cfg.compressionLevel}&parallel-compression=true" "''${PATHS[@]}"
 
       echo "syncing -> s3://${cfg.bucket}"
-      aws --profile "${cfg.profile}" --region "${cfg.region}" \
+      ${aws} --profile "${cfg.profile}" --region "${cfg.region}" \
         s3 sync "${cfg.stagingDir}" "s3://${cfg.bucket}/" --no-progress
+
+      if [ "$DEFAULT_PATHS" -eq 1 ]; then
+        printf '%s\n' "$current_system" > "${cfg.stateDir}/last-system"
+      fi
+      date +%s > "${cfg.stateDir}/last-success"
     '';
   };
-in {
+in
+{
   options.services.nix-cache-push = {
     enable = lib.mkEnableOption "nix-cache-push service";
 
@@ -75,14 +136,20 @@ in {
 
     stagingDir = lib.mkOption {
       type = lib.types.path;
-      default = "/Users/${config.system.primaryUser}/.cache/nix-cache-staging";
+      default = "${primaryHomeDirectory}/.cache/nix-cache-staging";
       description = "Local staging directory for closures.";
     };
 
     logDir = lib.mkOption {
       type = lib.types.path;
-      default = "/Users/${config.system.primaryUser}/Library/Logs/nix-cache-push";
+      default = "${primaryHomeDirectory}/Library/Logs/nix-cache-push";
       description = "Directory for launchd logs.";
+    };
+
+    stateDir = lib.mkOption {
+      type = lib.types.path;
+      default = "${primaryHomeDirectory}/.local/state/nix-cache-push";
+      description = "Directory for upload state.";
     };
 
     safeSSIDs = lib.mkOption {
@@ -92,13 +159,13 @@ in {
     };
 
     intervalSeconds = lib.mkOption {
-      type = lib.types.int;
+      type = lib.types.ints.positive;
       default = 10800; # 3 hours
       description = "Sync interval in seconds.";
     };
 
     compressionLevel = lib.mkOption {
-      type = lib.types.int;
+      type = lib.types.ints.between 1 19;
       default = 19;
       description = "ZSTD compression level used for closures (1-19).";
     };
@@ -106,24 +173,23 @@ in {
 
   config = lib.mkIf cfg.enable {
     system.activationScripts.extraActivation.text = ''
-      mkdir -p "${cfg.logDir}"
-      chown ${config.system.primaryUser}:staff "${cfg.logDir}" || true
+      install -d -o ${primaryUsername} -g staff "${cfg.logDir}"
+      install -d -o ${primaryUsername} -g staff "${cfg.stateDir}"
     '';
 
     launchd.user.agents.nix-cache-push = {
       serviceConfig = {
-        Label = "org.dappy.nix-cache-push";
+        Label = "org.${primaryUsername}.nix-cache-push";
         ProgramArguments = [ "${pushScript}/bin/nix-cache-push" ];
         StartInterval = cfg.intervalSeconds;
         RunAtLoad = false;
-        StandardOutPath = "${cfg.logDir}/out.log";
-        StandardErrorPath = "${cfg.logDir}/err.log";
         Nice = 10;
         LowPriorityIO = true;
         EnvironmentVariables = {
-          HOME = "/Users/${config.system.primaryUser}";
-          AWS_SHARED_CREDENTIALS_FILE = "/Users/${config.system.primaryUser}/.aws/credentials";
-          AWS_CONFIG_FILE = "/Users/${config.system.primaryUser}/.aws/config";
+          HOME = primaryHomeDirectory;
+          AWS_SHARED_CREDENTIALS_FILE = "${primaryHomeDirectory}/.aws/credentials";
+          AWS_CONFIG_FILE = "${primaryHomeDirectory}/.aws/config";
+          NIX_CACHE_PUSH_BACKGROUND = "1";
           PATH = "/run/current-system/sw/bin:/usr/bin:/bin:/usr/sbin:/sbin";
         };
       };
