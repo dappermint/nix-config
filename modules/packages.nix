@@ -1,55 +1,37 @@
 { pkgs, ... }:
 
-let
-  kubernetes-helm-fixed = pkgs.kubernetes-helm.overrideAttrs (oldAttrs: {
-    preCheck = builtins.replaceStrings
-      [
-        "cmd/helm/dependency_build_test.go"
-        "cmd/helm/dependency_update_test.go"
-        "cmd/helm/install_test.go"
-        "cmd/helm/pull_test.go"
-      ]
-      [
-        "pkg/cmd/dependency_build_test.go"
-        "pkg/cmd/dependency_update_test.go"
-        "pkg/cmd/install_test.go"
-        "pkg/cmd/pull_test.go"
-      ]
-      oldAttrs.preCheck;
-  });
-in
 {
+  # awscli2 crashes through libffi on macOS 27, so homebrew owns it for now
   environment.systemPackages = with pkgs; [
-    fastfetch
-    micro
-    fd
-    dust
-    hyfetch
     ansible
     ansible-lint
-    awscli2
     bat
     bottom
     bun
     codex
+    dust
     eksctl
     elvish
     eza
-    git-filter-repo
+    fastfetch
+    fd
     gh
+    git-filter-repo
     go
+    hyfetch
     just
     kubectl
-    kubernetes-helm-fixed
+    kubernetes-helm
     lazygit
+    micro
     neovim
     nh
     nodejs
+    ookla-speedtest
     opentofu
     pre-commit
     python3Packages.fonttools
     ripgrep
-    ookla-speedtest
     sshpass
     upcloud-cli
     uv

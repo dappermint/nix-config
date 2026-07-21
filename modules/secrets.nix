@@ -1,9 +1,15 @@
-{ self, config, ... }:
+{
+  self,
+  config,
+  primaryUsername,
+  primaryHomeDirectory,
+  ...
+}:
 
 {
   sops = {
     defaultSopsFile = "${self}/secrets/secrets.yaml";
-    age.sshKeyPaths = [ "/Users/dappy/.ssh/id_ed25519" ];
+    age.sshKeyPaths = [ "${primaryHomeDirectory}/.ssh/id_ed25519" ];
 
     secrets.upcloud_token = { };
 
@@ -14,13 +20,13 @@
     };
 
     secrets.conway_kubeconfig = {
-      owner = "dappy";
+      owner = primaryUsername;
       mode = "0400";
-      path = "/Users/dappy/.kube/conway";
+      path = "${primaryHomeDirectory}/.kube/conway";
     };
 
     templates."secrets.fish" = {
-      owner = "dappy";
+      owner = primaryUsername;
       mode = "0400";
       content = ''
         set -x UPCLOUD_TOKEN ${config.sops.placeholder.upcloud_token}
@@ -29,6 +35,8 @@
   };
 
   programs.fish.shellInit = ''
-    test -r "${config.sops.templates."secrets.fish".path}"; and source "${config.sops.templates."secrets.fish".path}"
+    test -r "${config.sops.templates."secrets.fish".path}"; and source "${
+      config.sops.templates."secrets.fish".path
+    }"
   '';
 }

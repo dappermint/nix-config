@@ -11,13 +11,31 @@
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, sops-nix }:
+  outputs =
+    {
+      self,
+      nix-darwin,
+      nixpkgs,
+      home-manager,
+      sops-nix,
+      ...
+    }:
     let
       system = "aarch64-darwin";
+      primaryUsername = "dappy";
+      primaryHomeDirectory = "/Users/${primaryUsername}";
       pkgs = nixpkgs.legacyPackages.${system};
-    in {
+    in
+    {
       darwinConfigurations."meatwizard" = nix-darwin.lib.darwinSystem {
-        specialArgs = { inherit self inputs; };
+        specialArgs = {
+          inherit
+            self
+            system
+            primaryUsername
+            primaryHomeDirectory
+            ;
+        };
         modules = [
           ./modules/system.nix
           ./modules/packages.nix
@@ -25,6 +43,7 @@
           ./modules/defaults.nix
           ./modules/aerospace.nix
           ./modules/nix-cache-push.nix
+          ./modules/maintenance.nix
           sops-nix.darwinModules.sops
           ./modules/secrets.nix
           home-manager.darwinModules.home-manager
@@ -32,20 +51,31 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "hm-backup";
-            home-manager.users.dappy = import ./home/dappy.nix;
+            home-manager.extraSpecialArgs = {
+              inherit system primaryHomeDirectory;
+            };
+            home-manager.users.${primaryUsername} = import ./home/dappy.nix;
           }
         ];
       };
 
-      formatter.${system} = pkgs.nixfmt-rfc-style;
+      formatter.${system} = pkgs.nixfmt;
 
-      checks.${system}.lint = pkgs.runCommand "lint" {
-        nativeBuildInputs = [ pkgs.deadnix pkgs.statix ];
-      } ''
-        cd ${self}
-        deadnix --fail .
-        statix check .
-        touch $out
-      '';
+      checks.${system}.lint =
+        pkgs.runCommand "lint"
+          {
+            nativeBuildInputs = [
+              pkgs.deadnix
+              pkgs.nixfmt
+              pkgs.statix
+            ];
+          }
+          ''
+            cd ${self}
+            find . -name '*.nix' -print0 | xargs -0 nixfmt --check
+            deadnix --fail .
+            statix check .
+            touch $out
+          '';
     };
 }
