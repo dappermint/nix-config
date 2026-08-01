@@ -8,9 +8,10 @@
 }:
 
 let
+  shell = import ../lib/shell.nix;
+
   cfg = config.services.nix-cache-push;
   aws = "${config.homebrew.prefix}/bin/aws";
-  logMaxBytes = 5 * 1024 * 1024;
 
   pushScript = pkgs.writeShellApplication {
     name = "nix-cache-push";
@@ -26,14 +27,7 @@ let
 
       mkdir -p "${cfg.logDir}" "${cfg.stateDir}"
 
-      rotate_log() {
-        local log=$1
-        [ -f "$log" ] || return 0
-        if [ "$(wc -c < "$log")" -gt ${toString logMaxBytes} ]; then
-          cp "$log" "$log.1"
-          : > "$log"
-        fi
-      }
+      ${shell.rotateLog}
 
       if [ "''${NIX_CACHE_PUSH_BACKGROUND:-0}" = 1 ]; then
         rotate_log "${cfg.logDir}/out.log"
