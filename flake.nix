@@ -59,6 +59,8 @@
         ];
       };
 
+      packages.${system}.mac-cleaner = pkgs.callPackage ./packages/mac-cleaner { };
+
       formatter.${system} = pkgs.nixfmt;
 
       checks.${system}.lint =
