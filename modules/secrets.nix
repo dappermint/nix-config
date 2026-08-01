@@ -28,6 +28,12 @@
       path = "${primaryHomeDirectory}/.kube/conway";
     };
 
+    secrets.youtube_stream_key = {
+      owner = primaryUsername;
+      mode = "0400";
+      path = "${primaryHomeDirectory}/.config/obs/youtube-stream-key";
+    };
+
     templates."secrets.fish" = {
       owner = primaryUsername;
       mode = "0400";
