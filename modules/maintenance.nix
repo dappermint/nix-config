@@ -7,11 +7,12 @@
 }:
 
 let
+  shell = import ../lib/shell.nix;
+
   warningFreePercent = 15;
   cleanupFreePercent = 10;
   emergencyFreePercent = 5;
   stagingMaxKiB = 8 * 1024 * 1024;
-  logMaxBytes = 5 * 1024 * 1024;
 
   logDir = "${primaryHomeDirectory}/Library/Logs/local-maintenance";
   stateDir = "${primaryHomeDirectory}/.local/state/local-maintenance";
@@ -38,14 +39,8 @@ let
 
       mkdir -p "$log_dir" "$state_dir"
 
-      rotate_log() {
-        local log=$1
-        [ -f "$log" ] || return 0
-        if [ "$(wc -c < "$log")" -gt ${toString logMaxBytes} ]; then
-          cp "$log" "$log.1"
-          : > "$log"
-        fi
-      }
+      ${shell.rotateLog}
+      ${shell.dataVolumeFreePercent}
 
       if [ "''${LOCAL_MAINTENANCE_BACKGROUND:-0}" = 1 ]; then
         rotate_log "$out_log"
@@ -73,12 +68,10 @@ let
         /usr/bin/osascript -e "display notification \"$1\" with title \"local maintenance\"" >/dev/null
       }
 
-      used_percent=$(/bin/df -Pk /System/Volumes/Data | awk 'NR == 2 { gsub(/%/, "", $5); print $5 }')
-      if [[ ! "$used_percent" =~ ^[0-9]+$ ]]; then
+      if ! free_percent=$(data_volume_free_percent); then
         echo "could not determine data-volume usage" >&2
         exit 1
       fi
-      free_percent=$((100 - used_percent))
 
       show_stamp() {
         local label=$1
@@ -188,13 +181,13 @@ let
       pkgs.gawk
     ];
     text = ''
-      used_percent=$(/bin/df -Pk /System/Volumes/Data | awk 'NR == 2 { gsub(/%/, "", $5); print $5 }')
-      if [[ ! "$used_percent" =~ ^[0-9]+$ ]]; then
+      ${shell.dataVolumeFreePercent}
+
+      if ! free_percent=$(data_volume_free_percent); then
         /usr/bin/logger -t nix-pressure-gc "could not determine data-volume usage"
         exit 1
       fi
 
-      free_percent=$((100 - used_percent))
       if [ "$free_percent" -ge ${toString cleanupFreePercent} ]; then
         exit 0
       fi
