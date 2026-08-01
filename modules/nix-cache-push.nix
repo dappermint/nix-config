@@ -146,9 +146,10 @@ in
       description = "Directory for upload state.";
     };
 
+    # deliberately has no default: an unset allowlist would silently skip every
+    # upload made over wi-fi, so make it an eval error instead
     safeSSIDs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ "_PUT_HOME_SSID_HERE_" ];
       description = "Wi-Fi SSIDs where caching is permitted.";
     };
 
