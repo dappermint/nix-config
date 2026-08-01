@@ -1,4 +1,9 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  self,
+  system,
+  ...
+}:
 
 {
   # awscli2 crashes through libffi on macOS 27, so homebrew owns it for now
@@ -8,6 +13,7 @@
     bat
     bottom
     bun
+    cabextract
     codex
     dust
     eksctl
@@ -23,9 +29,11 @@
     kubectl
     kubernetes-helm
     lazygit
+    self.packages.${system}.mac-cleaner
     micro
     neovim
     nh
+    nix-output-monitor
     nodejs
     ookla-speedtest
     opentofu
