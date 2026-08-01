@@ -1,70 +1,5 @@
-{ config, pkgs, ... }:
+{ config, ... }:
 
-let
-  netbirdVersion = "0.75.0-rc.6";
-
-  netbirdRcFormula = pkgs.writeText "netbird.rb" ''
-    class Netbird < Formula
-      desc "NetBird client"
-      homepage "https://netbird.io/"
-      version "${netbirdVersion}"
-      license "BSD-3-Clause"
-
-      on_macos do
-        if Hardware::CPU.arm?
-          url "https://github.com/netbirdio/netbird/releases/download/v#{version}/netbird_#{version}_darwin_arm64.tar.gz"
-          sha256 "6a7e9bfeb28f053087b7857f128032cc8e298b4f13d01397f790209de8fd63a9"
-        end
-
-        if Hardware::CPU.intel?
-          url "https://github.com/netbirdio/netbird/releases/download/v#{version}/netbird_#{version}_darwin_amd64.tar.gz"
-          sha256 "a6df4c1f1fe3c58c7b586787918c0d8506feb9206cc96b601fec9a46feb31a97"
-        end
-      end
-
-      def install
-        bin.install "netbird"
-      end
-
-      test do
-        system "#{bin}/netbird", "version"
-      end
-    end
-  '';
-
-  netbirdUiRcCask = pkgs.writeText "netbird-ui-rc.rb" ''
-    cask "netbird-ui-rc" do
-      version "${netbirdVersion}"
-      sha256 "0fc493a22b46757c87f98895ce60baba85eac4edf45f935f265a66e11a27eebf"
-
-      url "https://github.com/netbirdio/netbird/releases/download/v#{version}/netbird_#{version}_darwin.pkg",
-          verified: "github.com/netbirdio/netbird/"
-      name "NetBird"
-      desc "NetBird GUI Client RC"
-      homepage "https://www.netbird.io/"
-
-      installer script: {
-        executable: "/bin/sh",
-        args:       [
-          "-c",
-          "set -eu; tmpdir=$(mktemp -d); trap 'rm -rf \"$tmpdir\"' EXIT; pkgutil --expand '#{staged_path}/netbird_#{version}_darwin.pkg' \"$tmpdir/pkg\"; ditto -x -z \"$tmpdir/pkg/netbird.pkg/Payload\" \"$tmpdir/payload\"; rm -rf /Applications/NetBird.app; ditto \"$tmpdir/payload/Applications/NetBird.app\" /Applications/NetBird.app",
-        ],
-        sudo:       true,
-      }
-
-      uninstall quit:   "io.netbird.client",
-                delete: "/Applications/NetBird.app"
-
-      zap trash: [
-        "~/Library/Application Support/NetBird",
-        "~/Library/Caches/io.netbird.client",
-        "~/Library/HTTPStorages/io.netbird.client",
-        "~/Library/Preferences/io.netbird.client.plist",
-        "~/Library/Saved Application State/io.netbird.client.savedState",
-      ]
-    end
-  '';
-in
 {
   homebrew = {
     enable = true;
@@ -77,15 +12,17 @@ in
     };
 
     taps = [
+      "apple/apple"
+      "frankea/whisky"
       {
-        name = "dappy/netbird-rc";
+        name = "netbirdio/tap";
         trusted = true;
       }
     ];
 
     brews = [
       "awscli"
-      "dappy/netbird-rc/netbird"
+      "netbirdio/tap/netbird"
       "rustnet"
     ];
 
@@ -95,15 +32,18 @@ in
       "aptakube"
       "atoll"
       "claude-code@latest"
+      "claude-status-bar"
       "comet"
-      "dappy/netbird-rc/netbird-ui-rc"
-      "discord@ptb"
+      "discord@canary"
       "figma"
       "firefox@nightly"
+      "frankea/whisky/whisky"
       "freecad"
       "linear"
       "lm-studio"
+      "netbirdio/tap/netbird-ui"
       "nordvpn"
+      "obs"
       "orbstack"
       "orcaslicer"
       "osu"
@@ -112,6 +52,7 @@ in
       "signal@beta"
       "spotify"
       "steam"
+      "tailscale-app"
       "telegram"
       "telegram-desktop"
       "thebrowsercompany-dia"
@@ -127,17 +68,17 @@ in
   };
 
   system.activationScripts.extraActivation.text = ''
-    netbirdTap="${config.homebrew.prefix}/Library/Taps/dappy/homebrew-netbird-rc"
-    install -d "$netbirdTap/Formula"
-    install -d "$netbirdTap/Casks"
-    install -m 0644 ${netbirdRcFormula} "$netbirdTap/Formula/netbird.rb"
-    install -m 0644 ${netbirdUiRcCask} "$netbirdTap/Casks/netbird-ui-rc.rb"
-
     # brew cleanup removes the imperative daemon during version bumps
     netbird="${config.homebrew.prefix}/bin/netbird"
-    if [ -x "$netbird" ] && [ ! -f /Library/LaunchDaemons/netbird.plist ]; then
-      "$netbird" service install || true
-      "$netbird" service start || true
+    if [ -x "$netbird" ]; then
+      if [ ! -f /Library/LaunchDaemons/netbird.plist ]; then
+        "$netbird" service install
+      fi
+      if ! /bin/launchctl print system/netbird >/dev/null 2>&1; then
+        /bin/launchctl bootstrap system /Library/LaunchDaemons/netbird.plist
+      fi
+      /bin/launchctl kickstart -k system/netbird
+      /bin/launchctl print system/netbird >/dev/null
     fi
   '';
 }
