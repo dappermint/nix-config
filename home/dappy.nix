@@ -1,7 +1,5 @@
 {
   lib,
-  pkgs,
-  system,
   primaryHomeDirectory,
   ...
 }:
@@ -9,7 +7,6 @@
 let
   awsProfile = "fyffe";
   awsRegion = "eu-north-1";
-  builderNames = "nix-builder-arm nix-builder-x86";
   monoFontFamily = "GeistMono Nerd Font Mono";
   monoFontPostScriptName = "GeistMonoNFM-Regular";
   nixDarwinDirectory = "/etc/nix-darwin";
@@ -122,34 +119,6 @@ in
     run /usr/bin/defaults write dev.warp.Warp-Preview FontName -string '"${monoFontFamily}"'
   '';
 
-  home.activation.installGeistFonts = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    run mkdir -p "$HOME/Library/Fonts"
-    run ${pkgs.coreutils}/bin/install -m 0644 \
-      "${pkgs.geist-font}/share/fonts/opentype/Geist-Regular.otf" \
-      "$HOME/Library/Fonts/Geist-Regular.otf"
-    run ${pkgs.coreutils}/bin/install -m 0644 \
-      "${pkgs.geist-font}/share/fonts/opentype/Geist-RegularItalic.otf" \
-      "$HOME/Library/Fonts/Geist-Italic.otf"
-    run ${pkgs.coreutils}/bin/install -m 0644 \
-      "${pkgs.geist-font}/share/fonts/opentype/Geist-Bold.otf" \
-      "$HOME/Library/Fonts/Geist-Bold.otf"
-    run ${pkgs.coreutils}/bin/install -m 0644 \
-      "${pkgs.geist-font}/share/fonts/opentype/Geist-BoldItalic.otf" \
-      "$HOME/Library/Fonts/Geist-BoldItalic.otf"
-    run ${pkgs.coreutils}/bin/install -m 0644 \
-      "${pkgs.geist-mono-nerd-font}/share/fonts/opentype/GeistMonoNerdFontMono-Regular.otf" \
-      "$HOME/Library/Fonts/GeistMonoNerdFontMono-Regular.otf"
-    run ${pkgs.coreutils}/bin/install -m 0644 \
-      "${pkgs.geist-mono-nerd-font}/share/fonts/opentype/GeistMonoNerdFontMono-Italic.otf" \
-      "$HOME/Library/Fonts/GeistMonoNerdFontMono-Italic.otf"
-    run ${pkgs.coreutils}/bin/install -m 0644 \
-      "${pkgs.geist-mono-nerd-font}/share/fonts/opentype/GeistMonoNerdFontMono-Bold.otf" \
-      "$HOME/Library/Fonts/GeistMonoNerdFontMono-Bold.otf"
-    run ${pkgs.coreutils}/bin/install -m 0644 \
-      "${pkgs.geist-mono-nerd-font}/share/fonts/opentype/GeistMonoNerdFontMono-BoldItalic.otf" \
-      "$HOME/Library/Fonts/GeistMonoNerdFontMono-BoldItalic.otf"
-  '';
-
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
@@ -166,22 +135,6 @@ in
         ControlMaster = "no";
         ControlPath = "~/.ssh/master-%r@%n:%p";
         ControlPersist = "no";
-      };
-
-      "nix-builder-arm nix-builder-arm.clownway.org" = {
-        HostName = "nix-builder-arm.clownway.org";
-        User = "builder";
-        IdentityFile = "~/.ssh/nix_builder";
-        IdentitiesOnly = true;
-        StrictHostKeyChecking = "accept-new";
-      };
-
-      "nix-builder-x86 nix-builder-x86.clownway.org" = {
-        HostName = "nix-builder-x86.clownway.org";
-        User = "builder";
-        IdentityFile = "~/.ssh/nix_builder";
-        IdentitiesOnly = true;
-        StrictHostKeyChecking = "accept-new";
       };
     };
   };
@@ -223,6 +176,12 @@ in
 
   programs.fish = {
     enable = true;
+
+    shellAbbrs = {
+      nixb = "nom build";
+      nixd = "nom develop";
+      nixs = "nom shell";
+    };
 
     functions = {
       clownupdate = ''
@@ -270,61 +229,6 @@ in
         end
 
         kubectl cluster-info
-      '';
-
-      nix-builder-up = ''
-        set -l names ${builderNames}
-        if test (count $argv) -gt 0
-          set names $argv
-        end
-        set -l ids
-        for name in $names
-          set -l id (aws --profile ${awsProfile} --region ${awsRegion} ec2 describe-instances \
-            --filters "Name=tag:Name,Values=$name" "Name=instance-state-name,Values=stopped,stopping,pending,running" \
-            --query 'Reservations[0].Instances[0].InstanceId' --output text)
-          if test -z "$id" -o "$id" = None
-            echo "$name: no instance found" >&2
-            continue
-          end
-          echo "starting $name ($id)..."
-          aws --profile ${awsProfile} --region ${awsRegion} ec2 start-instances --instance-ids $id >/dev/null
-          set ids $ids $id
-        end
-        if test (count $ids) -gt 0
-          aws --profile ${awsProfile} --region ${awsRegion} ec2 wait instance-running --instance-ids $ids
-          echo "waiting for ssh..."
-          for name in $names
-            while not ssh -o ConnectTimeout=3 -o BatchMode=yes $name true 2>/dev/null
-              sleep 5
-            end
-            echo "$name ready"
-          end
-        end
-      '';
-
-      nix-builder-down = ''
-        set -l names ${builderNames}
-        if test (count $argv) -gt 0
-          set names $argv
-        end
-        for name in $names
-          set -l id (aws --profile ${awsProfile} --region ${awsRegion} ec2 describe-instances \
-            --filters "Name=tag:Name,Values=$name" "Name=instance-state-name,Values=running,pending" \
-            --query 'Reservations[0].Instances[0].InstanceId' --output text)
-          if test -n "$id" -a "$id" != None
-            echo "stopping $name ($id)..."
-            aws --profile ${awsProfile} --region ${awsRegion} ec2 stop-instances --instance-ids $id >/dev/null
-          end
-        end
-      '';
-
-      nix-builder-status = ''
-        for name in ${builderNames}
-          set -l state (aws --profile ${awsProfile} --region ${awsRegion} ec2 describe-instances \
-            --filters "Name=tag:Name,Values=$name" \
-            --query 'Reservations[0].Instances[0].[InstanceId,State.Name,PrivateIpAddress]' --output text)
-          echo "$name: $state"
-        end
       '';
 
       nix-cache-creds-install = ''
@@ -390,49 +294,9 @@ in
         nix flake update nixpkgs --flake ${nixDarwinDirectory}
       '';
 
-      # newest trunk rev where hydra finished codex on this system; channel tip
-      # is often ahead of hydra's darwin builds, and codex drags livekit-libwebrtc
-      # in, so following tip means compiling webrtc from source
-      nixpkgs-cached-rev = ''
-        set -l job https://hydra.nixos.org/job/nixpkgs/trunk/codex.${system}/latest
-        set -l eval (curl -sfLm 30 -H "Accept: application/json" $job | jq -re 'select(.buildstatus == 0) | .jobsetevals[0]')
-        or return 1
-        curl -sfLm 30 -H "Accept: application/json" https://hydra.nixos.org/eval/$eval | jq -re '.jobsetevalinputs.nixpkgs.revision'
-      '';
-
       nix-update = ''
-        set -l mirror "${nixpkgsMirror}"
-        if not test -d $mirror/.git
-          echo "mirror missing; run nix-mirror-setup first" >&2
-          return 1
-        end
-        echo "fetching origin/${nixpkgsBranch} (partial) ..."
-        git -C $mirror fetch --filter=blob:none origin ${nixpkgsBranch}
-        or return $status
-        git -C $mirror update-ref refs/heads/${nixpkgsBranch} origin/${nixpkgsBranch}
-
-        set -l nixpkgs_src "git+file://$mirror?ref=${nixpkgsBranch}"
-        echo "querying hydra for newest darwin-cached nixpkgs rev ..."
-        set -l rev (nixpkgs-cached-rev)
-        if test -n "$rev"
-          echo "fetching $rev into mirror ..."
-          if git -C $mirror fetch --filter=blob:none origin $rev
-            set nixpkgs_src "git+file://$mirror?rev=$rev"
-            echo "pinning nixpkgs to $rev"
-          else
-            echo "fetch of $rev failed; using channel tip (may build from source)" >&2
-          end
-        else
-          echo "hydra query failed; using channel tip (may build from source)" >&2
-        end
-
-        echo "updating flake inputs ..."
-        nix flake update --flake ${nixDarwinDirectory}
-        or return $status
-        echo "darwin-rebuild switch ..."
-        sudo darwin-rebuild switch --flake ${nixDarwinDirectory} --override-input nixpkgs $nixpkgs_src
+        nh darwin switch --update --diff always ${nixDarwinDirectory}
       '';
-
     };
   };
 }

@@ -10,7 +10,6 @@
 }:
 
 let
-  builderKey = "${primaryHomeDirectory}/.ssh/nix_builder";
   geistMonoNerdFontOverlay = final: _: {
     geist-mono-nerd-font = final.stdenvNoCC.mkDerivation {
       pname = "geist-mono-nerd-font";
@@ -68,6 +67,11 @@ in
   nixpkgs.hostPlatform = system;
   nixpkgs.overlays = [ geistMonoNerdFontOverlay ];
 
+  fonts.packages = [
+    pkgs.geist-font
+    pkgs.geist-mono-nerd-font
+  ];
+
   system.primaryUser = primaryUsername;
   system.stateVersion = 6;
   system.configurationRevision = self.rev or self.dirtyRev or null;
@@ -77,7 +81,7 @@ in
   system.tools.darwin-uninstaller.enable = false;
 
   nix = {
-    package = pkgs.lixPackageSets.lix_2_95.lix;
+    package = pkgs.lixPackageSets.latest.lix;
 
     channel.enable = false;
     registry = lib.mkForce { };
@@ -90,14 +94,13 @@ in
       ];
 
       always-allow-substitutes = true;
-      builders-use-substitutes = true;
 
       auto-optimise-store = true;
       keep-outputs = false;
       keep-derivations = false;
 
-      min-free = 21474836480;
-      max-free = 42949672960;
+      min-free = 5368709120;
+      max-free = 10737418240;
 
       max-jobs = "auto";
       cores = 0;
@@ -105,6 +108,8 @@ in
       connect-timeout = 5;
       download-attempts = 3;
       fallback = true;
+      log-format = "multiline-with-logs";
+      log-lines = 50;
 
       narinfo-cache-positive-ttl = 86400;
       narinfo-cache-negative-ttl = 3600;
@@ -124,46 +129,11 @@ in
         "cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o="
         "nix-cache-conway:UzHXLOUOfz/ztSgyJ/v0J9BmbX0dLeCJVQp6lGpk78I="
       ];
-
-      trusted-users = [
-        "root"
-        primaryUsername
-      ];
     };
 
     envVars = {
       AWS_SHARED_CREDENTIALS_FILE = "${primaryHomeDirectory}/.aws/credentials";
     };
-
-    distributedBuilds = true;
-    buildMachines = [
-      {
-        hostName = "nix-builder-arm.clownway.org";
-        sshUser = "builder";
-        sshKey = builderKey;
-        systems = [ "aarch64-linux" ];
-        maxJobs = 4;
-        speedFactor = 2;
-        supportedFeatures = [
-          "kvm"
-          "big-parallel"
-          "benchmark"
-        ];
-      }
-      {
-        hostName = "nix-builder-x86.clownway.org";
-        sshUser = "builder";
-        sshKey = builderKey;
-        systems = [ "x86_64-linux" ];
-        maxJobs = 4;
-        speedFactor = 2;
-        supportedFeatures = [
-          "kvm"
-          "big-parallel"
-          "benchmark"
-        ];
-      }
-    ];
 
     gc = {
       automatic = true;
@@ -174,8 +144,6 @@ in
       };
       options = "--delete-older-than 7d";
     };
-
-    linux-builder.enable = false;
   };
 
   system.activationScripts.postActivation.text = ''
@@ -190,7 +158,15 @@ in
     done
   '';
 
-  services.nix-cache-push.enable = true;
+  services.nix-cache-push = {
+    enable = true;
+    safeSSIDs = [
+      "petah tikva"
+      "sbox_inet"
+      "nibbler"
+      "6ix7even"
+    ];
+  };
 
   programs.fish.enable = true;
 
@@ -198,12 +174,26 @@ in
 
   security.pam.services.sudo_local.touchIdAuth = true;
 
-  environment.etc."ssh/ssh_config.d/200-nix-builders.conf".text = ''
-    Host nix-builder-arm.clownway.org nix-builder-x86.clownway.org
-      User builder
-      IdentityFile ${builderKey}
-      IdentitiesOnly yes
-      StrictHostKeyChecking accept-new
-      UserKnownHostsFile /var/root/.ssh/known_hosts_builders
+  # ha.int.sandb0x.space round-robins onto two space-LAN-only A records that
+  # black-hole from anywhere else, so pin it to the mesh address
+  environment.etc."hosts" = {
+    knownSha256Hashes = [
+      "c7dd0e2ed261ce76d76f852596c5b54026b9a894fa481381ffd399b556c0e2da"
+    ];
+    text = ''
+      127.0.0.1	localhost
+      255.255.255.255	broadcasthost
+      ::1	localhost
+
+      10.212.240.104	ha.int.sandb0x.space
+    '';
+  };
+
+  # the networking activation script unconditionally moves
+  # /etc/hosts.before-nix-darwin back over the symlink that /etc setup just
+  # made, so relink once it has run
+  system.activationScripts.networking.text = lib.mkAfter ''
+    ln -sfn /etc/static/hosts /etc/hosts
   '';
+
 }
