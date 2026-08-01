@@ -17,6 +17,8 @@ let
   nixpkgsMirror = "$HOME/Code/nixpkgs";
 in
 {
+  imports = [ ./obs.nix ];
+
   home = {
     stateVersion = "25.05";
     enableNixpkgsReleaseCheck = false;
