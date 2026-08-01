@@ -9,7 +9,10 @@
 {
   sops = {
     defaultSopsFile = "${self}/secrets/secrets.yaml";
-    age.sshKeyPaths = [ "${primaryHomeDirectory}/.ssh/id_ed25519" ];
+    age.sshKeyPaths = [
+      "/etc/ssh/ssh_host_ed25519_key"
+      "${primaryHomeDirectory}/.ssh/id_ed25519"
+    ];
 
     secrets.upcloud_token = { };
 
