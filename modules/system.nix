@@ -3,79 +3,23 @@
   lib,
   self,
   config,
-  system,
-  primaryUsername,
-  primaryHomeDirectory,
   ...
 }:
 
 let
-  geistMonoNerdFontOverlay = final: _: {
-    geist-mono-nerd-font = final.stdenvNoCC.mkDerivation {
-      pname = "geist-mono-nerd-font";
-      inherit (final.geist-font) version;
-
-      dontUnpack = true;
-
-      nativeBuildInputs = [ final.nerd-font-patcher ];
-
-      buildPhase = ''
-        runHook preBuild
-
-        mkdir patched
-        for style in Regular Italic Bold BoldItalic; do
-          nerd-font-patcher \
-            --complete \
-            --careful \
-            --mono \
-            --no-progressbars \
-            --outputdir patched \
-            --quiet \
-            "${final.geist-font}/share/fonts/opentype/GeistMono-$style.otf"
-        done
-
-        runHook postBuild
-      '';
-
-      installPhase = ''
-        runHook preInstall
-
-        install -d "$out/share/fonts/opentype"
-        install -m444 patched/*.otf "$out/share/fonts/opentype/"
-
-        runHook postInstall
-      '';
-
-      meta = {
-        description = "Geist Mono patched with Nerd Fonts glyphs";
-        homepage = "https://vercel.com/font";
-        license = with lib.licenses; [
-          mit
-          ofl
-        ];
-        platforms = lib.platforms.all;
-      };
-    };
-  };
+  user = config.system.primaryUser;
+  home = config.users.users.${user}.home;
 in
 {
-  networking.hostName = "meatwizard";
-  networking.computerName = "meatwizard";
-  networking.localHostName = "meatwizard";
-
   nixpkgs.config.allowUnfree = true;
-  nixpkgs.hostPlatform = system;
-  nixpkgs.overlays = [ geistMonoNerdFontOverlay ];
+  nixpkgs.overlays = [ (import ../overlays) ];
 
   fonts.packages = [
     pkgs.geist-font
     pkgs.geist-mono-nerd-font
   ];
 
-  system.primaryUser = primaryUsername;
-  system.stateVersion = 6;
   system.configurationRevision = self.rev or self.dirtyRev or null;
-  users.users.${primaryUsername}.home = primaryHomeDirectory;
 
   documentation.enable = false;
   system.tools.darwin-uninstaller.enable = false;
@@ -132,7 +76,7 @@ in
     };
 
     envVars = {
-      AWS_SHARED_CREDENTIALS_FILE = "${primaryHomeDirectory}/.aws/credentials";
+      AWS_SHARED_CREDENTIALS_FILE = "${home}/.aws/credentials";
     };
 
     gc = {
@@ -149,51 +93,18 @@ in
   system.activationScripts.postActivation.text = ''
     for prof in /nix/var/nix/profiles/system \
                 /nix/var/nix/profiles/per-user/root/profile \
-                /nix/var/nix/profiles/per-user/${primaryUsername}/profile \
-                ${primaryHomeDirectory}/.local/state/nix/profiles/home-manager \
-                ${primaryHomeDirectory}/.local/state/nix/profiles/profile; do
+                /nix/var/nix/profiles/per-user/${user}/profile \
+                ${home}/.local/state/nix/profiles/home-manager \
+                ${home}/.local/state/nix/profiles/profile; do
       if [ -e "$prof" ]; then
         ${config.nix.package}/bin/nix-env --profile "$prof" --delete-generations +3 || true
       fi
     done
   '';
 
-  services.nix-cache-push = {
-    enable = true;
-    safeSSIDs = [
-      "petah tikva"
-      "sbox_inet"
-      "nibbler"
-      "6ix7even"
-    ];
-  };
-
   programs.fish.enable = true;
 
   programs.nix-index.enable = true;
 
   security.pam.services.sudo_local.touchIdAuth = true;
-
-  # ha.int.sandb0x.space round-robins onto two space-LAN-only A records that
-  # black-hole from anywhere else, so pin it to the mesh address
-  environment.etc."hosts" = {
-    knownSha256Hashes = [
-      "c7dd0e2ed261ce76d76f852596c5b54026b9a894fa481381ffd399b556c0e2da"
-    ];
-    text = ''
-      127.0.0.1	localhost
-      255.255.255.255	broadcasthost
-      ::1	localhost
-
-      10.212.240.104	ha.int.sandb0x.space
-    '';
-  };
-
-  # the networking activation script unconditionally moves
-  # /etc/hosts.before-nix-darwin back over the symlink that /etc setup just
-  # made, so relink once it has run
-  system.activationScripts.networking.text = lib.mkAfter ''
-    ln -sfn /etc/static/hosts /etc/hosts
-  '';
-
 }

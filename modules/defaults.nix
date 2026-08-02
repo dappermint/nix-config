@@ -1,7 +1,10 @@
-{ primaryHomeDirectory, primaryUsername, ... }:
+{ config, ... }:
 
 let
-  screenshotsDirectory = "${primaryHomeDirectory}/Pictures/Screenshots";
+  user = config.system.primaryUser;
+  home = config.users.users.${user}.home;
+
+  screenshotsDirectory = "${home}/Pictures/Screenshots";
 in
 {
   system.defaults = {
@@ -100,6 +103,6 @@ in
   system.startup.chime = false;
 
   system.activationScripts.extraActivation.text = ''
-    install -d -o ${primaryUsername} -g staff "${screenshotsDirectory}"
+    install -d -o ${user} -g staff "${screenshotsDirectory}"
   '';
 }

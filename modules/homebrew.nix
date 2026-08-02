@@ -67,17 +67,36 @@
     ];
   };
 
+  # netbird ships its own LaunchDaemon through `netbird service install`, and
+  # `brew cleanup --prune=all` deletes it out from under launchd on every
+  # version bump. nix-darwin cannot own the plist without fighting the brew
+  # formula, so activation repairs it instead: install when the plist is gone,
+  # bootstrap when launchd does not know it, and only restart when the binary
+  # is actually newer than the running service
   system.activationScripts.extraActivation.text = ''
-    # brew cleanup removes the imperative daemon during version bumps
     netbird="${config.homebrew.prefix}/bin/netbird"
+    netbird_plist=/Library/LaunchDaemons/netbird.plist
+    netbird_stamp=/var/lib/nix-darwin/netbird-binary
+
     if [ -x "$netbird" ]; then
-      if [ ! -f /Library/LaunchDaemons/netbird.plist ]; then
+      if [ ! -f "$netbird_plist" ]; then
+        echo "netbird: launchdaemon missing, reinstalling"
         "$netbird" service install
       fi
+
       if ! /bin/launchctl print system/netbird >/dev/null 2>&1; then
-        /bin/launchctl bootstrap system /Library/LaunchDaemons/netbird.plist
+        echo "netbird: not loaded, bootstrapping"
+        /bin/launchctl bootstrap system "$netbird_plist"
       fi
-      /bin/launchctl kickstart -k system/netbird
+
+      install -d "$(dirname "$netbird_stamp")"
+      current=$(/usr/bin/shasum -a 256 "$netbird" | /usr/bin/awk '{print $1}')
+      if [ "$current" != "$(cat "$netbird_stamp" 2>/dev/null || true)" ]; then
+        echo "netbird: binary changed, restarting service"
+        /bin/launchctl kickstart -k system/netbird
+        printf '%s\n' "$current" > "$netbird_stamp"
+      fi
+
       /bin/launchctl print system/netbird >/dev/null
     fi
   '';

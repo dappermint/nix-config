@@ -1,7 +1,7 @@
 {
+  config,
   lib,
   pkgs,
-  primaryHomeDirectory,
   ...
 }:
 
@@ -9,11 +9,13 @@ let
   profileName = "Lectures";
   collectionName = "Lectures";
 
-  obsDir = "${primaryHomeDirectory}/Library/Application Support/obs-studio";
+  inherit (config.home) homeDirectory;
+
+  obsDir = "${homeDirectory}/Library/Application Support/obs-studio";
   profileDir = "${obsDir}/basic/profiles/${profileName}";
   sceneFile = "${obsDir}/basic/scenes/${collectionName}.json";
-  recordingDir = "${primaryHomeDirectory}/Movies/Lectures";
-  streamKeyFile = "${primaryHomeDirectory}/.config/obs/youtube-stream-key";
+  recordingDir = "${homeDirectory}/Movies/Lectures";
+  streamKeyFile = "${homeDirectory}/.config/obs/youtube-stream-key";
 
   width = 1920;
   height = 1080;

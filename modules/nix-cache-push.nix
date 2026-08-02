@@ -2,12 +2,13 @@
   pkgs,
   lib,
   config,
-  primaryUsername,
-  primaryHomeDirectory,
   ...
 }:
 
 let
+  user = config.system.primaryUser;
+  home = config.users.users.${user}.home;
+
   shell = import ../lib/shell.nix;
 
   cfg = config.services.nix-cache-push;
@@ -130,19 +131,19 @@ in
 
     stagingDir = lib.mkOption {
       type = lib.types.path;
-      default = "${primaryHomeDirectory}/.cache/nix-cache-staging";
+      default = "${home}/.cache/nix-cache-staging";
       description = "Local staging directory for closures.";
     };
 
     logDir = lib.mkOption {
       type = lib.types.path;
-      default = "${primaryHomeDirectory}/Library/Logs/nix-cache-push";
+      default = "${home}/Library/Logs/nix-cache-push";
       description = "Directory for launchd logs.";
     };
 
     stateDir = lib.mkOption {
       type = lib.types.path;
-      default = "${primaryHomeDirectory}/.local/state/nix-cache-push";
+      default = "${home}/.local/state/nix-cache-push";
       description = "Directory for upload state.";
     };
 
@@ -168,22 +169,22 @@ in
 
   config = lib.mkIf cfg.enable {
     system.activationScripts.extraActivation.text = ''
-      install -d -o ${primaryUsername} -g staff "${cfg.logDir}"
-      install -d -o ${primaryUsername} -g staff "${cfg.stateDir}"
+      install -d -o ${user} -g staff "${cfg.logDir}"
+      install -d -o ${user} -g staff "${cfg.stateDir}"
     '';
 
     launchd.user.agents.nix-cache-push = {
       serviceConfig = {
-        Label = "org.${primaryUsername}.nix-cache-push";
+        Label = "org.${user}.nix-cache-push";
         ProgramArguments = [ "${pushScript}/bin/nix-cache-push" ];
         StartInterval = cfg.intervalSeconds;
         RunAtLoad = false;
         Nice = 10;
         LowPriorityIO = true;
         EnvironmentVariables = {
-          HOME = primaryHomeDirectory;
-          AWS_SHARED_CREDENTIALS_FILE = "${primaryHomeDirectory}/.aws/credentials";
-          AWS_CONFIG_FILE = "${primaryHomeDirectory}/.aws/config";
+          HOME = home;
+          AWS_SHARED_CREDENTIALS_FILE = "${home}/.aws/credentials";
+          AWS_CONFIG_FILE = "${home}/.aws/config";
           NIX_CACHE_PUSH_BACKGROUND = "1";
           PATH = "/run/current-system/sw/bin:/usr/bin:/bin:/usr/sbin:/sbin";
         };

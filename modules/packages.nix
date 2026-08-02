@@ -1,50 +1,83 @@
-{
-  pkgs,
-  mac-cleaner,
-  system,
-  ...
-}:
+{ pkgs, inputs, ... }:
 
-{
-  # awscli2 crashes through libffi on macOS 27, so homebrew owns it for now
-  environment.systemPackages = with pkgs; [
-    ansible
-    ansible-lint
+let
+  shell = with pkgs; [
     bat
     bottom
-    bun
-    cabextract
-    codex
     dust
-    eksctl
     elvish
     eza
     fastfetch
     fd
-    gh
-    git-filter-repo
-    go
     hyfetch
     just
-    kubectl
-    kubernetes-helm
-    lazygit
-    mac-cleaner.packages.${system}.default
     micro
-    neovim
-    nh
-    nix-output-monitor
-    nodejs
     ookla-speedtest
-    opentofu
-    pre-commit
-    python3Packages.fonttools
     ripgrep
+  ];
+
+  vcs = with pkgs; [
+    gh
+    git-filter-repo
+    lazygit
+    pre-commit
+  ];
+
+  editors = [ pkgs.neovim ];
+
+  agents = with pkgs; [
+    codex
+    grok
+  ];
+
+  languages = with pkgs; [
+    bun
+    go
+    nodejs
+    uv
+  ];
+
+  # awscli2 crashes through libffi on macOS 27, so homebrew owns it for now
+  infra = with pkgs; [
+    ansible
+    ansible-lint
+    opentofu
+    sops
     sshpass
     upcloud-cli
-    uv
     vault
-    woff2
     yamllint
   ];
+
+  kubernetes = with pkgs; [
+    eksctl
+    kubectl
+    kubernetes-helm
+  ];
+
+  nixTooling = with pkgs; [
+    nh
+    nix-output-monitor
+  ];
+
+  fontTooling = with pkgs; [
+    cabextract
+    python3Packages.fonttools
+    woff2
+  ];
+
+  macos = [ inputs.mac-cleaner.packages.${pkgs.stdenv.hostPlatform.system}.default ];
+in
+{
+  environment.systemPackages =
+    shell
+    ++ vcs
+    ++ editors
+    ++ agents
+    ++ languages
+    ++ infra
+    ++ kubernetes
+    ++ nixTooling
+    ++ fontTooling
+    ++ macos;
 }
