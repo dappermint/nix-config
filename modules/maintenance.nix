@@ -1,12 +1,13 @@
 {
   config,
   pkgs,
-  primaryUsername,
-  primaryHomeDirectory,
   ...
 }:
 
 let
+  user = config.system.primaryUser;
+  home = config.users.users.${user}.home;
+
   shell = import ../lib/shell.nix;
 
   warningFreePercent = 15;
@@ -14,8 +15,8 @@ let
   emergencyFreePercent = 5;
   stagingMaxKiB = 8 * 1024 * 1024;
 
-  logDir = "${primaryHomeDirectory}/Library/Logs/local-maintenance";
-  stateDir = "${primaryHomeDirectory}/.local/state/local-maintenance";
+  logDir = "${home}/Library/Logs/local-maintenance";
+  stateDir = "${home}/.local/state/local-maintenance";
   cacheStateDir = config.services.nix-cache-push.stateDir;
   stagingDir = config.services.nix-cache-push.stagingDir;
   brew = "${config.homebrew.prefix}/bin/brew";
@@ -150,7 +151,7 @@ let
             (
               trap 'rmdir "$cache_state_dir/lock"' EXIT
               case "$staging_dir" in
-                ${pkgs.lib.escapeShellArg "${primaryHomeDirectory}/.cache/nix-cache-staging"})
+                ${pkgs.lib.escapeShellArg "${home}/.cache/nix-cache-staging"})
                   /usr/bin/find "$staging_dir" -mindepth 1 -delete
                   echo "cleared oversized nix-cache staging directory"
                   ;;
@@ -207,13 +208,13 @@ let
 in
 {
   system.activationScripts.extraActivation.text = ''
-    install -d -o ${primaryUsername} -g staff "${logDir}"
-    install -d -o ${primaryUsername} -g staff "${stateDir}"
+    install -d -o ${user} -g staff "${logDir}"
+    install -d -o ${user} -g staff "${stateDir}"
   '';
 
   launchd.user.agents.local-maintenance = {
     serviceConfig = {
-      Label = "org.${primaryUsername}.local-maintenance";
+      Label = "org.${user}.local-maintenance";
       ProgramArguments = [ "${userMaintenance}/bin/local-maintenance" ];
       RunAtLoad = true;
       StartCalendarInterval = {
@@ -224,7 +225,7 @@ in
       LowPriorityIO = true;
       ProcessType = "Background";
       EnvironmentVariables = {
-        HOME = primaryHomeDirectory;
+        HOME = home;
         LOCAL_MAINTENANCE_BACKGROUND = "1";
         PATH = "/run/current-system/sw/bin:/usr/bin:/bin:/usr/sbin:/sbin";
       };

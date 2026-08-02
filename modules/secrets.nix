@@ -1,45 +1,118 @@
 {
   self,
   config,
-  primaryUsername,
-  primaryHomeDirectory,
   ...
 }:
 
+let
+  user = config.system.primaryUser;
+  home = config.users.users.${user}.home;
+
+  inherit (config.sops) placeholder;
+
+  userSecret = {
+    owner = user;
+    mode = "0400";
+  };
+
+  awsRegion = "eu-north-1";
+in
 {
   sops = {
     defaultSopsFile = "${self}/secrets/secrets.yaml";
     age.sshKeyPaths = [
       "/etc/ssh/ssh_host_ed25519_key"
-      "${primaryHomeDirectory}/.ssh/id_ed25519"
+      "${home}/.ssh/id_ed25519"
     ];
 
-    secrets.upcloud_token = { };
+    secrets = {
+      upcloud_token = { };
 
-    secrets."nix-cache-priv-key" = {
-      key = "nix_cache_priv_key";
-      owner = "root";
-      mode = "0400";
+      "nix-cache-priv-key" = {
+        key = "nix_cache_priv_key";
+        owner = "root";
+        mode = "0400";
+      };
+
+      conway_kubeconfig = userSecret // {
+        path = "${home}/.kube/conway";
+      };
+
+      youtube_stream_key = userSecret // {
+        path = "${home}/.config/obs/youtube-stream-key";
+      };
+
+      # inventory: hosts and account identifiers that used to sit in cleartext
+      # nix. only the templates below consume them
+      clownway_netbird_host = { };
+      clownway_gitlab_host = { };
+      aws_sso_start_url = { };
+      aws_sso_account_id = { };
+
+      nix_cache_reader_access_key_id = { };
+      nix_cache_reader_secret_access_key = { };
+      nix_cache_writer_access_key_id = { };
+      nix_cache_writer_secret_access_key = { };
     };
 
-    secrets.conway_kubeconfig = {
-      owner = primaryUsername;
-      mode = "0400";
-      path = "${primaryHomeDirectory}/.kube/conway";
-    };
+    templates = {
+      "secrets.fish" = userSecret // {
+        content = ''
+          set -gx UPCLOUD_TOKEN '${placeholder.upcloud_token}'
+          set -gx CLOWNWAY_NETBIRD_HOST '${placeholder.clownway_netbird_host}'
+          set -gx CLOWNWAY_GITLAB_HOST '${placeholder.clownway_gitlab_host}'
+        '';
+      };
 
-    secrets.youtube_stream_key = {
-      owner = primaryUsername;
-      mode = "0400";
-      path = "${primaryHomeDirectory}/.config/obs/youtube-stream-key";
-    };
+      "aws-credentials" = {
+        owner = user;
+        mode = "0600";
+        path = "${home}/.aws/credentials";
+        content = ''
+          [nix-cache]
+          aws_access_key_id = ${placeholder.nix_cache_reader_access_key_id}
+          aws_secret_access_key = ${placeholder.nix_cache_reader_secret_access_key}
 
-    templates."secrets.fish" = {
-      owner = primaryUsername;
-      mode = "0400";
-      content = ''
-        set -x UPCLOUD_TOKEN ${config.sops.placeholder.upcloud_token}
-      '';
+          [nix-cache-writer]
+          aws_access_key_id = ${placeholder.nix_cache_writer_access_key_id}
+          aws_secret_access_key = ${placeholder.nix_cache_writer_secret_access_key}
+        '';
+      };
+
+      "aws-config" = {
+        owner = user;
+        mode = "0600";
+        path = "${home}/.aws/config";
+        content = ''
+          [profile fyffe]
+          sso_start_url = ${placeholder.aws_sso_start_url}
+          sso_region = ${awsRegion}
+          sso_account_id = ${placeholder.aws_sso_account_id}
+          sso_role_name = AdministratorAccess
+          region = ${awsRegion}
+          output = json
+
+          # legacy alias for fyffe, identical account and role
+          [profile Admin2]
+          sso_start_url = ${placeholder.aws_sso_start_url}
+          sso_region = ${awsRegion}
+          sso_account_id = ${placeholder.aws_sso_account_id}
+          sso_role_name = AdministratorAccess
+          region = ${awsRegion}
+          output = json
+
+          [profile nix-cache]
+          region = ${awsRegion}
+
+          # the writer runs from a launchd agent on home wi-fi, so cap what it
+          # is allowed to saturate
+          [profile nix-cache-writer]
+          region = ${awsRegion}
+          s3 =
+              max_bandwidth = 2MB/s
+              max_concurrent_requests = 2
+        '';
+      };
     };
   };
 

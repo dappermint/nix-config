@@ -2,6 +2,7 @@
   lib,
   stdenvNoCC,
   fetchurl,
+  installShellFiles,
 }:
 
 let
@@ -20,8 +21,7 @@ let
 
   inherit (stdenvNoCC.hostPlatform) system;
 
-  artifact =
-    artifacts.${system} or (throw "grok has no published artifact for ${system}");
+  artifact = artifacts.${system} or (throw "grok has no published artifact for ${system}");
 in
 stdenvNoCC.mkDerivation {
   pname = "grok";
@@ -31,6 +31,8 @@ stdenvNoCC.mkDerivation {
     url = "https://storage.googleapis.com/grok-build-public-artifacts/cli/grok-${version}-${artifact.platform}";
     inherit (artifact) hash;
   };
+
+  nativeBuildInputs = [ installShellFiles ];
 
   dontUnpack = true;
 
@@ -42,6 +44,13 @@ stdenvNoCC.mkDerivation {
     runHook preInstall
     install -Dm755 "$src" "$out/bin/grok"
     runHook postInstall
+  '';
+
+  postInstall = lib.optionalString (stdenvNoCC.buildPlatform.canExecute stdenvNoCC.hostPlatform) ''
+    installShellCompletion --cmd grok \
+      --bash <("$out/bin/grok" completions bash) \
+      --fish <("$out/bin/grok" completions fish) \
+      --zsh <("$out/bin/grok" completions zsh)
   '';
 
   meta = {
