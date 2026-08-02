@@ -21,6 +21,26 @@
         "type": "github"
       }
     },
+    "mac-cleaner": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785635751,
+        "narHash": "sha256-jntebqSrqGzd6rIcWn8kKeR7iovOKgxbHYi2zecZS34=",
+        "owner": "dappermint",
+        "repo": "mac-cleaner",
+        "rev": "6c3dcb3bd18e203e728ccfb7671a7e5bd814fb36",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dappermint",
+        "repo": "mac-cleaner",
+        "type": "github"
+      }
+    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -61,6 +81,7 @@
     "root": {
       "inputs": {
         "home-manager": "home-manager",
+        "mac-cleaner": "mac-cleaner",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
         "sops-nix": "sops-nix"

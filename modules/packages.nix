@@ -1,6 +1,6 @@
 {
   pkgs,
-  self,
+  mac-cleaner,
   system,
   ...
 }:
@@ -29,7 +29,7 @@
     kubectl
     kubernetes-helm
     lazygit
-    self.packages.${system}.mac-cleaner
+    mac-cleaner.packages.${system}.default
     micro
     neovim
     nh
