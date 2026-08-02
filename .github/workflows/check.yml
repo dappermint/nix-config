@@ -1,0 +1,54 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: lint and evaluate
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = flakes nix-command pipe-operator
+            extra-substituters = https://cache.lix.systems https://nix-community.cachix.org
+            extra-trusted-public-keys = cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+
+      - name: lint
+        run: nix build --no-link -L .#checks.aarch64-darwin.lint
+
+      - name: evaluate the configuration
+        run: nix build --no-link -L .#checks.aarch64-darwin.eval
+
+  system:
+    name: build the system closure
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = flakes nix-command pipe-operator
+            extra-substituters = https://cache.lix.systems https://nix-community.cachix.org
+            extra-trusted-public-keys = cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+
+      # the closure is several gigabytes and hosted runners are tight on disk
+      - name: reclaim disk
+        run: |
+          sudo rm -rf /Users/runner/Library/Android || true
+          sudo rm -rf /Applications/Xcode_1*.app || true
+          df -h /
+
+      - name: build and smoke the system
+        run: nix build --no-link -L .#checks.aarch64-darwin.smoke
