@@ -1,0 +1,33 @@
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+
+# the local hooks deliberately mirror checks.lint in flake.nix. run them from
+# `nix develop`, which puts nixfmt, statix and deadnix on PATH
+repos:
+  - repo: local
+    hooks:
+      - id: nixfmt
+        name: nixfmt
+        entry: nixfmt
+        language: system
+        files: \.nix$
+
+      - id: deadnix
+        name: deadnix
+        entry: deadnix --fail
+        language: system
+        files: \.nix$
+
+      - id: statix
+        name: statix
+        entry: statix check
+        language: system
+        files: \.nix$
+        pass_filenames: false
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]

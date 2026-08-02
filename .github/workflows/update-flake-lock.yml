@@ -1,0 +1,49 @@
+name: update flake lock
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    name: bump inputs behind the check gate
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = flakes nix-command pipe-operator
+            extra-substituters = https://cache.lix.systems https://nix-community.cachix.org
+            extra-trusted-public-keys = cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+
+      - name: update inputs
+        run: nix flake update
+
+      - name: reclaim disk
+        run: |
+          sudo rm -rf /Users/runner/Library/Android || true
+          sudo rm -rf /Applications/Xcode_1*.app || true
+          df -h /
+
+      # no pull request unless the bumped tree still lints, evaluates and builds
+      - name: check
+        run: nix flake check -L
+
+      - uses: peter-evans/create-pull-request@v8
+        with:
+          branch: flake-lock-update
+          delete-branch: true
+          title: "chore: bump flake inputs"
+          commit-message: "chore: bump flake inputs"
+          body: |
+            automated weekly bump of `flake.lock`.
+
+            `nix flake check` passed on this tree, which covers lint, full
+            evaluation and a build of `darwinConfigurations.meatwizard.system`.
