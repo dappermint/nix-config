@@ -9,8 +9,8 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-    mac-cleaner.url = "github:dappermint/mac-cleaner";
-    mac-cleaner.inputs.nixpkgs.follows = "nixpkgs";
+    ratatouille.url = "github:dappermint/ratatouille";
+    ratatouille.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =

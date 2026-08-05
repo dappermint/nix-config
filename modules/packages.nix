@@ -72,7 +72,7 @@ let
     woff2
   ];
 
-  macos = [ inputs.mac-cleaner.packages.${pkgs.stdenv.hostPlatform.system}.default ];
+  macos = [ inputs.ratatouille.packages.${pkgs.stdenv.hostPlatform.system}.default ];
 in
 {
   environment.systemPackages =
