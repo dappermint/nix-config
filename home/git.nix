@@ -11,8 +11,8 @@
   programs.git = {
     enable = true;
     settings = {
-      user.name = "Liah Yoffe";
-      user.email = "liahyoffe@gmail.com";
+      user.name = "millia ampora";
+      user.email = "198710911+dappermint@users.noreply.github.com";
       init.defaultBranch = "main";
       push.autoSetupRemote = true;
       push.default = "simple";
