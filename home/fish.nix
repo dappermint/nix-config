@@ -12,6 +12,12 @@
     flags = [ "--disable-up-arrow" ];
   };
 
+  programs.fzf = {
+    enable = true;
+    enableFishIntegration = true;
+    historyWidget.command = "";
+  };
+
   programs.zoxide = {
     enable = true;
     enableFishIntegration = true;
