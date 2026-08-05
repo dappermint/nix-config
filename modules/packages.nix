@@ -6,14 +6,19 @@ let
     bottom
     dust
     elvish
+    entr
     eza
     fastfetch
     fd
     hyfetch
+    hyperfine
+    jq
     just
     micro
     ookla-speedtest
     ripgrep
+    tealdeer
+    yq-go
   ];
 
   vcs = with pkgs; [
@@ -51,6 +56,7 @@ let
 
   kubernetes = with pkgs; [
     eksctl
+    k9s
     kubectl
     kubernetes-helm
   ];
