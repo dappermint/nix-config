@@ -12,6 +12,7 @@ in
     ../modules/aerospace.nix
     ../modules/nix-cache-push.nix
     ../modules/maintenance.nix
+    ../modules/github-runners.nix
     inputs.sops-nix.darwinModules.sops
     ../modules/secrets.nix
     inputs.home-manager.darwinModules.home-manager
