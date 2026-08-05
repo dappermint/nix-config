@@ -1,0 +1,141 @@
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+
+let
+  user = config.system.primaryUser;
+  home = config.users.users.${user}.home;
+
+  package = pkgs.github-runner;
+
+  # what the wine workflows actually invoke. providing them here is not just
+  # convenience: the runner is this machine, and `brew install` on it would
+  # both pollute the system and get reaped again by brew cleanup = uninstall.
+  #
+  # the mingw cross compilers are deliberately NOT here. the PE half must be
+  # built by the same brew mingw-w64 the hosted runners use, declared in
+  # modules/homebrew.nix; nixpkgs' mingw needs a NIX_LDFLAGS that only exists
+  # inside a nix build and would fail every PE link. measured 2026-08-04: a
+  # kernelbase.dll built by llvm-mingw makes steam loop on its CM login
+  # forever, and the same tree with a gcc-built kernelbase.dll logs in within
+  # 30 seconds, so the PE toolchain does not get varied casually. see
+  # Gaems/frankea-base-recipe.md for the bisect.
+  toolPath = lib.makeBinPath [
+    pkgs.bashInteractive
+    pkgs.coreutils
+    pkgs.findutils
+    pkgs.git
+    pkgs.gnutar
+    pkgs.gzip
+    pkgs.xz
+    pkgs.curl
+    pkgs.ccache
+    pkgs.bison
+    pkgs.flex
+    pkgs.pkg-config
+    config.nix.package
+  ];
+
+  # nix first so wine's configure sees bison 3.8 and not /usr/bin's 2.3, then
+  # the homebrew prefix for the mingw cross compilers, then the system dirs
+  # for arch, xcrun, otool, install_name_tool, codesign and sysctl
+  fullPath = "${toolPath}:${config.homebrew.prefix}/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+
+  stateDir = repo: "${home}/.local/share/github-runner/${repo}";
+
+  runnerScript =
+    repo:
+    pkgs.writeShellApplication {
+      name = "github-runner-${repo}";
+      runtimeInputs = [
+        pkgs.coreutils
+        pkgs.findutils
+      ];
+      text = ''
+        export RUNNER_ROOT=${lib.escapeShellArg (stateDir repo)}
+        work="$RUNNER_ROOT/_work"
+        mkdir -p "$RUNNER_ROOT" "$work"
+
+        # a job that died mid-run leaves its checkout behind and the next one
+        # inherits it, so the tree is cleaned before every listen
+        find "$work" -mindepth 1 -delete
+
+        # config.sh only runs when the runner is not registered yet, which is
+        # why a registration token being valid for an hour is survivable: it is
+        # spent once. mint a fresh one with
+        #   gh api -X POST /repos/dappermint/${repo}/actions/runners/registration-token
+        # before deleting .runner or registering on a new machine.
+        if [ ! -f "$RUNNER_ROOT/.runner" ]; then
+          ${package}/bin/config.sh \
+            --unattended --disableupdate --replace \
+            --work "$work" \
+            --url https://github.com/dappermint/${repo} \
+            --name meatwizard-${repo} \
+            --labels m5 \
+            --token "$(cat ${config.sops.secrets."github_runner_token_${repo}".path})"
+        fi
+
+        exec ${package}/bin/Runner.Listener run --startuptype service
+      '';
+    };
+
+  # an agent, not a daemon. a launchd daemon lives in the system bootstrap
+  # namespace and cannot reach WindowServer, so wine's mac driver fails to load
+  # and every job that opens a window dies with
+  #   nodrv_CreateWindow Application tried to create a window, but no driver
+  # measured 2026-08-05 on run 30970113596: message-only windows fine, every
+  # top level window NULL. the wine builds gate on opening a real window, so
+  # the runner has to live in the user's Aqua session.
+  runnerAgent = repo: {
+    serviceConfig = {
+      Label = "org.${user}.github-runner-${repo}";
+      ProgramArguments = [ "${runnerScript repo}/bin/github-runner-${repo}" ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      ThrottleInterval = 30;
+      ProcessType = "Interactive";
+      StandardOutPath = "${home}/Library/Logs/github-runner-${repo}.log";
+      StandardErrorPath = "${home}/Library/Logs/github-runner-${repo}.err.log";
+      EnvironmentVariables = {
+        # per-repo HOME keeps the two runners' ccache and tool state apart, and
+        # keeps a job from writing into the user's real home
+        HOME = stateDir repo;
+        RUNNER_ROOT = stateDir repo;
+        PATH = fullPath;
+      };
+    };
+  };
+
+  repos = [
+    "wine-gptk"
+    "winecx-gptk"
+  ];
+
+  runnerSecret = {
+    owner = user;
+    mode = "0400";
+  };
+in
+{
+  sops.secrets = {
+    "github_runner_token_wine-gptk" = runnerSecret;
+    "github_runner_token_winecx-gptk" = runnerSecret;
+  };
+
+  # ~5x faster than the hosted macos runners on the wine builds: 10 cores
+  # against 3, make measured at 15 minutes here against 75 there. both repos
+  # are public with "require approval for all external contributors" set,
+  # which is what keeps fork pull requests from executing on this machine.
+  launchd.user.agents = lib.listToAttrs (
+    map (repo: lib.nameValuePair "github-runner-${repo}" (runnerAgent repo)) repos
+  );
+
+  system.activationScripts.extraActivation.text = lib.mkAfter (
+    lib.concatMapStringsSep "\n" (repo: ''
+      install -d -o ${user} -g staff ${lib.escapeShellArg (stateDir repo)}
+    '') repos
+  );
+}

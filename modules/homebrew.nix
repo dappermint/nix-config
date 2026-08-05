@@ -22,6 +22,14 @@
 
     brews = [
       "awscli"
+      # the PE half of the wine runtimes the self-hosted runners build. it has
+      # to be this toolchain and not nixpkgs' mingw: nix's cc-wrapper needs a
+      # NIX_LDFLAGS that only exists inside a nix build (without it every PE
+      # link fails on -lmcfgthread), and nixpkgs builds mingw against
+      # mcfgthread rather than the win32 threads the hosted runners use.
+      # steam's CM login stall was traced to exactly this kind of PE toolchain
+      # difference, so it stays identical to what the hosted runners have.
+      "mingw-w64"
       "netbirdio/tap/netbird"
       "rustnet"
     ];
