@@ -13,6 +13,12 @@
 
     taps = [
       "apple/apple"
+      {
+        # trusted: homebrew refuses to load a cask from an untrusted tap, and
+        # whisky-preview's clears the quarantine flag on install
+        name = "dappermint/tap";
+        trusted = true;
+      }
       "frankea/whisky"
       {
         name = "netbirdio/tap";
@@ -40,19 +46,29 @@
       "anydesk"
       "aptakube"
       "atoll"
+      "betterdisplay"
+      # virtual audio device. obs cannot capture rekordbox output without a
+      # loopback driver, so this is what makes a dj stream possible at all.
+      # it installs a system audio driver: needs approval and a reboot
+      "blackhole-2ch"
       "bruno"
       "claude-code@latest"
       "claude-status-bar"
       "comet"
+      "dappermint/tap/whisky-preview"
       "discord@canary"
       "figma"
+      # routes links by url pattern, which is the only sane way to live with
+      # six browsers installed at once
+      "finicky"
       "firefox@nightly"
       "frankea/whisky/whisky"
       "freecad"
+      "ghostty"
+      "iina"
       "jordanbaird-ice"
       "linear"
       "lm-studio"
-      "monitorcontrol"
       "netbirdio/tap/netbird-ui"
       "nordvpn"
       "obs"
