@@ -62,9 +62,12 @@ in
       # commit -> push -> nix-switch. the flake ref is passed explicitly rather
       # than left to NH_DARWIN_FLAKE, which any shell descended from a
       # pre-switch session never sees
+      # --refresh is load-bearing: nix caches flake refs for tarball-ttl, which
+      # is a week here, so a bare github: ref resolves to whatever it saw last
+      # and reports success on a stale revision
       nix-switch = ''
         ${ghToken}
-        nh darwin switch --diff always ${repo.flake}
+        nh darwin switch --diff always ${repo.flake} -- --refresh
       '';
 
       # only bumps the lock, and only against the checkout: nix cannot write a
