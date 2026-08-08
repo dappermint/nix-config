@@ -6,14 +6,33 @@ handful of formulae nix cannot build cleanly.
 
 ## switching
 
+the system builds from `github:dappermint/nix-config`, not from the checkout, so
+`system.configurationRevision` is a real commit and never a dirty tree. applying
+a change is three steps:
+
 ```fish
-nix-update                      # nh darwin switch --update --diff always /etc/nix-darwin
+git commit -am "..."            # in /etc/nix-darwin
+git push
+nix-switch                      # nh darwin switch --diff always github:dappermint/nix-config
 ```
 
-without the helper:
+`nix-update` bumps `flake.lock` **in the checkout only** and then stops, because
+nix cannot write a lock into a remote flake. commit and push the bump, then
+`nix-switch`.
+
+the repo is private, so every fetch needs a github token. both helpers borrow
+one from `gh auth token` for the length of the command. if you invoke nix
+directly instead:
 
 ```fish
-sudo darwin-rebuild switch --flake /etc/nix-darwin#meatwizard
+NIX_CONFIG="access-tokens = github.com=$(gh auth token)" \
+  sudo darwin-rebuild switch --flake github:dappermint/nix-config#meatwizard
+```
+
+to test an uncommitted change without pushing, point at the checkout explicitly:
+
+```fish
+nh darwin switch --diff always /etc/nix-darwin
 ```
 
 `nix-mirror-update` refreshes the local partial nixpkgs clone in `~/Code/nixpkgs`

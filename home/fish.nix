@@ -1,6 +1,12 @@
 {
   programs.fish.enable = true;
 
+  # home-manager's fish module turns this on by mkDefault for man completions,
+  # but from stateVersion 26.05 programs.man.package is null on darwin and
+  # /usr/bin/man uses macos' own whatis db, so the generated cache is built and
+  # then never read
+  programs.man.generateCaches = false;
+
   programs.fish = {
     # shadowing coreutils is only safe because these take the invocations
     # muscle memory produces, and because eza and bat both drop their

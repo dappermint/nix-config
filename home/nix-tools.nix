@@ -18,7 +18,7 @@ in
 {
   programs.nh = {
     enable = true;
-    darwinFlake = repo.directory;
+    darwinFlake = repo.flake;
   };
 
   programs.fish = {
@@ -58,13 +58,22 @@ in
         nix flake update nixpkgs --flake ${repo.directory}
       '';
 
-      # explicit path, not NH_DARWIN_FLAKE: the env var comes from
-      # hm-session-vars, which any shell descended from a pre-switch session
-      # skips, and nh then warns and falls back to its own /etc/nix-darwin
-      # default. passing it is correct in every shell
+      # the system builds from the remote now, so applying a change is
+      # commit -> push -> nix-switch. the flake ref is passed explicitly rather
+      # than left to NH_DARWIN_FLAKE, which any shell descended from a
+      # pre-switch session never sees
+      nix-switch = ''
+        ${ghToken}
+        nh darwin switch --diff always ${repo.flake}
+      '';
+
+      # only bumps the lock, and only against the checkout: nix cannot write a
+      # lock into a remote flake. switching is a separate, deliberate step
       nix-update = ''
         ${ghToken}
-        nh darwin switch --update --diff always ${repo.directory}
+        nix flake update --flake ${repo.directory}
+        echo
+        echo "lock bumped in ${repo.directory}. commit and push, then nix-switch"
       '';
     };
   };
