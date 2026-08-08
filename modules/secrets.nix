@@ -42,8 +42,6 @@ in
         path = "${home}/.config/obs/youtube-stream-key";
       };
 
-      # inventory: hosts and account identifiers that used to sit in cleartext
-      # nix. only the templates below consume them
       clownway_netbird_host = { };
       clownway_gitlab_host = { };
       aws_sso_start_url = { };
@@ -92,7 +90,6 @@ in
           region = ${awsRegion}
           output = json
 
-          # legacy alias for fyffe, identical account and role
           [profile Admin2]
           sso_start_url = ${placeholder.aws_sso_start_url}
           sso_region = ${awsRegion}
@@ -104,8 +101,6 @@ in
           [profile nix-cache]
           region = ${awsRegion}
 
-          # the writer runs from a launchd agent on home wi-fi, so cap what it
-          # is allowed to saturate
           [profile nix-cache-writer]
           region = ${awsRegion}
           s3 =

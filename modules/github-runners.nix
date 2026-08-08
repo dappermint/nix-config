@@ -39,9 +39,6 @@ let
     config.nix.package
   ];
 
-  # nix first so wine's configure sees bison 3.8 and not /usr/bin's 2.3, then
-  # the homebrew prefix for the mingw cross compilers, then the system dirs
-  # for arch, xcrun, otool, install_name_tool, codesign and sysctl
   fullPath = "${toolPath}:${config.homebrew.prefix}/bin:/usr/bin:/bin:/usr/sbin:/sbin";
 
   stateDir = repo: "${home}/.local/share/github-runner/${repo}";
@@ -59,8 +56,6 @@ let
         work="$RUNNER_ROOT/_work"
         mkdir -p "$RUNNER_ROOT" "$work"
 
-        # a job that died mid-run leaves its checkout behind and the next one
-        # inherits it, so the tree is cleaned before every listen
         find "$work" -mindepth 1 -delete
 
         # config.sh only runs when the runner is not registered yet, which is
@@ -100,8 +95,6 @@ let
       StandardOutPath = "${home}/Library/Logs/github-runner-${repo}.log";
       StandardErrorPath = "${home}/Library/Logs/github-runner-${repo}.err.log";
       EnvironmentVariables = {
-        # per-repo HOME keeps the two runners' ccache and tool state apart, and
-        # keeps a job from writing into the user's real home
         HOME = stateDir repo;
         RUNNER_ROOT = stateDir repo;
         PATH = fullPath;
@@ -125,10 +118,6 @@ in
     "github_runner_token_winecx-gptk" = runnerSecret;
   };
 
-  # ~5x faster than the hosted macos runners on the wine builds: 10 cores
-  # against 3, make measured at 15 minutes here against 75 there. both repos
-  # are public with "require approval for all external contributors" set,
-  # which is what keeps fork pull requests from executing on this machine.
   launchd.user.agents = lib.listToAttrs (
     map (repo: lib.nameValuePair "github-runner-${repo}" (runnerAgent repo)) repos
   );

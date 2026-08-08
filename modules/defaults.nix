@@ -144,9 +144,6 @@ in
 
   system.startup.chime = false;
 
-  # the diagnostics plist lives at a path with a space, which
-  # CustomSystemPreferences interpolates unquoted into `defaults write`,
-  # so these two have to bypass it
   system.activationScripts.extraActivation.text = ''
     install -d -o ${user} -g staff "${screenshotsDirectory}"
 
