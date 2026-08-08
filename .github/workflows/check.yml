@@ -34,25 +34,18 @@ jobs:
 
   system:
     name: build the system closure
-    runs-on: macos-latest
+    # the closure is already in this machine's store, so the expensive job is
+    # near-instant here instead of several gigabytes of downloads. lint stays
+    # hosted deliberately: it is the job that would catch a commit breaking the
+    # runner module, and running it on the runner it defines is circular
+    runs-on: [self-hosted, m5]
     steps:
       - uses: actions/checkout@v7
 
-      # lix, not cppnix: this config is built by lix on the machine, so the gate
-      # has to run the same evaluator
-      - uses: samueldr/lix-gha-installer-action@a0fee77b2a98bb7c5c0ed7ae6d6ad4903dbdad0d # v2026-06-15
-        with:
-          extra_nix_config: |
-            experimental-features = flakes nix-command pipe-operator
-            extra-substituters = https://cache.lix.systems https://nix-community.cachix.org
-            extra-trusted-public-keys = cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
-
-      # the closure is several gigabytes and hosted runners are tight on disk
-      - name: reclaim disk
-        run: |
-          sudo rm -rf /Users/runner/Library/Android || true
-          sudo rm -rf /Applications/Xcode_1*.app || true
-          df -h /
-
+      # no installer step and no disk reclaim: nix-darwin already owns nix here,
+      # so installing over it would damage the live installation, and the
+      # reclaim step was `sudo rm -rf /Applications/...` written for a throwaway
+      # hosted runner. running against the machine's own lix is better parity
+      # than any installer gives.
       - name: build and smoke the system
         run: nix build --no-link -L .#checks.aarch64-darwin.smoke
