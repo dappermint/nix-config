@@ -5,8 +5,22 @@ let
 
   nixpkgsBranch = "nixpkgs-unstable";
   nixpkgsMirror = "${config.home.homeDirectory}/Code/nixpkgs";
+
+  # unauthenticated github api is 60 requests an hour, which a full input bump
+  # blows through and then falls back to cached revisions. nix has no
+  # access-tokens-file (NixOS/nix#6536), and writing a PAT into nix.conf puts it
+  # on disk in cleartext, so borrow gh's token for the length of one command
+  ghToken = ''
+    set -l token (gh auth token 2>/dev/null)
+    test -n "$token"; and set -lx NIX_CONFIG "access-tokens = github.com=$token"
+  '';
 in
 {
+  programs.nh = {
+    enable = true;
+    darwinFlake = repo.directory;
+  };
+
   programs.fish = {
     shellAbbrs = {
       nixb = "nom build";
@@ -40,10 +54,16 @@ in
         git -C $mirror fetch --filter=blob:none origin ${nixpkgsBranch}
         git -C $mirror update-ref refs/heads/${nixpkgsBranch} origin/${nixpkgsBranch}
         echo "updating flake input nixpkgs ..."
+        ${ghToken}
         nix flake update nixpkgs --flake ${repo.directory}
       '';
 
+      # explicit path, not NH_DARWIN_FLAKE: the env var comes from
+      # hm-session-vars, which any shell descended from a pre-switch session
+      # skips, and nh then warns and falls back to its own /etc/nix-darwin
+      # default. passing it is correct in every shell
       nix-update = ''
+        ${ghToken}
         nh darwin switch --update --diff always ${repo.directory}
       '';
     };
