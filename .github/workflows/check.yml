@@ -19,7 +19,7 @@ jobs:
 
       # lix, not cppnix: this config is built by lix on the machine, so the gate
       # has to run the same evaluator
-      - uses: samueldr/lix-gha-installer-action@v2026-06-15
+      - uses: samueldr/lix-gha-installer-action@a0fee77b2a98bb7c5c0ed7ae6d6ad4903dbdad0d # v2026-06-15
         with:
           extra_nix_config: |
             experimental-features = flakes nix-command pipe-operator
@@ -40,7 +40,7 @@ jobs:
 
       # lix, not cppnix: this config is built by lix on the machine, so the gate
       # has to run the same evaluator
-      - uses: samueldr/lix-gha-installer-action@v2026-06-15
+      - uses: samueldr/lix-gha-installer-action@a0fee77b2a98bb7c5c0ed7ae6d6ad4903dbdad0d # v2026-06-15
         with:
           extra_nix_config: |
             experimental-features = flakes nix-command pipe-operator
