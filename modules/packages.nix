@@ -4,28 +4,37 @@ let
   shell = with pkgs; [
     bat
     bottom
+    doggo
     dust
     elvish
     entr
     eza
     fastfetch
     fd
+    glow
     hyfetch
     hyperfine
     jq
     just
+    lnav
     micro
     ookla-speedtest
+    ouch
     ripgrep
+    sd
     tealdeer
+    trippy
+    xh
     yq-go
   ];
 
   vcs = with pkgs; [
+    difftastic
     gh
     git-filter-repo
     lazygit
     pre-commit
+    serie
   ];
 
   editors = [ pkgs.neovim ];
@@ -61,10 +70,8 @@ let
     kubernetes-helm
   ];
 
-  nixTooling = with pkgs; [
-    nh
-    nix-output-monitor
-  ];
+  # nh comes from home-manager's programs.nh, which is what sets NH_DARWIN_FLAKE
+  nixTooling = [ pkgs.nix-output-monitor ];
 
   fontTooling = with pkgs; [
     cabextract
@@ -72,7 +79,10 @@ let
     woff2
   ];
 
-  macos = [ inputs.ratatouille.packages.${pkgs.stdenv.hostPlatform.system}.default ];
+  macos = [
+    pkgs.macmon
+    inputs.ratatouille.packages.${pkgs.stdenv.hostPlatform.system}.default
+  ];
 in
 {
   environment.systemPackages =
