@@ -103,6 +103,7 @@ let
   };
 
   repos = [
+    "nix-config"
     "wine-gptk"
     "winecx-gptk"
   ];
@@ -113,10 +114,11 @@ let
   };
 in
 {
-  sops.secrets = {
-    "github_runner_token_wine-gptk" = runnerSecret;
-    "github_runner_token_winecx-gptk" = runnerSecret;
-  };
+  # generated from repos rather than listed by hand, so adding a runner cannot
+  # half-land with its token declaration missing
+  sops.secrets = lib.listToAttrs (
+    map (repo: lib.nameValuePair "github_runner_token_${repo}" runnerSecret) repos
+  );
 
   launchd.user.agents = lib.listToAttrs (
     map (repo: lib.nameValuePair "github-runner-${repo}" (runnerAgent repo)) repos
