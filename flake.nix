@@ -9,6 +9,8 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+    nix-index-database.url = "github:nix-community/nix-index-database";
+    nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
     ratatouille.url = "github:dappermint/ratatouille";
     ratatouille.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -82,8 +84,6 @@
               touch $out
             '';
 
-        # forces the whole configuration through evaluation without building it,
-        # which is the cheap gate ci can run on every push
         eval =
           pkgs.runCommand "eval-meatwizard"
             {
@@ -94,9 +94,6 @@
               touch $out
             '';
 
-        # the expensive gate: builds the system closure and asserts the tools we
-        # actually depend on landed on it. aws is homebrew-owned, so the closest
-        # honest assertion is that the generated Brewfile still declares it
         smoke =
           pkgs.runCommand "smoke-meatwizard"
             {

@@ -2,6 +2,7 @@
   pkgs,
   lib,
   self,
+  inputs,
   config,
   ...
 }:
@@ -28,7 +29,13 @@ in
     package = pkgs.lixPackageSets.latest.lix;
 
     channel.enable = false;
-    registry = lib.mkForce { };
+
+    # clearing the system registry does not stop `flake:nixpkgs` from resolving:
+    # lix ships flake-registry = vendored, so bare `nix run nixpkgs#x` fetched a
+    # second, unlocked nixpkgs. pin the entry to the locked input and turn the
+    # vendored registry off, so the shorthand resolves to the store path the
+    # system was already built from
+    registry = lib.mkForce { nixpkgs.flake = inputs.nixpkgs; };
 
     settings = {
       experimental-features = [
@@ -37,7 +44,16 @@ in
         "pipe-operator"
       ];
 
+      flake-registry = "";
+
       always-allow-substitutes = true;
+
+      # the daemon socket is the attack surface for the NAR parser CVEs, and
+      # nothing but root and admins has any business on it here
+      allowed-users = [
+        "root"
+        "@admin"
+      ];
 
       auto-optimise-store = true;
       keep-outputs = false;
@@ -51,6 +67,10 @@ in
 
       connect-timeout = 5;
       download-attempts = 3;
+      # off by default upstream. cache.nixos.org is behind fastly, and the
+      # narinfo storm at the start of a switch is latency bound, not bandwidth
+      # bound. set to false if a network that breaks QUIC stalls substitution
+      http3 = true;
       fallback = true;
       log-format = "multiline-with-logs";
       log-lines = 50;
@@ -105,6 +125,7 @@ in
   programs.fish.enable = true;
 
   programs.nix-index.enable = true;
+  programs.nix-index-database.comma.enable = true;
 
   security.pam.services.sudo_local.touchIdAuth = true;
 }

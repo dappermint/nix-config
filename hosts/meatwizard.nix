@@ -13,6 +13,7 @@ in
     ../modules/nix-cache-push.nix
     ../modules/maintenance.nix
     ../modules/github-runners.nix
+    inputs.nix-index-database.darwinModules.nix-index
     inputs.sops-nix.darwinModules.sops
     ../modules/secrets.nix
     inputs.home-manager.darwinModules.home-manager
@@ -24,7 +25,7 @@ in
   networking.computerName = "meatwizard";
   networking.localHostName = "meatwizard";
 
-  system.stateVersion = 6;
+  system.stateVersion = 7;
   system.primaryUser = user;
   users.users.${user}.home = "/Users/${user}";
 
