@@ -70,13 +70,31 @@ in
         nh darwin switch --diff always ${repo.flake} -- --refresh
       '';
 
-      # only bumps the lock, and only against the checkout: nix cannot write a
-      # lock into a remote flake. switching is a separate, deliberate step
+      # push first, then bump. the system builds from the remote, so a lock
+      # sitting on top of unpushed commits describes a revision nobody can
+      # fetch. the bump itself runs against the checkout because nix cannot
+      # write a lock into a remote flake
       nix-update = ''
+        set -l dir ${repo.directory}
+
+        set -l dirty (git -C $dir status --porcelain)
+        if test -n "$dirty"
+          echo "checkout is dirty, commit or stash before updating:" >&2
+          git -C $dir status --short >&2
+          return 1
+        end
+
+        set -l ahead (git -C $dir rev-list --count '@{u}..HEAD' 2>/dev/null)
+        test -n "$ahead"; or set ahead 0
+        if test "$ahead" -gt 0
+          echo "pushing $ahead local commit(s) ..."
+          git -C $dir push; or return 1
+        end
+
         ${ghToken}
-        nix flake update --flake ${repo.directory}
+        nix flake update --flake $dir
         echo
-        echo "lock bumped in ${repo.directory}. commit and push, then nix-switch"
+        echo "lock bumped in $dir. commit and push it, then nix-switch"
       '';
     };
   };
