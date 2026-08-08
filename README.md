@@ -21,12 +21,16 @@ nix cannot write a lock into a remote flake. commit and push the bump, then
 `nix-switch`.
 
 the repo is private, so every fetch needs a github token. both helpers borrow
-one from `gh auth token` for the length of the command. if you invoke nix
-directly instead:
+one from `gh auth token` for the length of the command.
+
+`nix-switch` also passes `--refresh`, and that is not optional: `tarball-ttl` is
+a week here, so without it nix resolves `github:dappermint/nix-config` from
+cache and cheerfully builds a revision that is days behind while reporting
+success. if you invoke nix directly, carry both:
 
 ```fish
 NIX_CONFIG="access-tokens = github.com=$(gh auth token)" \
-  sudo darwin-rebuild switch --flake github:dappermint/nix-config#meatwizard
+  sudo darwin-rebuild switch --refresh --flake github:dappermint/nix-config#meatwizard
 ```
 
 to test an uncommitted change without pushing, point at the checkout explicitly:
