@@ -8,7 +8,6 @@
       autoUpdate = true;
       upgrade = true;
       cleanup = "uninstall";
-      extraFlags = [ "--force-cleanup" ];
     };
 
     taps = [
