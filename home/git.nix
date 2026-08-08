@@ -1,4 +1,17 @@
+let
+  # git and jj sign the same commits as the same person, so the identity is
+  # declared once rather than kept in sync by hand
+  identity = {
+    name = "millia ampora";
+    email = "198710911+dappermint@users.noreply.github.com";
+  };
+in
 {
+  programs.jujutsu = {
+    enable = true;
+    settings.user = identity;
+  };
+
   programs.delta = {
     enable = true;
     enableGitIntegration = true;
@@ -11,8 +24,8 @@
   programs.git = {
     enable = true;
     settings = {
-      user.name = "millia ampora";
-      user.email = "198710911+dappermint@users.noreply.github.com";
+      user.name = identity.name;
+      user.email = identity.email;
       init.defaultBranch = "main";
       push.autoSetupRemote = true;
       push.default = "simple";
