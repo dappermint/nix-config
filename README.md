@@ -19,6 +19,16 @@ sudo darwin-rebuild switch --flake /etc/nix-darwin#meatwizard
 `nix-mirror-update` refreshes the local partial nixpkgs clone in `~/Code/nixpkgs`
 first, then bumps only the `nixpkgs` input. `nix-mirror-setup` creates that clone.
 
+`nh darwin switch` needs no path: home-manager sets `NH_DARWIN_FLAKE`, and nh
+falls back to `/etc/nix-darwin` on its own regardless, which is where this repo
+lives. `flake:nixpkgs` is pinned to the locked input, so `nix run nixpkgs#x` and
+`nix shell nixpkgs#x` resolve to the same package set the system was built from
+instead of fetching a second nixpkgs. `,` (comma) runs a package without
+installing it, backed by the prebuilt `nix-index` database.
+
+`docs/nix-review-2026-08.md` records the last upstream review: what changed,
+what was left alone and why, and what to watch on the next lix release.
+
 ## layout
 
 ```
@@ -30,6 +40,7 @@ overlays/                       exposes packages/ under pkgs
 packages/                       our own derivations
 lib/                            shared constants and shell snippets
 secrets/secrets.yaml            sops-encrypted
+docs/                           point-in-time reviews, one file per pass
 ```
 
 modules read `config.system.primaryUser` and `users.users.<user>.home`; home
