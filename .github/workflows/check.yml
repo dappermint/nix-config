@@ -17,7 +17,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: cachix/install-nix-action@v31
+      # lix, not cppnix: this config is built by lix on the machine, so the gate
+      # has to run the same evaluator
+      - uses: samueldr/lix-gha-installer-action@v2026-06-15
         with:
           extra_nix_config: |
             experimental-features = flakes nix-command pipe-operator
@@ -36,7 +38,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: cachix/install-nix-action@v31
+      # lix, not cppnix: this config is built by lix on the machine, so the gate
+      # has to run the same evaluator
+      - uses: samueldr/lix-gha-installer-action@v2026-06-15
         with:
           extra_nix_config: |
             experimental-features = flakes nix-command pipe-operator
