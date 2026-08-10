@@ -13,14 +13,16 @@
     taps = [
       "apple/apple"
       {
-        # trusted: homebrew refuses to load a cask from an untrusted tap, and
-        # whisky-preview's clears the quarantine flag on install
         name = "dappermint/tap";
         trusted = true;
       }
       "frankea/whisky"
       {
         name = "netbirdio/tap";
+        trusted = true;
+      }
+      {
+        name = "skyhook-io/tap";
         trusted = true;
       }
     ];
@@ -46,14 +48,10 @@
       "aptakube"
       "atoll"
       "betterdisplay"
-      # virtual audio device. obs cannot capture rekordbox output without a
-      # loopback driver, so this is what makes a dj stream possible at all.
-      # it installs a system audio driver: needs approval and a reboot
       "blackhole-2ch"
       "bruno"
       "claude-code@latest"
       "claude-status-bar"
-      "comet"
       "dappermint/tap/whisky-preview"
       "discord@canary"
       "figma"
@@ -74,7 +72,7 @@
       "orbstack"
       "orcaslicer"
       "osu"
-      "pearcleaner"
+      "radar"
       "raycast"
       "rekordbox"
       "shottr"
