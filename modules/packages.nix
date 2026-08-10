@@ -32,6 +32,7 @@ let
     difftastic
     gh
     git-filter-repo
+    glab
     lazygit
     pre-commit
     serie

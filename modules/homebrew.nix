@@ -11,7 +11,10 @@
     };
 
     taps = [
-      "apple/apple"
+      {
+        name = "apple/apple";
+        trusted = true;
+      }
       {
         name = "dappermint/tap";
         trusted = true;
