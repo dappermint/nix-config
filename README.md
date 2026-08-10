@@ -74,9 +74,14 @@ thread around.
 
 ```fish
 nix flake check                 # lint + eval + smoke
-nix develop                     # sops, nixfmt, statix, deadnix, nh, ssh-to-age, pre-commit
+direnv allow                    # loads the devshell on cd, one time only
+nix develop                     # same shell without direnv
 pre-commit install              # installs both the pre-commit and commit-msg hooks
 ```
+
+the devshell carries sops, nixfmt, statix, deadnix, nh, ssh-to-age and
+pre-commit. the lint hooks only resolve inside it, so commit from the repo with
+direnv active or wrap the commit in `nix develop -c`.
 
 - `lint` runs nixfmt, deadnix and statix over the tree
 - `eval` forces the whole configuration through evaluation without building it
