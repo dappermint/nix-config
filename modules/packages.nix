@@ -65,6 +65,7 @@ let
   ];
 
   kubernetes = with pkgs; [
+    argocd
     eksctl
     k9s
     kubectl
