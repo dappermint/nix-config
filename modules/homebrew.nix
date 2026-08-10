@@ -72,7 +72,7 @@
       "orbstack"
       "orcaslicer"
       "osu"
-      "skyhook-io/tap/radar"
+      "skyhook-io/tap/radar-desktop"
       "raycast"
       "rekordbox"
       "shottr"
