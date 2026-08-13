@@ -55,6 +55,18 @@ in
         "@admin"
       ];
 
+      # remote builds and `nix copy --no-check-sigs` are restricted settings:
+      # the daemon silently ignores them from an untrusted user, so a build
+      # aimed at a linux builder falls back to building locally and fails on
+      # the architecture instead of saying why. Deploying x86_64-linux from
+      # this machine needs them, and the primary user is the person doing it.
+      #
+      # This does mean this user can insert arbitrary paths into the store,
+      # which is the actual cost. It is the same trust the user already has by
+      # being able to edit and switch this configuration.
+      # root is already in the upstream default; this only adds the operator
+      trusted-users = [ user ];
+
       auto-optimise-store = true;
       keep-outputs = false;
       keep-derivations = false;
