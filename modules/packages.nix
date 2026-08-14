@@ -9,7 +9,10 @@ let
     elvish
     entr
     eza
-    fastfetch
+    # the darwin wrapper puts chafa, imagemagick, apple-sdk and MoltenVK on
+    # LD_LIBRARY_PATH, which dyld never reads, so the image logo it pays 482 MB
+    # for never worked. wrapped and unwrapped both fall back to the ascii logo
+    (fastfetch.override { runtimeDependencies = [ ]; })
     fd
     glow
     hyfetch
