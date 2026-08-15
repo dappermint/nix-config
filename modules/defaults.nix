@@ -65,6 +65,7 @@ in
       FXEnableExtensionChangeWarning = false;
       FXDefaultSearchScope = "SCcf";
       FXRemoveOldTrashItems = true;
+      NewWindowTarget = "Home";
       ShowPathbar = true;
       ShowStatusBar = true;
       _FXShowPosixPathInTitle = true;
@@ -122,6 +123,11 @@ in
         DSDontWriteUSBStores = true;
       };
       "com.apple.finder".DisableAllAnimations = true;
+      "com.apple.bird"."optimize-storage" = false;
+      "com.apple.SetupAssistant" = {
+        DidSeeCloudSetup = true;
+        DidSeeiCloudLoginForStorageServices = true;
+      };
       "com.apple.AdLib" = {
         allowApplePersonalizedAdvertising = false;
         allowIdentifierForAdvertising = false;
@@ -149,5 +155,10 @@ in
 
     defaults write "/Library/Application Support/CrashReporter/DiagnosticMessagesHistory.plist" AutoSubmit -bool false
     defaults write "/Library/Application Support/CrashReporter/DiagnosticMessagesHistory.plist" ThirdPartyDataSubmit -bool false
+
+    # SetupAssistant replays the iCloud sign-in pane whenever this lags the
+    # running macOS version, so keep it pinned to whatever we booted
+    launchctl asuser "$(id -u -- ${user})" sudo --user=${user} -- \
+      defaults write com.apple.SetupAssistant LastSeenCloudProductVersion -string "$(sw_vers -productVersion)"
   '';
 }
