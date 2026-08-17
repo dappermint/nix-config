@@ -74,7 +74,6 @@
       "jordanbaird-ice"
       "linear"
       "lm-studio"
-      "mongrel"
       "netbirdio/tap/netbird-ui"
       "nordvpn"
       "obs"
