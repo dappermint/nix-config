@@ -16,6 +16,10 @@
         trusted = true;
       }
       {
+        name = "bjarneo/cliamp";
+        trusted = true;
+      }
+      {
         name = "dappermint/tap";
         trusted = true;
       }
@@ -32,6 +36,7 @@
 
     brews = [
       "awscli"
+      "bjarneo/cliamp/cliamp"
       # the PE half of the wine runtimes the self-hosted runners build. it has
       # to be this toolchain and not nixpkgs' mingw: nix's cc-wrapper needs a
       # NIX_LDFLAGS that only exists inside a nix build (without it every PE
