@@ -13,6 +13,8 @@
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
     ratatouille.url = "github:dappermint/ratatouille";
     ratatouille.inputs.nixpkgs.follows = "nixpkgs";
+    tart.url = "path:/Users/dappy/Documents/Projects/tart";
+    tart.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =

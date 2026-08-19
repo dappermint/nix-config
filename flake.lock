@@ -105,7 +105,8 @@
         "nix-index-database": "nix-index-database",
         "nixpkgs": "nixpkgs",
         "ratatouille": "ratatouille",
-        "sops-nix": "sops-nix"
+        "sops-nix": "sops-nix",
+        "tart": "tart"
       }
     },
     "sops-nix": {
@@ -126,6 +127,23 @@
         "owner": "Mic92",
         "repo": "sops-nix",
         "type": "github"
+      }
+    },
+    "tart": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1787160779,
+        "narHash": "sha256-muV/Gw7C/h99KTDGa662B/guQj+bTdQVSQnihxzs9CM=",
+        "path": "/Users/dappy/Documents/Projects/tart",
+        "type": "path"
+      },
+      "original": {
+        "path": "/Users/dappy/Documents/Projects/tart",
+        "type": "path"
       }
     }
   },

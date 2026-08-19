@@ -84,6 +84,8 @@ let
     pkgs.macmon
     inputs.ratatouille.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
+
+  toys = [ inputs.tart.packages.${pkgs.stdenv.hostPlatform.system}.default ];
 in
 {
   environment.systemPackages =
@@ -96,5 +98,6 @@ in
     ++ kubernetes
     ++ nixTooling
     ++ fontTooling
-    ++ macos;
+    ++ macos
+    ++ toys;
 }

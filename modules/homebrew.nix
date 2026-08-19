@@ -23,7 +23,6 @@
         name = "dappermint/tap";
         trusted = true;
       }
-      "frankea/whisky"
       {
         name = "netbirdio/tap";
         trusted = true;
@@ -67,7 +66,6 @@
       # six browsers installed at once
       "finicky"
       "firefox@nightly"
-      "frankea/whisky/whisky"
       "freecad"
       "ghostty"
       "iina"
