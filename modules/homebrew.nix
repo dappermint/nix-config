@@ -59,6 +59,7 @@
       "bruno"
       "claude-code@latest"
       "claude-status-bar"
+      "dappermint/tap/stoat"
       "dappermint/tap/whisky-preview"
       "discord@canary"
       "figma"
