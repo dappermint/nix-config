@@ -28,6 +28,7 @@ let
       pkgs.dust
       pkgs.gawk
       pkgs.go
+      pkgs.nodejs
       pkgs.uv
     ];
     text = ''
