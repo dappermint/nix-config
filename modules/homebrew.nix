@@ -107,8 +107,12 @@
   # version bump. nix-darwin cannot own the plist without fighting the brew
   # formula, so activation repairs it instead: install when the plist is gone,
   # bootstrap when launchd does not know it, and only restart when the binary
-  # is actually newer than the running service
-  system.activationScripts.extraActivation.text = ''
+  # is actually newer than the running service.
+  #
+  # postActivation, not extraActivation: extraActivation is the fourth step of
+  # activation and the homebrew bundle is the second to last, so a repair there
+  # inspects the netbird brew installed on the previous switch
+  system.activationScripts.postActivation.text = ''
     netbird="${config.homebrew.prefix}/bin/netbird"
     netbird_plist=/Library/LaunchDaemons/netbird.plist
     netbird_stamp=/var/lib/nix-darwin/netbird-binary
