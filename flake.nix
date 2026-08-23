@@ -20,18 +20,15 @@
   outputs =
     inputs@{
       self,
-      nixpkgs,
       nix-darwin,
       ...
     }:
     let
       system = "aarch64-darwin";
 
-      pkgs = import nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
-        overlays = [ (import ./overlays) ];
-      };
+      # the system's own package set, so allowUnfree and the overlay list stay
+      # declared once in modules/system.nix
+      pkgs = self.darwinConfigurations.meatwizard.pkgs;
 
       mkHost =
         hostModule:
