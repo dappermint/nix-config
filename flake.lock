@@ -136,14 +136,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1787222113,
-        "narHash": "sha256-DM8JBAhuMrROcDnITz2VPYWGH1Wx9OIDT9YiNa2R5RE=",
-        "path": "/Users/dappy/Documents/Projects/tart",
-        "type": "path"
+        "lastModified": 1787481988,
+        "narHash": "sha256-MWAhh1In6FhKXwbN6Nyh/CY/neNfWDxRW9ywfY7kpcc=",
+        "owner": "dappermint",
+        "repo": "tart",
+        "rev": "79f8941f0addee2a5353bbb48199140d7815cff4",
+        "type": "github"
       },
       "original": {
-        "path": "/Users/dappy/Documents/Projects/tart",
-        "type": "path"
+        "owner": "dappermint",
+        "repo": "tart",
+        "type": "github"
       }
     }
   },
