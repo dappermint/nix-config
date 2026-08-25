@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 
 let
   repo = import ../lib/repo.nix;
@@ -10,15 +10,70 @@ let
   awsConfig = "${config.home.homeDirectory}/.aws/config";
 
   # tofu output names and sops keys are deliberately identical, so the import
-  # loop below is a straight copy
+  # below is a straight copy
   cacheCredentialKeys = [
     "nix_cache_reader_access_key_id"
     "nix_cache_reader_secret_access_key"
     "nix_cache_writer_access_key_id"
     "nix_cache_writer_secret_access_key"
   ];
+
+  credsFilter = builtins.concatStringsSep ", " (map (k: "${k}: .${k}.value") cacheCredentialKeys);
+
+  credsMerge = pkgs.writeShellApplication {
+    name = "nix-cache-creds-merge";
+    runtimeInputs = [ pkgs.yq-go ];
+    text = ''
+      yq -i '. * (strenv(TOFU_CREDS) | fromjson)' "$1"
+    '';
+  };
+
+  # tofu owns the s3 cache keys, sops stores them, nix renders
+  # ~/.aws/credentials. the values ride in through the environment and sops'
+  # editor tempfile, never argv, so they never show up in ps
+  credsImport = pkgs.writeShellApplication {
+    name = "nix-cache-creds-import";
+    runtimeInputs = [
+      credsMerge
+      pkgs.jq
+      pkgs.opentofu
+      pkgs.sops
+    ];
+    text = ''
+      tofu_dir="$HOME/Documents/Werk/repos/conway/infra/tofu/environments/infra"
+
+      if [ ! -d "$tofu_dir" ]; then
+        echo "tofu directory missing: $tofu_dir" >&2
+        exit 1
+      fi
+
+      creds=$(tofu -chdir="$tofu_dir" output -json | jq '{ ${credsFilter} }')
+
+      for key in ${builtins.concatStringsSep " " cacheCredentialKeys}; do
+        if [ -z "$(jq -r --arg k "$key" '.[$k] // empty' <<<"$creds")" ]; then
+          echo "tofu output $key is empty - did you tofu apply?" >&2
+          exit 1
+        fi
+      done
+
+      export SOPS_AGE_KEY_FILE="''${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/age/keys.txt}"
+
+      sops_status=0
+      TOFU_CREDS=$creds EDITOR=nix-cache-creds-merge sops edit ${repo.secretsFile} \
+        || sops_status=$?
+      # 200 is sops for "the file did not change"
+      if [ "$sops_status" -ne 0 ] && [ "$sops_status" -ne 200 ]; then
+        exit "$sops_status"
+      fi
+
+      echo "imported ${toString (builtins.length cacheCredentialKeys)} keys into ${repo.secretsFile}"
+      echo "run nix-update to re-render ~/.aws/credentials"
+    '';
+  };
 in
 {
+  home.packages = [ credsImport ];
+
   programs.fish.functions = {
     eks-login = ''
       if not test -r ${awsConfig}
@@ -51,30 +106,6 @@ in
       end
 
       kubectl cluster-info
-    '';
-
-    # tofu owns the s3 cache keys, sops stores them, nix renders
-    # ~/.aws/credentials. this only moves them from the first to the second
-    nix-cache-creds-import = ''
-      set -l tofu_dir "$HOME/Documents/Werk/repos/conway/infra/tofu/environments/infra"
-
-      if not test -d $tofu_dir
-        echo "tofu directory missing: $tofu_dir" >&2
-        return 1
-      end
-
-      for key in ${builtins.concatStringsSep " " cacheCredentialKeys}
-        set -l value (tofu -chdir=$tofu_dir output -raw $key)
-        if test -z "$value"
-          echo "tofu output $key is empty - did you tofu apply?" >&2
-          return 1
-        end
-        sops set ${repo.secretsFile} "[\"$key\"]" (printf '%s' $value \
-          | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')
-      end
-
-      echo "imported ${toString (builtins.length cacheCredentialKeys)} keys into ${repo.secretsFile}"
-      echo "run nix-update to re-render ~/.aws/credentials"
     '';
   };
 }

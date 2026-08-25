@@ -29,9 +29,12 @@ cache and cheerfully builds a revision that is days behind while reporting
 success. if you invoke nix directly, carry both:
 
 ```fish
-NIX_CONFIG="access-tokens = github.com=$(gh auth token)" \
-  sudo darwin-rebuild switch --refresh --flake github:dappermint/nix-config#meatwizard
+sudo NIX_CONFIG="access-tokens = github.com=$(gh auth token)" \
+  darwin-rebuild switch --refresh --flake github:dappermint/nix-config#meatwizard
 ```
+
+sudo has to come first: its env_reset strips a `NIX_CONFIG` exported in front of
+it, but passes one given as an argument through to the command.
 
 to test an uncommitted change without pushing, point at the checkout explicitly:
 
@@ -42,9 +45,10 @@ nh darwin switch --diff always /etc/nix-darwin
 `nix-mirror-update` refreshes the local partial nixpkgs clone in `~/Code/nixpkgs`
 first, then bumps only the `nixpkgs` input. `nix-mirror-setup` creates that clone.
 
-`nh darwin switch` needs no path: home-manager sets `NH_DARWIN_FLAKE`, and nh
-falls back to `/etc/nix-darwin` on its own regardless, which is where this repo
-lives. `flake:nixpkgs` is pinned to the locked input, so `nix run nixpkgs#x` and
+a bare `nh darwin switch` is a trap: `NH_DARWIN_FLAKE` points at the github ref
+but only shells started after a switch see it, nh's own fallback is the local
+checkout, and neither path carries `--refresh`. use `nix-switch`, which does
+both. `flake:nixpkgs` is pinned to the locked input, so `nix run nixpkgs#x` and
 `nix shell nixpkgs#x` resolve to the same package set the system was built from
 instead of fetching a second nixpkgs. `,` (comma) runs a package without
 installing it, backed by the prebuilt `nix-index` database.
@@ -86,8 +90,8 @@ direnv active or wrap the commit in `nix develop -c`.
 - `lint` runs nixfmt, deadnix and statix over the tree
 - `eval` forces the whole configuration through evaluation without building it
 - `smoke` builds `darwinConfigurations.meatwizard.system` and asserts that
-  `local-maintenance`, `nix-cache-push` and `grok` are on it, and that the
-  generated brewfile still declares awscli
+  `local-maintenance`, `maintenance-status`, `nix-cache-push` and `grok` are on
+  it, and that the generated brewfile still declares awscli
 
 `.pre-commit-config.yaml` mirrors `lint` locally and enforces conventional
 commits on the commit message. ci runs lint and eval on every push, builds the

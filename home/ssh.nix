@@ -8,13 +8,11 @@
         ForwardAgent = false;
         AddKeysToAgent = "yes";
         Compression = false;
-        ServerAliveInterval = 0;
+        # the clownupdate sessions sit silent for minutes while apt runs, and
+        # a nat idle timeout mid-upgrade leaves the remote half-applied
+        ServerAliveInterval = 60;
         ServerAliveCountMax = 3;
-        HashKnownHosts = false;
         UserKnownHostsFile = "~/.ssh/known_hosts";
-        ControlMaster = "no";
-        ControlPath = "~/.ssh/master-%r@%n:%p";
-        ControlPersist = "no";
       };
     };
   };

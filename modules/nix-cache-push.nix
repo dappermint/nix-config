@@ -20,7 +20,6 @@ let
       config.nix.package
       pkgs.coreutils
       pkgs.gawk
-      pkgs.gnugrep
       pkgs.gnused
     ];
     text = ''

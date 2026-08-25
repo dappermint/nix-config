@@ -20,22 +20,25 @@ let
     micro
     ookla-speedtest
     ouch
+    pik
     ripgrep
     sd
     tealdeer
+    television
     trippy
     xh
     yq-go
   ];
 
   vcs = with pkgs; [
-    difftastic
     gh
     git-filter-repo
     glab
+    jjui
     lazygit
     pre-commit
     serie
+    zizmor
   ];
 
   editors = [ pkgs.neovim ];
@@ -49,7 +52,6 @@ let
     bun
     go
     nodejs
-    uv
   ];
 
   # awscli2 crashes through libffi on macOS 27, so homebrew owns it for now
@@ -72,7 +74,10 @@ let
     kubernetes-helm
   ];
 
-  nixTooling = [ pkgs.nix-output-monitor ];
+  nixTooling = with pkgs; [
+    nix-output-monitor
+    nixd
+  ];
 
   fontTooling = with pkgs; [
     cabextract

@@ -36,6 +36,7 @@
     brews = [
       "awscli"
       "bjarneo/cliamp/cliamp"
+      "container"
       # the PE half of the wine runtimes the self-hosted runners build. it has
       # to be this toolchain and not nixpkgs' mingw: nix's cc-wrapper needs a
       # NIX_LDFLAGS that only exists inside a nix build (without it every PE
@@ -59,9 +60,9 @@
       "bruno"
       "claude-code@latest"
       "claude-status-bar"
+      "conductor"
       "dappermint/tap/fluxer@canary"
       "dappermint/tap/whisky-preview"
-      "discord@canary"
       "figma"
       # routes links by url pattern, which is the only sane way to live with
       # six browsers installed at once
@@ -70,7 +71,6 @@
       "freecad"
       "ghostty"
       "iina"
-      "jordanbaird-ice"
       "linear"
       "lm-studio"
       "netbirdio/tap/netbird-ui"
@@ -89,6 +89,7 @@
       "tailscale-app"
       "telegram"
       "telegram-desktop"
+      "thaw"
       "thebrowsercompany-dia"
       "tor-browser"
       "transmission"
@@ -100,6 +101,15 @@
       "zen"
       "zerotier-one"
     ];
+  };
+
+  programs.mas = {
+    enable = true;
+    cleanup = true;
+    packages = {
+      Amphetamine = 937984704;
+      "Balatro+" = 6502451661;
+    };
   };
 
   # netbird ships its own LaunchDaemon through `netbird service install`, and

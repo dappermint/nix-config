@@ -8,7 +8,9 @@ let
 in
 {
   system.defaults = {
-    SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true;
+    # never restart unattended for a full os update: this box is also the ci
+    # runner. security responses and xprotect data still install themselves
+    SoftwareUpdate.AutomaticallyInstallMacOSUpdates = false;
 
     NSGlobalDomain = {
       AppleInterfaceStyle = "Dark";
@@ -111,6 +113,13 @@ in
       ShowSeconds = true;
       ShowDate = 1;
       ShowDayOfWeek = false;
+    };
+
+    CustomSystemPreferences."com.apple.SoftwareUpdate" = {
+      AutomaticCheckEnabled = true;
+      AutomaticDownload = true;
+      CriticalUpdateInstall = true;
+      ConfigDataInstall = true;
     };
 
     CustomUserPreferences = {
