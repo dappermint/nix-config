@@ -1,16 +1,29 @@
 let
-  # git and jj sign the same commits as the same person, so the identity is
-  # declared once rather than kept in sync by hand
+  # git and jj sign the same commits as the same person, so the identity and
+  # signing key are declared once rather than kept in sync by hand. the key is
+  # the same ed25519 that backs sops
   identity = {
     name = "millia ampora";
     email = "198710911+dappermint@users.noreply.github.com";
   };
+  signingKey = "~/.ssh/id_ed25519.pub";
 in
 {
   programs.jujutsu = {
     enable = true;
-    settings.user = identity;
+    settings = {
+      user = identity;
+      signing = {
+        behavior = "own";
+        backend = "ssh";
+        key = signingKey;
+      };
+    };
   };
+
+  # difftool wired by hand: home-manager refuses difftastic.git.enable beside
+  # delta.enableGitIntegration. delta keeps `git diff`, difft answers `git difftool`
+  programs.difftastic.enable = true;
 
   programs.delta = {
     enable = true;
@@ -26,6 +39,10 @@ in
     settings = {
       user.name = identity.name;
       user.email = identity.email;
+      user.signingkey = signingKey;
+      gpg.format = "ssh";
+      commit.gpgsign = true;
+      tag.gpgsign = true;
       init.defaultBranch = "main";
       push.autoSetupRemote = true;
       push.default = "simple";
@@ -42,6 +59,9 @@ in
       rerere.autoUpdate = true;
       diff.algorithm = "histogram";
       diff.colorMoved = "default";
+      diff.tool = "difftastic";
+      difftool.prompt = false;
+      difftool.difftastic.cmd = ''difft "$LOCAL" "$REMOTE"'';
       diff.mnemonicPrefix = true;
       diff.renames = true;
       column.ui = "auto";

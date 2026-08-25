@@ -1,6 +1,7 @@
 {
   self,
   config,
+  lib,
   ...
 }:
 
@@ -93,14 +94,6 @@ in
           region = ${awsRegion}
           output = json
 
-          [profile Admin2]
-          sso_start_url = ${placeholder.aws_sso_start_url}
-          sso_region = ${awsRegion}
-          sso_account_id = ${placeholder.aws_sso_account_id}
-          sso_role_name = AdministratorAccess
-          region = ${awsRegion}
-          output = json
-
           [profile nix-cache]
           region = ${awsRegion}
 
@@ -113,6 +106,12 @@ in
       };
     };
   };
+
+  # a directory sops has to mkdir on the way to a secret ends up root-owned,
+  # so hand them to the user first; extraActivation runs before the secrets
+  system.activationScripts.extraActivation.text = lib.mkAfter ''
+    install -d -o ${user} -g staff ${home}/.aws ${home}/.config ${home}/.config/obs ${home}/.kube
+  '';
 
   programs.fish.shellInit = ''
     test -r "${config.sops.templates."secrets.fish".path}"; and source "${

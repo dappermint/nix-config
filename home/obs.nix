@@ -134,19 +134,21 @@ let
         {
           key = cam.hotkey;
           control = true;
-          alt = true;
+          command = true;
         }
       ];
     };
 
   # obs registers mute/unmute as a hotkey pair, so binding one combo to both
   # halves makes it a toggle. the two mics start in opposite states, which turns
-  # the single combo into an a/b switch between them
+  # the single combo into an a/b switch between them.
+  # ctrl+cmd, not ctrl+alt: aerospace claims every ctrl+alt chord as a
+  # workspace hotkey and eats it before obs ever sees it
   micToggle = [
     {
       key = "OBS_KEY_M";
       control = true;
-      alt = true;
+      command = true;
     }
   ];
 
@@ -393,7 +395,6 @@ let
     name = "obs-install-config";
     runtimeInputs = [
       pkgs.coreutils
-      pkgs.gnused
       pkgs.python3
     ];
     text = ''
@@ -401,13 +402,20 @@ let
       install -m 0644 "${basicIni}" "${profileDir}/basic.ini"
       install -m 0644 "${sceneJson}" "${sceneFile}"
 
+      # the key rides in through the environment, not argv, so it never
+      # shows up in ps
+      render_service() {
+        STREAM_KEY="$1" python3 -c \
+          'import os, sys; sys.stdout.write(sys.stdin.read().replace("@STREAM_KEY@", os.environ["STREAM_KEY"]))' \
+          < "${serviceTemplate}"
+      }
+
       if [ -r "${streamKeyFile}" ]; then
-        key=$(tr -d '[:space:]' < "${streamKeyFile}")
         umask 077
-        sed "s|@STREAM_KEY@|$key|" "${serviceTemplate}" > "${profileDir}/service.json"
+        render_service "$(tr -d '[:space:]' < "${streamKeyFile}")" > "${profileDir}/service.json"
       elif [ ! -e "${profileDir}/service.json" ]; then
         umask 077
-        sed "s|@STREAM_KEY@||" "${serviceTemplate}" > "${profileDir}/service.json"
+        render_service "" > "${profileDir}/service.json"
         echo "obs: no stream key at ${streamKeyFile}, wrote service.json without one" >&2
       fi
 

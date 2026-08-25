@@ -10,6 +10,7 @@
     ./obs.nix
     ./sops.nix
     ./ssh.nix
+    ./uv.nix
     ./zed.nix
   ];
 

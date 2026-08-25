@@ -26,6 +26,17 @@ repos:
         files: \.nix$
         pass_filenames: false
 
+      - id: sops-encrypted
+        name: secrets stay encrypted
+        entry: sh -c 'for f in "$@"; do grep -q "ENC\[" "$f" || { echo "$f is not sops-encrypted" >&2; exit 1; }; done' --
+        language: system
+        files: ^secrets/
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: detect-private-key
+
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.4.0
     hooks:

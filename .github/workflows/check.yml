@@ -10,6 +10,11 @@ concurrency:
   group: check-${{ github.ref }}
   cancel-in-progress: true
 
+# nothing here writes, and the runner is the machine itself: a leaked token
+# with default scope would be a real prize, so pin it to read
+permissions:
+  contents: read
+
 # both jobs run on meatwizard's own runner, so no step installs nix: nix-darwin
 # already owns it here and installing over it would damage the live
 # installation. that also makes this better parity than a hosted runner ever
@@ -28,6 +33,10 @@ jobs:
     runs-on: [self-hosted, m5]
     steps:
       - uses: actions/checkout@v7
+        with:
+          # otherwise the token sits in _work/.git/config until the agent
+          # restarts, which with KeepAlive can be weeks
+          persist-credentials: false
 
       - name: lint
         run: nix build --no-link -L .#checks.aarch64-darwin.lint
@@ -40,6 +49,10 @@ jobs:
     runs-on: [self-hosted, m5]
     steps:
       - uses: actions/checkout@v7
+        with:
+          # otherwise the token sits in _work/.git/config until the agent
+          # restarts, which with KeepAlive can be weeks
+          persist-credentials: false
 
       - name: build and smoke the system
         run: nix build --no-link -L .#checks.aarch64-darwin.smoke

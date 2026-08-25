@@ -11,6 +11,8 @@ let
 
   package = pkgs.github-runner;
 
+  shell = import ../lib/shell.nix;
+
   # what the wine workflows actually invoke. providing them here is not just
   # convenience: the runner is this machine, and `brew install` on it would
   # both pollute the system and get reaped again by brew cleanup = uninstall.
@@ -52,6 +54,10 @@ let
         pkgs.findutils
       ];
       text = ''
+        ${shell.rotateLog}
+        rotate_log ${lib.escapeShellArg "${home}/Library/Logs/github-runner-${repo}.log"}
+        rotate_log ${lib.escapeShellArg "${home}/Library/Logs/github-runner-${repo}.err.log"}
+
         export RUNNER_ROOT=${lib.escapeShellArg (stateDir repo)}
         work="$RUNNER_ROOT/_work"
         mkdir -p "$RUNNER_ROOT" "$work"
@@ -63,14 +69,16 @@ let
         # spent once. mint a fresh one with
         #   gh api -X POST /repos/dappermint/${repo}/actions/runners/registration-token
         # before deleting .runner or registering on a new machine.
+        # the token rides in on the env var config.sh derives from the
+        # ACTIONS_RUNNER_INPUT_ prefix, so it never appears in ps
         if [ ! -f "$RUNNER_ROOT/.runner" ]; then
-          ${package}/bin/config.sh \
+          ACTIONS_RUNNER_INPUT_TOKEN="$(cat ${config.sops.secrets."github_runner_token_${repo}".path})" \
+            ${package}/bin/config.sh \
             --unattended --disableupdate --replace \
             --work "$work" \
             --url https://github.com/dappermint/${repo} \
             --name meatwizard-${repo} \
-            --labels m5 \
-            --token "$(cat ${config.sops.secrets."github_runner_token_${repo}".path})"
+            --labels m5
         fi
 
         exec ${package}/bin/Runner.Listener run --startuptype service
