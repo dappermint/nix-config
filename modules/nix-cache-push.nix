@@ -161,8 +161,11 @@ in
 
     compressionLevel = lib.mkOption {
       type = lib.types.ints.between 1 19;
-      default = 19;
-      description = "ZSTD compression level used for closures (1-19).";
+      default = 12;
+      description = ''
+        ZSTD compression level used for closures (1-19). 19 saturated five
+        cores for minutes on every run and bought a few percent over 12.
+      '';
     };
   };
 
