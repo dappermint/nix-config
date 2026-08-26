@@ -178,8 +178,10 @@ space. logs are under `~/Library/Logs/`.
 
 `--force` skips 1 through 3. paths given as arguments override the default of
 `/run/current-system`. the closure is staged to `~/.cache/nix-cache-staging` with
-zstd-19 and then `aws s3 sync`ed, throttled to 2MB/s by the `nix-cache-writer`
-profile.
+zstd-12 and then `aws s3 sync`ed, throttled to 2MB/s by the `nix-cache-writer`
+profile. it was zstd-19, which pinned five cores for minutes every run and was
+worth a few percent of size; `services.nix-cache-push.compressionLevel` raises it
+again if you ever want that back.
 
 ## homebrew and netbird
 
