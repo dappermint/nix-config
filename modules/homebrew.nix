@@ -67,7 +67,6 @@
       # routes links by url pattern, which is the only sane way to live with
       # six browsers installed at once
       "finicky"
-      "flameshot"
       "firefox@nightly"
       "freecad"
       "ghostty"
@@ -83,6 +82,7 @@
       "skyhook-io/tap/radar-desktop"
       "raycast"
       "rekordbox"
+      "shottr"
       "signal@beta"
       "spotify"
       "steam"
