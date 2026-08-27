@@ -144,6 +144,14 @@ in
       };
       "com.apple.CrashReporter".DialogType = "none";
       "com.apple.TimeMachine".DoNotOfferNewDisksForBackup = true;
+
+      # carbon keycodes and modifier masks, in order: opt+cmd+4, opt+cmd+3,
+      # ctrl+opt+cmd+o. reinstalling the cask wipes these, hence pinning them
+      "cc.ffitch.shottr" = {
+        KeyboardShortcuts_area = ''{"carbonKeyCode":21,"carbonModifiers":2304}'';
+        KeyboardShortcuts_fullscreen = ''{"carbonKeyCode":20,"carbonModifiers":2304}'';
+        KeyboardShortcuts_ocr = ''{"carbonKeyCode":31,"carbonModifiers":6400}'';
+      };
     };
   };
 
