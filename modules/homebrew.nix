@@ -70,6 +70,7 @@
       "firefox@nightly"
       "freecad"
       "ghostty"
+      "google-gemini"
       "iina"
       "linear"
       "lm-studio"
