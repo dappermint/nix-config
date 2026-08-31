@@ -29,6 +29,7 @@
       traceroute = "trip";
       # difft takes file pairs, not `diff -u`. `command diff` for the unix one
       diff = "difft";
+      sbxrdp = "sdl-freerdp /v:10.212.240.196 /u:sbx /p:YQyHPb7ApOZC5sWXJBl0a5K5 /cert:ignore +clipboard +dynamic-resolution";
     };
 
     # abbreviations, not aliases: these expand in place so the flags are

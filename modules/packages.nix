@@ -58,6 +58,7 @@ let
   infra = with pkgs; [
     ansible
     ansible-lint
+    freerdp
     opentofu
     sops
     sshpass
