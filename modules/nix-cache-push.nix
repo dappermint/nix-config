@@ -70,9 +70,12 @@ let
             exit 0
             ;;
         esac
+        # -n/p, not s///: on a wired or unassociated interface networksetup
+        # prints an error instead, and a substitution that does not match
+        # passes that error through as the SSID and skips every upload
         SSID=$(/usr/sbin/networksetup -getairportnetwork "$IFACE" 2>/dev/null \
-          | sed -E 's/^Current Wi-Fi Network: //' || true)
-        if [ -n "''${SSID:-}" ] && [ "$SSID" != "You are not associated with an AirPort network." ]; then
+          | sed -n 's/^Current Wi-Fi Network: //p' || true)
+        if [ -n "''${SSID:-}" ]; then
           OK=0
           # shellcheck disable=SC2043
           for s in ${lib.concatStringsSep " " (map lib.escapeShellArg cfg.safeSSIDs)}; do
