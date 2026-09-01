@@ -45,6 +45,7 @@
       # steam's CM login stall was traced to exactly this kind of PE toolchain
       # difference, so it stays identical to what the hosted runners have.
       "mingw-w64"
+      "dappermint/tap/occam"
       "netbirdio/tap/netbird"
       "rustnet"
     ];
@@ -111,6 +112,7 @@
     cleanup = true;
     packages = {
       Amphetamine = 937984704;
+      "Windows App" = 1295203466;
       "Balatro+" = 6502451661;
     };
   };
