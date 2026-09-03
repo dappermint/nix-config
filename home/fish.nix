@@ -61,6 +61,10 @@ in
     enable = true;
     enableFishIntegration = true;
     flags = [ "--disable-up-arrow" ];
+    settings = {
+      enter_accept = true;
+      sync.records = true;
+    };
   };
 
   programs.fzf = {

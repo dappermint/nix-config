@@ -11,6 +11,7 @@
     ./nix-tools.nix
     ./ssh.nix
     ./starship.nix
+    ./television.nix
     ./tmux.nix
     ./uv.nix
   ];
