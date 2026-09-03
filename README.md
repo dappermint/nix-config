@@ -1,8 +1,9 @@
 # nix-config
 
-nix-darwin + home-manager for `meatwizard`, an aarch64 mac. lix is the nix
-implementation, sops-nix holds the secrets, homebrew owns the casks and the
-handful of formulae nix cannot build cleanly.
+nix-darwin + home-manager for `meatwizard`, an aarch64 mac, and standalone
+home-manager for `droid`, the android linux terminal guest on the phone. lix is
+the nix implementation on both, sops-nix holds the secrets, homebrew owns the
+casks and the handful of formulae nix cannot build cleanly.
 
 ## switching
 
@@ -61,11 +62,13 @@ what was left alone and why, and what to watch on the next lix release.
 ```
 flake.nix                       inputs, the mkHost router, checks, devshell
 hosts/meatwizard.nix            machine facts: hostname, platform, wifi allowlist, /etc/hosts pin
+hosts/droid.nix                 the phone: username, home directory, its slice of lib/packages.nix
 modules/                        generic system modules, none of them name the machine
 home/dappy.nix                  imports only, one file per topic beside it
+home/droid.nix                  the same, for the portable half of those topics
 overlays/                       exposes packages/ under pkgs
 packages/                       our own derivations
-lib/                            shared constants and shell snippets
+lib/                            shared constants, package groups and shell snippets
 secrets/secrets.yaml            sops-encrypted
 docs/                           point-in-time reviews, one file per pass
 ```
@@ -73,6 +76,48 @@ docs/                           point-in-time reviews, one file per pass
 modules read `config.system.primaryUser` and `users.users.<user>.home`; home
 modules read `config.home.homeDirectory`. no `primaryUsername` specialArg to
 thread around.
+
+## droid
+
+`droid` is the phone: the android linux terminal guest (avf debian 13 trixie,
+aarch64). it is standalone home-manager rather than nixos, because the terminal
+app owns the guest rootfs and re-provisions it from a cloud-init seed and a
+rootfs backup. anything outside `/home/droid` is reverted when it does — that
+took out a `chsh` once — so the checkout lives at `~/Code/nix-config` and not in
+`/etc`. there is no ssh fallback either: cloud-init purges openssh-server on
+every provision, so a broken login shell is only recoverable by reinstalling the
+guest.
+
+lix goes on with its own installer. upgrading a cppnix install in place is not
+worth it: `upgrade-lix.sh` uninstalls cppnix, then fails to rebuild the profile
+on a man page collision between `nix-manual` and `lix`, and leaves the profile
+with no `nix` in it at all. it also leaves the daemon on the old single-service
+layout, where lix wants `nix-daemon.socket` with `Accept=yes` dispatching to an
+instanced `nix-daemon@.service`.
+
+`hosts/droid-bootstrap.sh` replays the whole guest from nothing — apt, lix,
+nix.conf, the checkout, the home-manager activation, rustup and the login shell
+— and is idempotent:
+
+```fish
+bash ~/Code/nix-config/hosts/droid-bootstrap.sh
+```
+
+switching is the same commit -> push -> `nix-switch` as meatwizard;
+`home/nix-tools.nix` picks the home-manager path on linux and the nh path on
+darwin, so the muscle memory is the same on both.
+
+droid imports the portable half of the home modules: fish, git, neovim,
+nix-tools, ssh, starship, tmux and uv. aws, clownops and kube are work
+infrastructure the phone cannot reach, obs, fonts and zed are gui concerns, and
+sops wants an age key this guest does not hold yet. tmux, starship and neovim
+are droid-only in the other direction: they exist because a phone terminal is
+~50 columns with a soft keyboard and no window manager.
+
+ci cannot gate any of this. the runner is meatwizard itself, so it builds
+`checks.aarch64-darwin.*` only and `checks.aarch64-linux.eval` has to be built
+from the phone. the `lint` check does cover the whole tree, droid's files
+included, because it lints every `.nix` in the repo.
 
 ## checks
 

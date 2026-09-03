@@ -1,3 +1,5 @@
+{ lib, pkgs, ... }:
+
 let
   # git and jj sign the same commits as the same person, so the identity and
   # signing key are declared once rather than kept in sync by hand. the key is
@@ -7,6 +9,12 @@ let
     email = "198710911+dappermint@users.noreply.github.com";
   };
   signingKey = "~/.ssh/id_ed25519.pub";
+
+  # nix-darwin keeps the system profile on a stable path. droid is a standalone
+  # home-manager host with no /run/current-system, so resolve gh out of the
+  # package set there instead
+  ghBin =
+    if pkgs.stdenv.hostPlatform.isDarwin then "/run/current-system/sw/bin/gh" else lib.getExe pkgs.gh;
 in
 {
   programs.jujutsu = {
@@ -71,8 +79,8 @@ in
       commit.verbose = true;
       log.date = "iso";
       core.untrackedCache = true;
-      credential."https://github.com".helper = "!/run/current-system/sw/bin/gh auth git-credential";
-      credential."https://gist.github.com".helper = "!/run/current-system/sw/bin/gh auth git-credential";
+      credential."https://github.com".helper = "!${ghBin} auth git-credential";
+      credential."https://gist.github.com".helper = "!${ghBin} auth git-credential";
     };
   };
 }

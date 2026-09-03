@@ -25,6 +25,7 @@
     }:
     let
       system = "aarch64-darwin";
+      linuxSystem = "aarch64-linux";
 
       # the system's own package set, so allowUnfree and the overlay list stay
       # declared once in modules/system.nix
@@ -38,16 +39,37 @@
         };
 
       meatwizard = self.darwinConfigurations.meatwizard.system;
+
+      # droid is a standalone home-manager host, so it has no system to borrow
+      # a package set from the way meatwizard does. same overlay and unfree
+      # policy as modules/system.nix, so a package resolves to the same thing
+      # on both hosts
+      linuxPkgs = import inputs.nixpkgs {
+        system = linuxSystem;
+        config.allowUnfree = true;
+        overlays = [ (import ./overlays) ];
+      };
+
+      droid = self.homeConfigurations.droid.activationPackage;
     in
     {
       darwinConfigurations.meatwizard = mkHost ./hosts/meatwizard.nix;
 
+      homeConfigurations.droid = inputs.home-manager.lib.homeManagerConfiguration {
+        pkgs = linuxPkgs;
+        extraSpecialArgs = { inherit self inputs; };
+        modules = [ ./hosts/droid.nix ];
+      };
+
       formatter.${system} = pkgs.nixfmt;
+      formatter.${linuxSystem} = linuxPkgs.nixfmt;
 
       packages.${system} = {
         default = meatwizard;
         inherit (pkgs) geist-mono-nerd-font grok;
       };
+
+      packages.${linuxSystem}.default = droid;
 
       devShells.${system}.default = pkgs.mkShellNoCC {
         packages = with pkgs; [
@@ -63,6 +85,18 @@
         shellHook = ''
           export SOPS_AGE_KEY_FILE="''${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/age/keys.txt}"
         '';
+      };
+
+      checks.${linuxSystem} = {
+        eval =
+          linuxPkgs.runCommand "eval-droid"
+            {
+              drv = builtins.unsafeDiscardStringContext droid.drvPath;
+            }
+            ''
+              test -n "$drv"
+              touch $out
+            '';
       };
 
       checks.${system} = {

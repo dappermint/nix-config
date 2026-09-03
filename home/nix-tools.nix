@@ -1,10 +1,22 @@
-{ config, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   repo = import ../lib/repo.nix;
 
+  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+
   nixpkgsBranch = "nixpkgs-unstable";
   nixpkgsMirror = "${config.home.homeDirectory}/Code/nixpkgs";
+
+  # meatwizard bumps the lock in /etc/nix-darwin; droid has no /etc worth
+  # writing to and keeps its checkout in $HOME
+  checkout =
+    if isDarwin then repo.directory else "${config.home.homeDirectory}/${repo.linuxCheckout}";
 
   # unauthenticated github api is 60 requests an hour, which a full input bump
   # blows through and then falls back to cached revisions. nix has no
@@ -14,12 +26,32 @@ let
     set -l token (gh auth token 2>/dev/null)
     test -n "$token"; and set -lx NIX_CONFIG "access-tokens = github.com=$token"
   '';
+
+  # the system builds from the remote now, so applying a change is
+  # commit -> push -> nix-switch. the flake ref is passed explicitly rather
+  # than left to NH_DARWIN_FLAKE, which any shell descended from a
+  # pre-switch session never sees
+  # --refresh is load-bearing: nix caches flake refs for tarball-ttl, which
+  # is a week here, so a bare github: ref resolves to whatever it saw last
+  # and reports success on a stale revision
+  darwinSwitch = ''
+    ${ghToken}
+    nh darwin switch --diff always ${repo.flake} -- --refresh
+  '';
+
+  # droid is a standalone home-manager host, so there is no system generation
+  # to build: home-manager drives the switch directly. --refresh matters for
+  # exactly the same reason it does on darwin
+  homeSwitch = ''
+    ${ghToken}
+    home-manager switch --flake ${repo.flake}#droid -b bak --refresh
+  '';
 in
 {
   programs.nh = {
     enable = true;
-    darwinFlake = repo.flake;
-  };
+  }
+  // lib.optionalAttrs isDarwin { darwinFlake = repo.flake; };
 
   programs.fish = {
     shellAbbrs = {
@@ -55,27 +87,17 @@ in
         git -C $mirror update-ref refs/heads/${nixpkgsBranch} origin/${nixpkgsBranch}
         echo "updating flake input nixpkgs ..."
         ${ghToken}
-        nix flake update nixpkgs --flake ${repo.directory}
+        nix flake update nixpkgs --flake ${checkout}
       '';
 
-      # the system builds from the remote now, so applying a change is
-      # commit -> push -> nix-switch. the flake ref is passed explicitly rather
-      # than left to NH_DARWIN_FLAKE, which any shell descended from a
-      # pre-switch session never sees
-      # --refresh is load-bearing: nix caches flake refs for tarball-ttl, which
-      # is a week here, so a bare github: ref resolves to whatever it saw last
-      # and reports success on a stale revision
-      nix-switch = ''
-        ${ghToken}
-        nh darwin switch --diff always ${repo.flake} -- --refresh
-      '';
+      nix-switch = if isDarwin then darwinSwitch else homeSwitch;
 
       # push first, then bump. the system builds from the remote, so a lock
       # sitting on top of unpushed commits describes a revision nobody can
       # fetch. the bump itself runs against the checkout because nix cannot
       # write a lock into a remote flake
       nix-update = ''
-        set -l dir ${repo.directory}
+        set -l dir ${checkout}
 
         set -l dirty (git -C $dir status --porcelain)
         if test -n "$dirty"
