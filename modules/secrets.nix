@@ -55,6 +55,7 @@ in
       nix_cache_reader_secret_access_key = { };
       nix_cache_writer_access_key_id = { };
       nix_cache_writer_secret_access_key = { };
+      sbx_rdp_password = userSecret;
     };
 
     templates = {
@@ -63,6 +64,7 @@ in
           set -gx UPCLOUD_TOKEN '${placeholder.upcloud_token}'
           set -gx CLOWNWAY_NETBIRD_HOST '${placeholder.clownway_netbird_host}'
           set -gx CLOWNWAY_GITLAB_HOST '${placeholder.clownway_gitlab_host}'
+          set -gx SBX_RDP_PASSWORD '${placeholder.sbx_rdp_password}'
         '';
       };
 

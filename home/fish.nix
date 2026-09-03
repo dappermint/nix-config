@@ -35,8 +35,10 @@ in
       traceroute = "trip";
       # difft takes file pairs, not `diff -u`. `command diff` for the unix one
       diff = "difft";
-      sbxrdp = "sdl-freerdp /v:10.212.240.196 /u:sbx /p:YQyHPb7ApOZC5sWXJBl0a5K5 /cert:ignore +clipboard +dynamic-resolution";
-    };
+    }
+    // (pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+      sbxrdp = "sdl-freerdp /v:10.212.240.196 /u:sbx /p:$SBX_RDP_PASSWORD /cert:ignore +clipboard +dynamic-resolution";
+    });
 
     # abbreviations, not aliases: these expand in place so the flags are
     # visible and editable before the command runs
@@ -46,10 +48,12 @@ in
       http = "xh";
       lg = "lazygit";
       md = "glow";
-      mon = "macmon";
       pack = "ouch compress";
       unpack = "ouch decompress";
-    };
+    }
+    // (pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+      mon = "macmon";
+    });
   };
 
   programs.direnv = {
