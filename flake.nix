@@ -15,6 +15,7 @@
     ratatouille.inputs.nixpkgs.follows = "nixpkgs";
     tart.url = "github:dappermint/tart";
     tart.inputs.nixpkgs.follows = "nixpkgs";
+    lix.url = "git+https://git.lix.systems/lix-project/lix?ref=2.95.3";
   };
 
   outputs =
