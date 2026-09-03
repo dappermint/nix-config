@@ -1,3 +1,9 @@
+{ pkgs, ... }:
+
+let
+  # as in home/git.nix: droid has no /run/current-system to read nix out of
+  nixBin = if pkgs.stdenv.hostPlatform.isDarwin then "/run/current-system/sw/bin/nix" else "nix";
+in
 {
   programs.fish.enable = true;
 
@@ -91,7 +97,7 @@
       {
         type = "command";
         key = "Nix";
-        text = ''echo "Lix $(/run/current-system/sw/bin/nix --version | head -1 | awk '{print $NF}')"'';
+        text = ''echo "Lix $(${nixBin} --version | head -1 | awk '{print $NF}')"'';
       }
       "cpu"
       "gpu"
