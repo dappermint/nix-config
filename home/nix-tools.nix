@@ -40,11 +40,13 @@ let
   '';
 
   # droid is a standalone home-manager host, so there is no system generation
-  # to build: home-manager drives the switch directly. --refresh matters for
-  # exactly the same reason it does on darwin
+  # to build: nh drives home-manager directly. -c is explicit because nh's
+  # default lookup tries user@hostname first, and the hostname here is
+  # whatever the terminal app named the guest. --refresh matters for exactly
+  # the same reason it does on darwin
   homeSwitch = ''
     ${ghToken}
-    home-manager switch --flake ${repo.flake}#droid -b bak --refresh
+    nh home switch --diff always ${repo.flake} -c droid -b bak -- --refresh
   '';
 in
 {
