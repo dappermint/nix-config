@@ -39,8 +39,23 @@
   '';
 
   # ttyd exports SHELL=/bin/bash into the session it spawns, and nothing later
-  # corrects it, so tmux and nvim's :terminal would open bash inside fish
+  # corrects it, so tmux and nvim's :terminal would open bash inside fish.
+  # the greeting is two lines of a ~50 column phone screen, so it goes
   programs.fish.interactiveShellInit = ''
     set -gx SHELL (status fish-path)
+    set -g fish_greeting ""
   '';
+
+  # the terminal app shows the window title as the tab label: the running
+  # command while it runs, the directory while idle
+  programs.fish.functions = {
+    __title_preexec = {
+      onEvent = "fish_preexec";
+      body = ''printf "\033]0;%s\007" (string sub -l 40 -- $argv[1])'';
+    };
+    __title_prompt = {
+      onEvent = "fish_prompt";
+      body = ''printf "\033]0;%s\007" (prompt_pwd)'';
+    };
+  };
 }
