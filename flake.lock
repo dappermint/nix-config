@@ -14,6 +14,26 @@
         "url": "https://git.lix.systems/lix-project/flake-compat/archive/main.tar.gz"
       }
     },
+    "hey-cli": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1788448684,
+        "narHash": "sha256-o3oJTm/PYndMEoz34PVu3ycDVbUjah6ikO+8CNoWSRY=",
+        "owner": "basecamp",
+        "repo": "hey-cli",
+        "rev": "f9a0208d3a59930c764dd21143bd7897a12321aa",
+        "type": "github"
+      },
+      "original": {
+        "owner": "basecamp",
+        "repo": "hey-cli",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -262,6 +282,7 @@
     },
     "root": {
       "inputs": {
+        "hey-cli": "hey-cli",
         "home-manager": "home-manager",
         "lix": "lix",
         "nix-darwin": "nix-darwin",

@@ -15,6 +15,8 @@
     ratatouille.inputs.nixpkgs.follows = "nixpkgs";
     tart.url = "github:dappermint/tart";
     tart.inputs.nixpkgs.follows = "nixpkgs";
+    hey-cli.url = "github:basecamp/hey-cli";
+    hey-cli.inputs.nixpkgs.follows = "nixpkgs";
     lix.url = "git+https://git.lix.systems/lix-project/lix?ref=2.95.3";
   };
 

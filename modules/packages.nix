@@ -9,6 +9,7 @@ let
   ];
 
   toys = [ inputs.tart.packages.${pkgs.stdenv.hostPlatform.system}.default ];
+  hey = [ inputs.hey-cli.packages.${pkgs.stdenv.hostPlatform.system}.default ];
 in
 {
   environment.systemPackages =
@@ -22,5 +23,6 @@ in
     ++ groups.nixTooling
     ++ groups.fontTooling
     ++ macos
-    ++ toys;
+    ++ toys
+    ++ hey;
 }
