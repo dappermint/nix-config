@@ -44,6 +44,14 @@
   programs.fish.interactiveShellInit = ''
     set -gx SHELL (status fish-path)
     set -g fish_greeting ""
+
+    # every tab lands in one tmux session, so a touch drag scrolls tmux
+    # history instead of being swallowed by whatever tui has mouse tracking
+    # on. NO_TMUX=1 skips it. deliberately not exec'd: a tmux that fails to
+    # start would take the tab with it, and the tab is the only way in
+    if not set -q TMUX; and not set -q NO_TMUX; and isatty stdout; and type -q tmux
+        tmux new-session -A -s main
+    end
   '';
 
   # the terminal app shows the window title as the tab label: the running
