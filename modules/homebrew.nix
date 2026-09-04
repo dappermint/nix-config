@@ -12,6 +12,10 @@
 
     taps = [
       {
+        name = "basecamp/tap";
+        trusted = true;
+      }
+      {
         name = "apple/apple";
         trusted = true;
       }
@@ -51,6 +55,7 @@
     ];
 
     casks = [
+      "basecamp/tap/hey"
       "alt-tab"
       "antigravity-cli"
       "anydesk"
