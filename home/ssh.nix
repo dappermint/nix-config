@@ -13,6 +13,12 @@
         ServerAliveInterval = 60;
         ServerAliveCountMax = 3;
         UserKnownHostsFile = "~/.ssh/known_hosts";
+        # reuse the first connection to a host for every later one (lazygit,
+        # scp, a second tmux), so only one handshake is paid per host. the
+        # master lingers ten minutes after the last client closes
+        ControlMaster = "auto";
+        ControlPersist = "10m";
+        ControlPath = "~/.ssh/cm-%r@%h:%p";
       };
     };
   };
