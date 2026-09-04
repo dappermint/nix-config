@@ -52,9 +52,16 @@
       };
 
       droid = self.homeConfigurations.droid.activationPackage;
+
+      mkspi = self.nixosConfigurations.mkspi.config.system.build.sdImage;
     in
     {
       darwinConfigurations.meatwizard = mkHost ./hosts/meatwizard.nix;
+
+      nixosConfigurations.mkspi = inputs.nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit self inputs; };
+        modules = [ ./hosts/mkspi.nix ];
+      };
 
       homeConfigurations.droid = inputs.home-manager.lib.homeManagerConfiguration {
         pkgs = linuxPkgs;
@@ -70,7 +77,10 @@
         inherit (pkgs) geist-mono-nerd-font grok;
       };
 
-      packages.${linuxSystem}.default = droid;
+      packages.${linuxSystem} = {
+        default = droid;
+        mkspi-sd-image = mkspi;
+      };
 
       devShells.${system}.default = pkgs.mkShellNoCC {
         packages = with pkgs; [
@@ -93,6 +103,16 @@
           linuxPkgs.runCommand "eval-droid"
             {
               drv = builtins.unsafeDiscardStringContext droid.drvPath;
+            }
+            ''
+              test -n "$drv"
+              touch $out
+            '';
+
+        eval-mkspi =
+          linuxPkgs.runCommand "eval-mkspi"
+            {
+              drv = builtins.unsafeDiscardStringContext mkspi.drvPath;
             }
             ''
               test -n "$drv"
