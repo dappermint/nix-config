@@ -16,6 +16,10 @@
     extraConfig = ''
       set -g renumber-windows on
       set -g set-clipboard on
+      # pass the pane's title (fish sets it to the running command) through
+      # to the terminal, otherwise the app's tab label freezes on "tmux"
+      set -g set-titles on
+      set -g set-titles-string "#T"
       set -ga terminal-overrides ",*256col*:Tc"
 
       bind | split-window -h -c "#{pane_current_path}"

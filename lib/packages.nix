@@ -10,6 +10,8 @@
   shell = with pkgs; [
     bat
     bottom
+    # phone to laptop by pairing code, no shared network or open port needed
+    croc
     doggo
     dust
     elvish
@@ -24,10 +26,14 @@
     just
     lnav
     micro
+    # ssh that survives the phone changing networks or sleeping. the package
+    # carries mosh-server too, so meatwizard is a target by taking the group
+    mosh
     ookla-speedtest
     ouch
     pik
     ripgrep
+    rsync
     sd
     tealdeer
     television
