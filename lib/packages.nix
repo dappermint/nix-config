@@ -40,6 +40,7 @@
     trippy
     xh
     yq-go
+    rclone
   ];
 
   vcs = with pkgs; [
