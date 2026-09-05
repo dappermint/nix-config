@@ -15,6 +15,7 @@ in
     ../modules/github-runners.nix
     inputs.nix-index-database.darwinModules.nix-index
     inputs.sops-nix.darwinModules.sops
+    ../modules/gdrive-mount.nix
     ../modules/secrets.nix
     inputs.home-manager.darwinModules.home-manager
   ];
