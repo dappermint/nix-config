@@ -66,7 +66,6 @@
       "bruno"
       "claude-code@latest"
       "claude-status-bar"
-      "conductor"
       "dappermint/tap/fluxer@canary"
       "dappermint/tap/whisky-preview"
       "figma"
