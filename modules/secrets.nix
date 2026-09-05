@@ -56,9 +56,23 @@ in
       nix_cache_writer_access_key_id = { };
       nix_cache_writer_secret_access_key = { };
       sbx_rdp_password = userSecret;
+      gdrive_client_id = { };
+      gdrive_client_secret = userSecret;
+      gdrive_refresh_token = userSecret;
     };
 
     templates = {
+      "rclone.conf" = userSecret // {
+        path = "${home}/.config/rclone/rclone.conf";
+        content = ''
+          [gdrive]
+          type = drive
+          client_id = ${placeholder.gdrive_client_id}
+          client_secret = ${placeholder.gdrive_client_secret}
+          scope = drive
+          token = {"token_type":"Bearer","refresh_token":"${placeholder.gdrive_refresh_token}"}
+        '';
+      };
       "secrets.fish" = userSecret // {
         content = ''
           set -gx UPCLOUD_TOKEN '${placeholder.upcloud_token}'
@@ -112,7 +126,7 @@ in
   # a directory sops has to mkdir on the way to a secret ends up root-owned,
   # so hand them to the user first; extraActivation runs before the secrets
   system.activationScripts.extraActivation.text = lib.mkAfter ''
-    install -d -o ${user} -g staff ${home}/.aws ${home}/.config ${home}/.config/obs ${home}/.kube
+    install -d -o ${user} -g staff ${home}/.aws ${home}/.config ${home}/.config/rclone ${home}/.config/obs ${home}/.kube
   '';
 
   programs.fish.shellInit = ''
