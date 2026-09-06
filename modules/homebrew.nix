@@ -90,6 +90,7 @@
       "raycast"
       "rekordbox"
       "shottr"
+      "dappermint/tap/sideloadly"
       "signal@beta"
       "dappermint/tap/snoop"
       "spotify"
