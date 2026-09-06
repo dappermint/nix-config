@@ -20,6 +20,7 @@
     (fastfetch.override { runtimeDependencies = [ ]; })
     fd
     glow
+    hey-cli
     hyfetch
     hyperfine
     jq
