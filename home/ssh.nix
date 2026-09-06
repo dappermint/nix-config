@@ -20,6 +20,13 @@
         ControlPersist = "10m";
         ControlPath = "~/.ssh/cm-%r@%h:%p";
       };
+
+      "ipad 10.25.60.16" = {
+        HostName = "10.25.60.16";
+        User = "root";
+        HostKeyAlgorithms = "+ssh-rsa";
+        PubkeyAcceptedKeyTypes = "+ssh-rsa";
+      };
     };
   };
 }
