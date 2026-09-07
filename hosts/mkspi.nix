@@ -67,10 +67,24 @@ in
     openssh.authorizedKeys.keys = [ sshKey ];
   };
 
+  programs.nix-ld = {
+    enable = true;
+    libraries = with pkgs; [
+      libusb1
+      zlib
+      ncurses
+    ];
+  };
+
   systemd.services.esphome = {
     description = "ESPHome Device Builder Dashboard";
     wantedBy = [ "multi-user.target" ];
     after = [ "network.target" ];
+    environment = {
+      NIX_LD = "/run/current-system/sw/share/nix-ld/lib/ld.so";
+      NIX_LD_LIBRARY_PATH = "/run/current-system/sw/share/nix-ld/lib";
+    };
+    path = [ pkgs.git ];
     serviceConfig = {
       ExecStart = "${pkgs.esphome-device-builder}/bin/esphome-device-builder --host 127.0.0.1 --port 6052 /var/lib/esphome";
       Restart = "always";
@@ -125,10 +139,27 @@ in
 
   services.home-assistant = {
     enable = true;
+    package = pkgs.home-assistant.override {
+      extraPackages =
+        ps: with ps; [
+          aioesphomeapi
+          bthome-ble
+          gtts
+          pychromecast
+          python-miio
+          xiaomi-ble
+        ];
+    };
     extraComponents = [
+      "bluetooth"
+      "bthome"
+      "cast"
       "default_config"
       "esphome"
+      "google_translate"
       "met"
+      "xiaomi_ble"
+      "xiaomi_miio"
     ];
     config.default_config = { };
     themes = [ pkgs.home-assistant-themes.material-you-theme ];
