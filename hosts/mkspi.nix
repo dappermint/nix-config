@@ -130,12 +130,8 @@ in
       "esphome"
       "met"
     ];
-    config = {
-      default_config = { };
-      frontend.themes = {
-        "!include_dir_merge_named" = "themes";
-      };
-    };
+    config.default_config = { };
+    themes = [ pkgs.home-assistant-themes.material-you-theme ];
   };
 
   services.tailscale.enable = true;
