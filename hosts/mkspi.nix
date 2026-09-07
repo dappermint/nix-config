@@ -67,10 +67,17 @@ in
     openssh.authorizedKeys.keys = [ sshKey ];
   };
 
-  services.esphome = {
-    enable = true;
-    port = 6052;
-    openFirewall = true;
+  systemd.services.esphome = {
+    description = "ESPHome Device Builder Dashboard";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "network.target" ];
+    serviceConfig = {
+      ExecStart = "${pkgs.esphome-device-builder}/bin/esphome-device-builder --host 127.0.0.1 --port 6052 /var/lib/esphome";
+      Restart = "always";
+      User = "root";
+      WorkingDirectory = "/var/lib/esphome";
+      StateDirectory = "esphome";
+    };
   };
 
   # Daily snapshot backup of Home Assistant to Garage S3 over Tailscale
@@ -123,7 +130,12 @@ in
       "esphome"
       "met"
     ];
-    config.default_config = { };
+    config = {
+      default_config = { };
+      frontend.themes = {
+        "!include_dir_merge_named" = "themes";
+      };
+    };
   };
 
   services.tailscale.enable = true;
@@ -135,6 +147,7 @@ in
       dnsProvider = "cloudflare";
       environmentFile = "/var/lib/acme/cf-token";
       group = "nginx";
+      extraDomainNames = [ "esphome.dappy.lgbt" ];
     };
   };
 
