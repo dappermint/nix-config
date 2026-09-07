@@ -79,8 +79,44 @@ in
 
   services.tailscale.enable = true;
 
+  security.acme = {
+    acceptTerms = true;
+    defaults.email = "dappy@hey.com";
+    certs."home.dappy.lgbt" = {
+      dnsProvider = "cloudflare";
+      environmentFile = "/var/lib/acme/cf-token";
+      group = "nginx";
+    };
+  };
+
+  services.nginx = {
+    enable = true;
+    recommendedProxySettings = true;
+    recommendedTlsSettings = true;
+    virtualHosts."home.dappy.lgbt" = {
+      useACMEHost = "home.dappy.lgbt";
+      forceSSL = true;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:8123";
+        proxyWebsockets = true;
+      };
+    };
+  };
+
+  services.home-assistant.config.http = {
+    use_x_forwarded_for = true;
+    trusted_proxies = [
+      "127.0.0.1"
+      "::1"
+    ];
+  };
+
   networking.firewall = {
-    allowedTCPPorts = [ 8123 ];
+    allowedTCPPorts = [
+      80
+      443
+      8123
+    ];
     trustedInterfaces = [ "tailscale0" ];
   };
 
