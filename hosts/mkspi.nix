@@ -161,7 +161,7 @@ in
       "xiaomi_ble"
       "xiaomi_miio"
     ];
-    config.default_config = { };
+    config = null;
     themes = [ pkgs.home-assistant-themes.material-you-theme ];
   };
 
