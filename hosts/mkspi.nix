@@ -67,6 +67,55 @@ in
     openssh.authorizedKeys.keys = [ sshKey ];
   };
 
+  services.esphome = {
+    enable = true;
+    port = 6052;
+    openFirewall = true;
+  };
+
+  # Daily snapshot backup of Home Assistant to Garage S3 over Tailscale
+  systemd.services.home-assistant-backup = {
+    description = "Backup Home Assistant config to Garage S3";
+    path = with pkgs; [
+      awscli2
+      gnutar
+      zstd
+    ];
+    environment = {
+      AWS_DEFAULT_REGION = "us-east-1";
+    };
+    serviceConfig = {
+      Type = "oneshot";
+      User = "root";
+      ExecStart = pkgs.writeShellScript "ha-backup" ''
+                set -euo pipefail
+        TS=$(date +%Y%m%d_%H%M%S)
+        ARCHIVE="/tmp/ha_backup_''${TS}.tar.zst"
+        tar --exclude='*.db-wal' --exclude='*.db-shm' --exclude='home-assistant.log*' -cf - -C /var/lib hass | zstd -3 -o "''${ARCHIVE}"
+        aws --endpoint-url http://100.80.221.44:3900 s3 cp "''${ARCHIVE}" "s3://homeassistant-backups/ha_backup_''${TS}.tar.zst"
+        rm -f "''${ARCHIVE}"
+      '';
+    };
+  };
+
+  systemd.timers.home-assistant-backup = {
+    description = "Daily timer for Home Assistant Garage backup";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "*-*-* 04:00:00";
+      Persistent = true;
+    };
+  };
+
+  services.nginx.virtualHosts."esphome.dappy.lgbt" = {
+    useACMEHost = "home.dappy.lgbt";
+    forceSSL = true;
+    locations."/" = {
+      proxyPass = "http://127.0.0.1:6052";
+      proxyWebsockets = true;
+    };
+  };
+
   services.home-assistant = {
     enable = true;
     extraComponents = [
