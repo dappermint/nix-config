@@ -53,7 +53,7 @@
 
       droid = self.homeConfigurations.droid.activationPackage;
 
-      mkspi = self.nixosConfigurations.mkspi.config.system.build.sdImage;
+      mkspi = self.nixosConfigurations.mkspi.config.system.build.toplevel;
     in
     {
       darwinConfigurations.meatwizard = mkHost ./hosts/meatwizard.nix;
@@ -79,7 +79,7 @@
 
       packages.${linuxSystem} = {
         default = droid;
-        mkspi-sd-image = mkspi;
+        inherit mkspi;
       };
 
       devShells.${system}.default = pkgs.mkShellNoCC {

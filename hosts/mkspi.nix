@@ -1,43 +1,58 @@
 {
-  config,
+
   lib,
   pkgs,
-  modulesPath,
   ...
 }:
 
 let
   user = "dappy";
+  sshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7KvZLKybxYKt5Vu5UPcQ4zxIq+FPRyAKQgnvOpzy6Z";
 in
 {
-  imports = [ "${modulesPath}/installer/sd-card/sd-image.nix" ];
-
   nixpkgs.hostPlatform = "aarch64-linux";
   nixpkgs.overlays = [ (import ../overlays) ];
 
   networking.hostName = "mkspi";
   system.stateVersion = "26.11";
 
+  # lustrated over armbian: its u-boot stays in the sd card gap (sector 64)
+  # and reads extlinux.conf from the fat partition
+  fileSystems."/" = {
+    device = "/dev/disk/by-uuid/e1d0f926-4f56-485e-acbd-2b1ed387b6bf";
+    fsType = "ext4";
+    options = [
+      "noatime"
+      "commit=60"
+    ];
+  };
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-uuid/9BA7-2596";
+    fsType = "vfat";
+    options = [ "noatime" ];
+  };
+
+  boot.tmp.useTmpfs = true;
+  boot.tmp.tmpfsSize = "50%";
+
   boot.loader.grub.enable = false;
   boot.loader.generic-extlinux-compatible.enable = true;
   boot.kernelParams = [ "console=ttyS2,1500000n8" ];
+  boot.initrd.availableKernelModules = [
+    "dw_mmc_rockchip"
+    "mmc_block"
+  ];
 
-  hardware.deviceTree.name = "rockchip/rk3328-roc-cc.dtb";
+  boot.kernel.sysctl = {
+    "vm.swappiness" = 180;
+    "vm.watermark_boost_factor" = 0;
+    "vm.watermark_scale_factor" = 125;
+    "vm.page-cluster" = 0;
+  };
 
-  # the fat partition only exists for the raspberry pi firmware, and rockchip
-  # wants the bootloader in the gap in front of it instead: idbloader, atf and
-  # u-boot in one blob at sector 64
-  sdImage = {
-    compressImage = false;
-    firmwareSize = 16;
-    populateFirmwareCommands = "";
-    populateRootCommands = ''
-      mkdir -p ./files/boot
-      ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./files/boot
-    '';
-    postBuildCommands = ''
-      dd if=${pkgs.ubootMksPi}/u-boot-rockchip.bin of=$img seek=64 conv=notrunc
-    '';
+  hardware.deviceTree = {
+    dtbSource = pkgs.mkspiFirmware;
+    name = "rockchip/rk3328-mkspi.dtb";
   };
 
   services.openssh = {
@@ -45,12 +60,11 @@ in
     settings.PasswordAuthentication = false;
   };
 
+  users.users.root.openssh.authorizedKeys.keys = [ sshKey ];
   users.users.${user} = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7KvZLKybxYKt5Vu5UPcQ4zxIq+FPRyAKQgnvOpzy6Z"
-    ];
+    openssh.authorizedKeys.keys = [ sshKey ];
   };
 
   services.home-assistant = {
@@ -63,13 +77,19 @@ in
     config.default_config = { };
   };
 
-  networking.firewall.allowedTCPPorts = [ 8123 ];
+  services.tailscale.enable = true;
 
-  # 1gb of ddr3 and a python service that wants half of it, so the swap has to
-  # come from somewhere that is not the sd card
+  networking.firewall = {
+    allowedTCPPorts = [ 8123 ];
+    trustedInterfaces = [ "tailscale0" ];
+  };
+
+  # 1gb of ddr3: zstd zram at 150% with high swappiness keeps ram footprint small
+  # and prevents micro-sd wear from swap thrashing
   zramSwap = {
     enable = true;
-    memoryPercent = 50;
+    algorithm = "zstd";
+    memoryPercent = 150;
   };
 
   documentation.enable = false;
@@ -82,6 +102,13 @@ in
     ];
     auto-optimise-store = true;
     trusted-users = [ user ];
+    max-jobs = 1;
+    cores = 3;
+  };
+
+  systemd.services.nix-daemon.serviceConfig = {
+    CPUWeight = 20;
+    IOWeight = 20;
   };
 
   nix.gc = {
