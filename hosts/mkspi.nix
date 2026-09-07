@@ -103,14 +103,6 @@ in
     };
   };
 
-  services.home-assistant.config.http = {
-    use_x_forwarded_for = true;
-    trusted_proxies = [
-      "127.0.0.1"
-      "::1"
-    ];
-  };
-
   networking.firewall = {
     allowedTCPPorts = [
       80
