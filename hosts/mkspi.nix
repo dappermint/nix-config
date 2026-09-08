@@ -139,17 +139,33 @@ in
 
   services.home-assistant = {
     enable = true;
-    package = pkgs.home-assistant.override {
-      extraPackages =
-        ps: with ps; [
-          aioesphomeapi
-          bthome-ble
-          gtts
-          pychromecast
-          python-miio
-          xiaomi-ble
-        ];
-    };
+    package =
+      (pkgs.home-assistant.override {
+        extraPackages =
+          ps: with ps; [
+            aioesphomeapi
+            bthome-ble
+            gtts
+            pychromecast
+            python-miio
+            xiaomi-ble
+          ];
+      }).overrideAttrs
+        (old: {
+          doInstallCheck = false;
+          # xiaomi_ble has no description for STABILIZED, so scale updates raise
+          # KeyError and no mass sensors are ever created
+          postPatch = (old.postPatch or "") + ''
+                    substituteInPlace homeassistant/components/xiaomi_ble/binary_sensor.py \
+                      --replace-fail \
+                        "    ExtendedBinarySensorDeviceClass.TOOTHBRUSH: BinarySensorEntityDescription(" \
+                        "    ExtendedBinarySensorDeviceClass.STABILIZED: BinarySensorEntityDescription(
+                key=ExtendedBinarySensorDeviceClass.STABILIZED,
+                icon=\"mdi:scale-bathroom\",
+            ),
+            ExtendedBinarySensorDeviceClass.TOOTHBRUSH: BinarySensorEntityDescription("
+          '';
+        });
     extraComponents = [
       "bluetooth"
       "bthome"
@@ -158,11 +174,18 @@ in
       "esphome"
       "google_translate"
       "met"
+      "wyoming"
       "xiaomi_ble"
       "xiaomi_miio"
     ];
     config = null;
     themes = [ pkgs.home-assistant-themes.material-you-theme ];
+  };
+
+  services.wyoming.piper.servers."en-gb" = {
+    enable = true;
+    voice = "en_GB-cori-high";
+    uri = "tcp://127.0.0.1:10200";
   };
 
   services.tailscale.enable = true;
