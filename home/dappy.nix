@@ -8,6 +8,7 @@
     ./kube.nix
     ./nix-tools.nix
     ./obs.nix
+    ./orcaslicer.nix
     ./sops.nix
     ./ssh.nix
     ./television.nix
