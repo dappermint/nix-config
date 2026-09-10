@@ -145,13 +145,8 @@ in
       "com.apple.CrashReporter".DialogType = "none";
       "com.apple.TimeMachine".DoNotOfferNewDisksForBackup = true;
 
-      # carbon keycodes and modifier masks, in order: opt+cmd+4, opt+cmd+3,
-      # ctrl+opt+cmd+o. reinstalling the cask wipes these, hence pinning them
-      "cc.ffitch.shottr" = {
-        KeyboardShortcuts_area = ''{"carbonKeyCode":21,"carbonModifiers":2304}'';
-        KeyboardShortcuts_fullscreen = ''{"carbonKeyCode":20,"carbonModifiers":2304}'';
-        KeyboardShortcuts_ocr = ''{"carbonKeyCode":31,"carbonModifiers":6400}'';
-      };
+      # shottr shortcuts moved to postActivation: sandbox container
+      # blocks defaults write from outside the app
     };
   };
 
@@ -172,6 +167,13 @@ in
 
     defaults write "/Library/Application Support/CrashReporter/DiagnosticMessagesHistory.plist" AutoSubmit -bool false
     defaults write "/Library/Application Support/CrashReporter/DiagnosticMessagesHistory.plist" ThirdPartyDataSubmit -bool false
+
+    # shottr shortcuts: best-effort because sandbox container may block writes
+    launchctl asuser "$(id -u -- ${user})" sudo --user=${user} -- bash -c '
+      defaults write cc.ffitch.shottr KeyboardShortcuts_area    -string '"'"'{"carbonKeyCode":21,"carbonModifiers":2304}'"'"' &&
+      defaults write cc.ffitch.shottr KeyboardShortcuts_fullscreen -string '"'"'{"carbonKeyCode":20,"carbonModifiers":2304}'"'"' &&
+      defaults write cc.ffitch.shottr KeyboardShortcuts_ocr     -string '"'"'{"carbonKeyCode":31,"carbonModifiers":6400}'"'"'
+    ' || echo "shottr defaults: skipped (sandbox container blocks writes)" >&2
 
     # SetupAssistant replays the iCloud sign-in pane whenever this lags the
     # running macOS version, so keep it pinned to whatever we booted
