@@ -1,10 +1,20 @@
-{ config, ... }:
+{ config, lib, ... }:
 
 let
   user = config.system.primaryUser;
   home = config.users.users.${user}.home;
 
   screenshotsDirectory = "${home}/Pictures/Screenshots";
+
+  # carbon keycodes and modifier masks, in order: opt+cmd+4, opt+cmd+3,
+  # ctrl+opt+cmd+o. reinstalling the cask wipes these, hence pinning them
+  shottrShortcuts = {
+    KeyboardShortcuts_area = ''{"carbonKeyCode":21,"carbonModifiers":2304}'';
+    KeyboardShortcuts_fullscreen = ''{"carbonKeyCode":20,"carbonModifiers":2304}'';
+    KeyboardShortcuts_ocr = ''{"carbonKeyCode":31,"carbonModifiers":6400}'';
+  };
+
+  asUser = ''launchctl asuser "$(id -u -- ${user})" sudo --user=${user} --'';
 in
 {
   system.defaults = {
@@ -145,8 +155,9 @@ in
       "com.apple.CrashReporter".DialogType = "none";
       "com.apple.TimeMachine".DoNotOfferNewDisksForBackup = true;
 
-      # shottr shortcuts moved to postActivation: sandbox container
-      # blocks defaults write from outside the app
+      # cc.ffitch.shottr cannot live here: CustomUserPreferences aborts
+      # activation on write failure, and its container rejects every writer.
+      # applied best-effort in extraActivation from shottrShortcuts instead
     };
   };
 
@@ -168,12 +179,17 @@ in
     defaults write "/Library/Application Support/CrashReporter/DiagnosticMessagesHistory.plist" AutoSubmit -bool false
     defaults write "/Library/Application Support/CrashReporter/DiagnosticMessagesHistory.plist" ThirdPartyDataSubmit -bool false
 
-    # shottr shortcuts: best-effort because sandbox container may block writes
-    launchctl asuser "$(id -u -- ${user})" sudo --user=${user} -- bash -c '
-      defaults write cc.ffitch.shottr KeyboardShortcuts_area    -string '"'"'{"carbonKeyCode":21,"carbonModifiers":2304}'"'"' &&
-      defaults write cc.ffitch.shottr KeyboardShortcuts_fullscreen -string '"'"'{"carbonKeyCode":20,"carbonModifiers":2304}'"'"' &&
-      defaults write cc.ffitch.shottr KeyboardShortcuts_ocr     -string '"'"'{"carbonKeyCode":31,"carbonModifiers":6400}'"'"'
-    ' || echo "shottr defaults: skipped (sandbox container blocks writes)" >&2
+    # shottr stores prefs in an app-sandbox container that SIP shields from
+    # every writer lacking full disk access, root included. re-applied on each
+    # switch so it self-heals the moment FDA is granted, and never fatal:
+    # CustomUserPreferences would abort the whole activation on this failure
+    shottrOk=1
+    ${asUser} defaults write cc.ffitch.shottr KeyboardShortcuts_area -string ${lib.escapeShellArg shottrShortcuts.KeyboardShortcuts_area} 2>/dev/null || shottrOk=0
+    ${asUser} defaults write cc.ffitch.shottr KeyboardShortcuts_fullscreen -string ${lib.escapeShellArg shottrShortcuts.KeyboardShortcuts_fullscreen} 2>/dev/null || shottrOk=0
+    ${asUser} defaults write cc.ffitch.shottr KeyboardShortcuts_ocr -string ${lib.escapeShellArg shottrShortcuts.KeyboardShortcuts_ocr} 2>/dev/null || shottrOk=0
+    if [ "$shottrOk" -eq 0 ]; then
+      echo "shottr: container not writable, shortcuts left as-is (grant full disk access to enforce)" >&2
+    fi
 
     # SetupAssistant replays the iCloud sign-in pane whenever this lags the
     # running macOS version, so keep it pinned to whatever we booted
