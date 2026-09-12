@@ -1,7 +1,15 @@
 keys:
   - &meatwizard age1v5yvtm6h2fh29qlyakw5wwn35ez0hxk7l4jr8vxhgyul580rje0ql6nphh
   - &meatwizard_host age10nj3ysnyp7c87lcfwjw5cmtqz0zhcxstdzj0djzwh4hv4zgl7f0swjf3k6
+  - &mkspi_host age17hr6eppe92y23z8hz3cxvm32d9utasrtkaxqjzsl3anj3tlt7snst796n5
 creation_rules:
+  # more specific first: creation rules are first-match-wins, so the generic
+  # rule below would otherwise claim mkspi.yaml and leave the sbc unable to
+  # decrypt its own secrets
+  - path_regex: secrets/mkspi\.yaml$
+    age:
+      - *meatwizard
+      - *mkspi_host
   - path_regex: secrets/[^/]+\.yaml$
     age:
       - *meatwizard
