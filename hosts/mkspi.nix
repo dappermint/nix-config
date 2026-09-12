@@ -139,15 +139,6 @@ in
     };
   };
 
-  services.nginx.virtualHosts."esphome.dappy.lgbt" = {
-    useACMEHost = "home.dappy.lgbt";
-    forceSSL = true;
-    locations."/" = {
-      proxyPass = "http://127.0.0.1:6052";
-      proxyWebsockets = true;
-    };
-  };
-
   services.home-assistant = {
     enable = true;
     package =
@@ -157,6 +148,7 @@ in
             aioesphomeapi
             bthome-ble
             gtts
+            ibeacon-ble
             pychromecast
             python-miio
             xiaomi-ble
@@ -184,6 +176,7 @@ in
       "default_config"
       "esphome"
       "google_translate"
+      "ibeacon"
       "met"
       "wyoming"
       "xiaomi_ble"
@@ -224,13 +217,23 @@ in
         proxyWebsockets = true;
       };
     };
+    virtualHosts."esphome.dappy.lgbt" = {
+      useACMEHost = "home.dappy.lgbt";
+      forceSSL = true;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:6052";
+        proxyWebsockets = true;
+      };
+    };
   };
 
+  # home assistant and esphome are reachable through nginx on 443 only: opening
+  # 8123 would hand out a plaintext bypass of the tls the acme cert exists for.
+  # tailscale0 is trusted, so direct access still works over the tailnet
   networking.firewall = {
     allowedTCPPorts = [
       80
       443
-      8123
     ];
     trustedInterfaces = [ "tailscale0" ];
   };
@@ -250,6 +253,7 @@ in
     experimental-features = [
       "flakes"
       "nix-command"
+      "pipe-operator"
     ];
     auto-optimise-store = true;
     trusted-users = [ user ];
