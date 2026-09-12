@@ -1,7 +1,9 @@
 {
-
+  config,
+  inputs,
   lib,
   pkgs,
+  self,
   ...
 }:
 
@@ -10,6 +12,8 @@ let
   sshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7KvZLKybxYKt5Vu5UPcQ4zxIq+FPRyAKQgnvOpzy6Z";
 in
 {
+  imports = [ inputs.sops-nix.nixosModules.sops ];
+
   nixpkgs.hostPlatform = "aarch64-linux";
   nixpkgs.overlays = [ (import ../overlays) ];
 
@@ -60,6 +64,12 @@ in
     settings.PasswordAuthentication = false;
   };
 
+  sops = {
+    defaultSopsFile = "${self}/secrets/mkspi.yaml";
+    age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+    secrets.garage_backup_env = { };
+  };
+
   users.users.root.openssh.authorizedKeys.keys = [ sshKey ];
   users.users.${user} = {
     isNormalUser = true;
@@ -102,14 +112,15 @@ in
       gnutar
       zstd
     ];
-    environment = {
-      AWS_DEFAULT_REGION = "us-east-1";
-    };
     serviceConfig = {
       Type = "oneshot";
       User = "root";
+      # the credentials are read by pid 1 at start time. an `environment` block
+      # would render them into the unit file under /nix/store, which is
+      # world-readable
+      EnvironmentFile = config.sops.secrets.garage_backup_env.path;
       ExecStart = pkgs.writeShellScript "ha-backup" ''
-                set -euo pipefail
+        set -euo pipefail
         TS=$(date +%Y%m%d_%H%M%S)
         ARCHIVE="/tmp/ha_backup_''${TS}.tar.zst"
         tar --exclude='*.db-wal' --exclude='*.db-shm' --exclude='home-assistant.log*' -cf - -C /var/lib hass | zstd -3 -o "''${ARCHIVE}"
