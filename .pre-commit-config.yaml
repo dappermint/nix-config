@@ -37,6 +37,14 @@ repos:
     hooks:
       - id: detect-private-key
 
+  # detect-private-key only matches PEM headers, and the sops-encrypted hook
+  # above only guards secrets/. neither catches a cloud key pasted into a nix
+  # module, which is exactly how the garage credentials got committed
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.4.0
     hooks:
