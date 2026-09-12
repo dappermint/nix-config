@@ -3,7 +3,7 @@
 # tools under the same names without a second list to keep in sync.
 #
 # anything that only makes sense on one platform stays out of here: macmon,
-# ratatouille and tart are darwin-only and live in modules/packages.nix
+# ratatouille, tart and hey-cli are darwin-only and live in modules/packages.nix
 { pkgs }:
 
 {
@@ -20,7 +20,6 @@
     (fastfetch.override { runtimeDependencies = [ ]; })
     fd
     glow
-    hey-cli
     hyfetch
     hyperfine
     jq
