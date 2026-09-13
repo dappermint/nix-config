@@ -1,8 +1,9 @@
 { config, pkgs, ... }:
 
-# pulls the nightly bundle sbx-intelmac writes to /var/backup/sbx (klipper
-# state, moonraker history, authentik). the box has no route out of the space,
-# so the mac fetches over zerotier. keeps 30 dated copies
+# sbx-intelmac has no route out of the space, so the mac pulls. the source is a
+# restic repo now, which is content-addressed and encrypted, so this mirrors it
+# in place instead of keeping dated copies: restic's own retention is the
+# history. this mirror IS the offsite copy of the hackerspace.
 let
   user = config.system.primaryUser;
   home = config.users.users.${user}.home;
@@ -14,15 +15,17 @@ let
       pkgs.rsync
       pkgs.openssh
       pkgs.coreutils
-      pkgs.findutils
+      pkgs.restic
     ];
     text = ''
-      day=$(date +%F)
-      mkdir -p "${dest}/$day"
-      rsync -a --timeout=60 -e "ssh -o BatchMode=yes -o ConnectTimeout=10" \
-        dappy@10.212.240.196:/var/backup/sbx/ "${dest}/$day/"
-      ln -sfn "$day" "${dest}/latest"
-      find "${dest}" -mindepth 1 -maxdepth 1 -type d -mtime +30 -exec rm -rf {} +
+      mkdir -p "${dest}/repo"
+      rsync -a --delete --timeout=120 \
+        -e "ssh -o BatchMode=yes -o ConnectTimeout=10" \
+        dappy@10.212.240.196:/var/backup/sbx/repo/ "${dest}/repo/"
+
+      # a mirror that does not verify is still a hypothesis
+      RESTIC_PASSWORD_FILE="${home}/.config/sbx/restic-password" \
+        restic -r "${dest}/repo" snapshots --compact --latest 3
     '';
   };
 in
