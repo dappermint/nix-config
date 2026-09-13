@@ -188,7 +188,7 @@ in
 
   services.wyoming.piper.servers."en-gb" = {
     enable = true;
-    voice = "en_GB-cori-high";
+    voice = "en_GB-cori-medium";
     uri = "tcp://127.0.0.1:10200";
   };
 
