@@ -24,6 +24,7 @@ in
     ++ groups.kubernetes
     ++ groups.nixTooling
     ++ groups.fontTooling
+    ++ groups.browsers
     ++ macos
     ++ toys;
 }

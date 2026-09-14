@@ -98,4 +98,8 @@
     python3Packages.fonttools
     woff2
   ];
+
+  browsers = with pkgs; [
+    obscura
+  ];
 }
