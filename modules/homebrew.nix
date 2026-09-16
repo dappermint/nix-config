@@ -28,6 +28,9 @@
         trusted = true;
       }
       {
+        name = "crmne/tap";
+      }
+      {
         name = "netbirdio/tap";
         trusted = true;
       }
@@ -96,8 +99,8 @@
       "shottr"
       "dappermint/tap/sideloadly"
       "signal@beta"
-      "dappermint/tap/snoop"
       "spotify"
+      "crmne/tap/spotifast"
       "steam"
       "tailscale-app"
       "telegram"
