@@ -32,6 +32,10 @@
         trusted = true;
       }
       {
+        name = "saragordic/tap";
+        trusted = true;
+      }
+      {
         name = "skyhook-io/tap";
         trusted = true;
       }
@@ -105,6 +109,9 @@
       "utm"
       "warp@preview"
       "winbox"
+      # ad-hoc signed rather than notarized; the cask's postflight strips the
+      # quarantine bit, which is why the tap has to be trusted
+      "saragordic/tap/window-sweaters"
       "wireshark-app"
       "zed"
       "zen"
