@@ -105,7 +105,6 @@
       "tailscale-app"
       "telegram"
       "telegram-desktop"
-      "dappermint/tap/thaw@alpha"
       "thebrowsercompany-dia"
       "tor-browser"
       "transmission"
