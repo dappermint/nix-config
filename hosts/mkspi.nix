@@ -177,7 +177,10 @@ in
       "esphome"
       "google_translate"
       "ibeacon"
+      "matter"
       "met"
+      "otbr"
+      "thread"
       "wyoming"
       "xiaomi_ble"
       "xiaomi_miio"
@@ -190,6 +193,25 @@ in
     enable = true;
     voice = "en_GB-cori-medium";
     uri = "tcp://127.0.0.1:10200";
+  };
+
+  services.openthread-border-router = {
+    enable = true;
+    backboneInterfaces = [ "eth0" ];
+    radio.device = "/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_8C:FD:49:1A:05:48-if00";
+    radio.baudRate = 460800;
+  };
+
+  # matterjs is the upstream successor (python-matter-server is EOL) and costs 0 MB
+  # of new store paths here, where python-matter-server would add ~300 MB.
+  # --ble-proxy bridges commissioning through the existing esp32-proxy over
+  # home assistant, so no bluetooth adapter is needed: this board has none.
+  services.matterjs-server = {
+    enable = true;
+    extraArgs = [
+      "--primary-interface=eth0"
+      "--ble-proxy"
+    ];
   };
 
   services.tailscale.enable = true;
