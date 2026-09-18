@@ -110,6 +110,7 @@
       "transmission"
       "utm"
       "warp@preview"
+      "whatsapp"
       "winbox"
       # ad-hoc signed rather than notarized; the cask's postflight strips the
       # quarantine bit, which is why the tap has to be trusted
