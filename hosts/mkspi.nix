@@ -202,16 +202,28 @@ in
     radio.baudRate = 460800;
   };
 
+  # matter-over-wifi devices live on the isolated smart home vlan, so the
+  # controller needs a leg there for the operational CASE session. no
+  # --primary-interface: pinning one makes matter.js stop sending mdns queries
+  # entirely on a vlan sub-interface (0 packets on the wire), while unpinned it
+  # scans every interface and the router's mdns repeater delivers the answers
+  networking.vlans.eth0-8 = {
+    id = 8;
+    interface = "eth0";
+  };
+  networking.interfaces.eth0-8.useDHCP = true;
+  networking.dhcpcd.extraConfig = ''
+    interface eth0-8
+    nogateway
+  '';
+
   # matterjs is the upstream successor (python-matter-server is EOL) and costs 0 MB
   # of new store paths here, where python-matter-server would add ~300 MB.
   # --ble-proxy bridges commissioning through the existing esp32-proxy over
   # home assistant, so no bluetooth adapter is needed: this board has none.
   services.matterjs-server = {
     enable = true;
-    extraArgs = [
-      "--primary-interface=eth0"
-      "--ble-proxy"
-    ];
+    extraArgs = [ "--ble-proxy" ];
   };
 
   services.tailscale.enable = true;
@@ -252,11 +264,16 @@ in
   # home assistant and esphome are reachable through nginx on 443 only: opening
   # 8123 would hand out a plaintext bypass of the tls the acme cert exists for.
   # tailscale0 is trusted, so direct access still works over the tailnet
+  # mdns is multicast, and the nixos firewall drops every non-unicast packet by
+  # default. without this the matter controller sends queries fine but never
+  # receives an answer, so commissioning stalls at 18.1 Reconnect forever.
+  # matter itself needs nothing: the controller dials out from an ephemeral port
   networking.firewall = {
     allowedTCPPorts = [
       80
       443
     ];
+    allowedUDPPorts = [ 5353 ];
     trustedInterfaces = [ "tailscale0" ];
   };
 
@@ -275,7 +292,7 @@ in
     experimental-features = [
       "flakes"
       "nix-command"
-      "pipe-operator"
+      "pipe-operators"
     ];
     auto-optimise-store = true;
     trusted-users = [ user ];
