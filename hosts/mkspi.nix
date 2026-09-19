@@ -207,6 +207,10 @@ in
   # --primary-interface: pinning one makes matter.js stop sending mdns queries
   # entirely on a vlan sub-interface (0 packets on the wire), while unpinned it
   # scans every interface and the router's mdns repeater delivers the answers
+  # the rk3328 gmac has no mac address in efuse, so the kernel rolls a random one
+  # every boot and the dhcp lease (and home.dappy.lgbt with it) moves
+  networking.interfaces.eth0.macAddress = "f2:09:92:be:c2:c7";
+
   networking.vlans.eth0-8 = {
     id = 8;
     interface = "eth0";
