@@ -41,7 +41,7 @@ in
       experimental-features = [
         "flakes"
         "nix-command"
-        "pipe-operator"
+        "pipe-operators"
       ];
 
       flake-registry = "";
