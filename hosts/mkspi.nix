@@ -275,7 +275,7 @@ in
     experimental-features = [
       "flakes"
       "nix-command"
-      "pipe-operator"
+      "pipe-operators"
     ];
     auto-optimise-store = true;
     trusted-users = [ user ];
