@@ -16,8 +16,8 @@ in
   nixpkgs.overlays = [ (import ../overlays) ];
 
   fonts.packages = [
-    pkgs.geist-font
-    pkgs.geist-mono-nerd-font
+    pkgs.google-sans-flex
+    pkgs.nerd-fonts.googlesanscode
   ];
 
   system.configurationRevision = self.rev or self.dirtyRev or null;

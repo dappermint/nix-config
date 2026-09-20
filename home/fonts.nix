@@ -8,4 +8,8 @@ in
     run /usr/bin/defaults write NSGlobalDomain NSFixedPitchFont -string "${fonts.monoPostScriptName}"
     run /usr/bin/defaults write dev.warp.Warp-Preview FontName -string '"${fonts.monoFamily}"'
   '';
+
+  xdg.configFile."ghostty/config".text = ''
+    font-family = ${fonts.monoFamily}
+  '';
 }
