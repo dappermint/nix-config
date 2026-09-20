@@ -74,7 +74,7 @@
 
       packages.${system} = {
         default = meatwizard;
-        inherit (pkgs) geist-mono-nerd-font grok;
+        inherit (pkgs) google-sans-flex grok;
       };
 
       packages.${linuxSystem} = {

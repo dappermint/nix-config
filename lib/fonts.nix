@@ -1,5 +1,5 @@
 {
-  uiFamily = "Geist";
-  monoFamily = "GeistMono Nerd Font Mono";
-  monoPostScriptName = "GeistMonoNFM-Regular";
+  uiFamily = "Google Sans Flex";
+  monoFamily = "GoogleSansCode Nerd Font Mono";
+  monoPostScriptName = "GoogleSansCodeNFM-Regular";
 }
