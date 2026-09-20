@@ -10,7 +10,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   src = fetchzip {
     url = "https://github.com/googlefonts/googlesans-flex/releases/download/v${finalAttrs.version}/GoogleSansFlex-v${finalAttrs.version}.zip";
-    hash = "sha256-o3P0Tmz53iRwQlx3T7VOwxyWZ1EggQuVeXn13w+YClg=";
+    hash = "sha256-zYA3Tke3J2QUKJBSj4qAVDvmgFyndMhSuJKjy7uLiiM=";
     stripRoot = false;
   };
 
