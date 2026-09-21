@@ -112,6 +112,13 @@ in
       gnutar
       zstd
     ];
+    # garage rejects CreateMultipartUpload carrying aws-cli 2.3x's default crc32
+    # checksum ("invalid checksum algorithm"), so every archive past the 8 MB
+    # multipart threshold failed. not a secret, unlike the credentials below
+    environment = {
+      AWS_REQUEST_CHECKSUM_CALCULATION = "when_required";
+      AWS_RESPONSE_CHECKSUM_VALIDATION = "when_required";
+    };
     serviceConfig = {
       Type = "oneshot";
       User = "root";
