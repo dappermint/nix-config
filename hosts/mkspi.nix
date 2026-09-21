@@ -286,6 +286,15 @@ in
     ];
     allowedUDPPorts = [ 5353 ];
     trustedInterfaces = [ "tailscale0" ];
+    # chromecast fetches tts audio over plain http from internal_url and cannot
+    # be pointed at 443: it refuses the lan-only hostname. scoping 8123 to the
+    # wired lan keeps the plaintext port off every other interface
+    extraCommands = ''
+      iptables -I nixos-fw 4 -p tcp --dport 8123 -s 10.14.88.0/24 -j nixos-fw-accept
+    '';
+    extraStopCommands = ''
+      iptables -D nixos-fw -p tcp --dport 8123 -s 10.14.88.0/24 -j nixos-fw-accept || true
+    '';
   };
 
   # 1gb of ddr3: zstd zram at 150% with high swappiness keeps ram footprint small
