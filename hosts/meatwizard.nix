@@ -9,7 +9,6 @@ in
     ../modules/packages.nix
     ../modules/homebrew.nix
     ../modules/defaults.nix
-    ../modules/aerospace.nix
     ../modules/nix-cache-push.nix
     ../modules/maintenance.nix
     ../modules/github-runners.nix

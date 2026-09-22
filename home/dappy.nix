@@ -8,6 +8,7 @@
     ./kube.nix
     ./nix-tools.nix
     ./obs.nix
+    ./omniwm.nix
     ./orcaslicer.nix
     ./sops.nix
     ./ssh.nix
