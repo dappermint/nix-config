@@ -3,6 +3,13 @@ final: _prev: {
   grok = final.callPackage ../packages/grok { };
   hey-cli = final.callPackage ../packages/hey-cli { };
   mkspiFirmware = final.callPackage ../packages/mkspi-firmware { };
+  omniwm = _prev.omniwm.overrideAttrs (_: rec {
+    version = "0.7.1";
+    src = final.fetchurl {
+      url = "https://github.com/OmniNull/OmniWM/releases/download/v${version}/OmniWM-v${version}.zip";
+      hash = "sha256-cTXVIMBf1wEt6Mm3WgvZbT+/rYERvie7XDACtgz3YWI=";
+    };
+  });
 
   # matter.js resolves a node's A/AAAA by the service instance name instead of
   # the SRV target host, so wifi/ip commissioning stalls forever at 18.1
