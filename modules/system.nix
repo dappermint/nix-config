@@ -26,7 +26,7 @@ in
   system.tools.darwin-uninstaller.enable = false;
 
   nix = {
-    package = inputs.lix.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    package = pkgs.lixPackageSets.latest.lix;
 
     channel.enable = false;
 
