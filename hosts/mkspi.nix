@@ -41,6 +41,10 @@ in
 
   boot.loader.grub.enable = false;
   boot.loader.generic-extlinux-compatible.enable = true;
+  # a kernel+initrd pair is ~90 MB and /boot is a 256 MB vfat: current plus one
+  # rollback. the builder copies before it prunes, so a deploy that changes the
+  # kernel needs the rollback dropped first (rerun the extlinux builder, -g 1)
+  boot.loader.generic-extlinux-compatible.configurationLimit = 2;
   boot.kernelParams = [ "console=ttyS2,1500000n8" ];
   boot.initrd.availableKernelModules = [
     "dw_mmc_rockchip"
@@ -297,6 +301,8 @@ in
     algorithm = "zstd";
     memoryPercent = 150;
   };
+
+  services.journald.settings.Journal.SystemMaxUse = "200M";
 
   documentation.enable = false;
   documentation.nixos.enable = false;
