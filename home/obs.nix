@@ -142,7 +142,7 @@ let
   # obs registers mute/unmute as a hotkey pair, so binding one combo to both
   # halves makes it a toggle. the two mics start in opposite states, which turns
   # the single combo into an a/b switch between them.
-  # ctrl+cmd, not ctrl+alt: aerospace claims every ctrl+alt chord as a
+  # ctrl+cmd, not ctrl+alt: omniwm claims every ctrl+alt chord as a
   # workspace hotkey and eats it before obs ever sees it
   micToggle = [
     {
