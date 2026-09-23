@@ -20,7 +20,7 @@ let
       config.nix.package
       pkgs.coreutils
       pkgs.gawk
-      pkgs.gnused
+      pkgs.gnugrep
     ];
     text = ''
       set -euo pipefail
@@ -70,12 +70,16 @@ let
             exit 0
             ;;
         esac
-        # -n/p, not s///: on a wired or unassociated interface networksetup
-        # prints an error instead, and a substitution that does not match
-        # passes that error through as the SSID and skips every upload
-        SSID=$(/usr/sbin/networksetup -getairportnetwork "$IFACE" 2>/dev/null \
-          | sed -n 's/^Current Wi-Fi Network: //p' || true)
-        if [ -n "''${SSID:-}" ]; then
+        # networksetup -getairportnetwork reports "not associated" while
+        # connected on current macos, and ipconfig redacts the ssid, so an
+        # empty read used to skip the allowlist entirely. fail closed instead
+        if /usr/sbin/ipconfig getsummary "$IFACE" 2>/dev/null | grep -q 'InterfaceType : WiFi'; then
+          SSID=$(/usr/sbin/system_profiler SPAirPortDataType 2>/dev/null \
+            | awk '/Current Network Information:/ { getline; sub(/^ +/, ""); sub(/:$/, ""); print; exit }' || true)
+          if [ -z "''${SSID:-}" ] || [ "$SSID" = "<redacted>" ]; then
+            echo "wifi on $IFACE but ssid unreadable; skipping" >&2
+            exit 0
+          fi
           OK=0
           # shellcheck disable=SC2043
           for s in ${lib.concatStringsSep " " (map lib.escapeShellArg cfg.safeSSIDs)}; do
