@@ -188,18 +188,11 @@ in
       "met"
       "otbr"
       "thread"
-      "wyoming"
       "xiaomi_ble"
       "xiaomi_miio"
     ];
     config = null;
     themes = [ pkgs.home-assistant-themes.material-you-theme ];
-  };
-
-  services.wyoming.piper.servers."en-gb" = {
-    enable = true;
-    voice = "en_GB-cori-medium";
-    uri = "tcp://127.0.0.1:10200";
   };
 
   services.openthread-border-router = {
