@@ -15,6 +15,8 @@
     ratatouille.inputs.nixpkgs.follows = "nixpkgs";
     tart.url = "github:dappermint/tart";
     tart.inputs.nixpkgs.follows = "nixpkgs";
+    abode.url = "git+ssh://git@github.com/dappermint/abode";
+    abode.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =

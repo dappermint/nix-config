@@ -12,7 +12,10 @@ let
   sshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7KvZLKybxYKt5Vu5UPcQ4zxIq+FPRyAKQgnvOpzy6Z";
 in
 {
-  imports = [ inputs.sops-nix.nixosModules.sops ];
+  imports = [
+    inputs.sops-nix.nixosModules.sops
+    inputs.abode.nixosModules.default
+  ];
 
   nixpkgs.hostPlatform = "aarch64-linux";
   nixpkgs.overlays = [ (import ../overlays) ];
@@ -108,6 +111,10 @@ in
     };
   };
 
+  # abode replaces home assistant in place: same /var/lib/hass, port 8123
+  # and hass user. rollback is flipping these two enables and switching
+  services.abode.enable = true;
+
   # Daily snapshot backup of Home Assistant to Garage S3 over Tailscale
   systemd.services.home-assistant-backup = {
     description = "Backup Home Assistant config to Garage S3";
@@ -151,7 +158,7 @@ in
   };
 
   services.home-assistant = {
-    enable = true;
+    enable = false;
     package =
       (pkgs.home-assistant.override {
         extraPackages =
