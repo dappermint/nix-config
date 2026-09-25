@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1790350933,
-        "narHash": "sha256-YNtLTP2lJm4OGdXNXPaVfR5tHh5rl5Pzg4fyEOLZb1E=",
+        "lastModified": 1790370056,
+        "narHash": "sha256-ulu1ludWeE9MBjLQ7DTheztLMMSs028kuAZRhfSxCUU=",
         "ref": "refs/heads/main",
-        "rev": "0b432c514d2f4fb4623ed352c06fec986feb791e",
-        "revCount": 93,
+        "rev": "1bb82ca34d4c00eef30527a7513a1c8ce1ffda9c",
+        "revCount": 95,
         "type": "git",
         "url": "ssh://git@github.com/dappermint/abode"
       },
