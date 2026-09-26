@@ -206,11 +206,34 @@ in
     themes = [ pkgs.home-assistant-themes.material-you-theme ];
   };
 
-  services.openthread-border-router = {
+  # the c6 runs rnode154 (a KISS modem over raw 802.15.4, channel 26) instead
+  # of the thread rcp; nothing here uses matter-over-thread. to go back, re-flash
+  # espressif ot_rcp and re-enable openthread-border-router on it
+  services.rnsd = {
     enable = true;
-    backboneInterfaces = [ "eth0" ];
-    radio.device = "/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_8C:FD:49:1A:05:48-if00";
-    radio.baudRate = 460800;
+    package = pkgs.rsreticulum;
+    packageBinaryName = "rnsd-rs";
+    extraGroups = [ "dialout" ];
+    settings = {
+      reticulum = {
+        enable_transport = true;
+        share_instance = true;
+        respond_to_probes = true;
+      };
+      # eth0 only: eth0-8 is the isolated smart home leg, and AutoInterface on
+      # both would bridge the two bridges at the reticulum layer
+      interfaces.lan = {
+        type = "AutoInterface";
+        enabled = true;
+        devices = "eth0";
+      };
+      interfaces.radio = {
+        type = "KISSInterface";
+        enabled = true;
+        port = "/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_8C:FD:49:1A:05:48-if00";
+        speed = 115200;
+      };
+    };
   };
 
   # matter-over-wifi devices live on the isolated smart home vlan, so the
@@ -275,6 +298,15 @@ in
       };
     };
   };
+
+  # reticulum AutoInterface: multicast discovery, unicast reverse peering and
+  # unicast data. the module's openMulticastPorts opens 27916 (a typo for 29716)
+  # and only multicast 42671, so peers are found but their data is dropped
+  networking.firewall.interfaces.eth0.allowedUDPPorts = [
+    29716
+    29717
+    42671
+  ];
 
   # home assistant and esphome are reachable through nginx on 443 only: opening
   # 8123 would hand out a plaintext bypass of the tls the acme cert exists for.
