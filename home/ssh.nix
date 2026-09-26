@@ -21,6 +21,12 @@
         ControlPath = "~/.ssh/cm-%r@%h:%p";
       };
 
+      # throwaway identity for public/anonymous services, never the main key
+      "railway.new" = {
+        IdentityFile = "~/.ssh/id_ed25519_public";
+        IdentitiesOnly = true;
+      };
+
       "ipad 10.25.60.16" = {
         HostName = "10.25.60.16";
         User = "root";
