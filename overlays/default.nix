@@ -3,6 +3,7 @@ final: _prev: {
   grok = final.callPackage ../packages/grok { };
   hey-cli = final.callPackage ../packages/hey-cli { };
   mkspiFirmware = final.callPackage ../packages/mkspi-firmware { };
+  rsreticulum = final.callPackage ../packages/rsreticulum { };
   omniwm = _prev.omniwm.overrideAttrs (_: rec {
     version = "0.7.1";
     src = final.fetchurl {
