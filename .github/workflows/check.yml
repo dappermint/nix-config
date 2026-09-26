@@ -57,22 +57,17 @@ jobs:
       - name: build and smoke the system
         run: nix build --no-link -L .#checks.aarch64-darwin.smoke
 
-  # the aarch64-linux checks exist in flake.nix but nothing on the darwin runner
-  # can evaluate them, so mkspi and droid could break at eval and only show it
-  # at deploy time. hosted, because the sbc is too small to be a builder.
-  # eval only: aarch64-linux derivations cannot be built on x86_64 here
+  # mkspi and droid are aarch64-linux, so this runner can evaluate them but not
+  # build them; eval still catches a broken config before deploy time. on the
+  # self-hosted runner because mkspi pulls abode, a private git+ssh input that a
+  # hosted runner has no key for
   linux-eval:
     name: evaluate the linux configurations
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, m5]
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-
-      - uses: DeterminateSystems/nix-installer-action@v20
-        with:
-          extra-conf: |
-            experimental-features = flakes nix-command
 
       - name: evaluate mkspi
         run: |
