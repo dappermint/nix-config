@@ -42,6 +42,10 @@
         name = "skyhook-io/tap";
         trusted = true;
       }
+      {
+        name = "steipete/tap";
+        trusted = true;
+      }
     ];
 
     brews = [
@@ -59,6 +63,7 @@
       "dappermint/tap/occam"
       "netbirdio/tap/netbird"
       "rustnet"
+      "steipete/tap/remindctl"
     ];
 
     casks = [
