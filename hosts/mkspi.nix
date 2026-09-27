@@ -255,12 +255,11 @@ in
     nogateway
   '';
 
-  # matterjs is the upstream successor (python-matter-server is EOL) and costs 0 MB
-  # of new store paths here, where python-matter-server would add ~300 MB.
-  # --ble-proxy bridges commissioning through the existing esp32-proxy over
-  # home assistant, so no bluetooth adapter is needed: this board has none.
+  # abode talks matter itself now (/var/lib/hass/matter/controller.bin);
+  # matterjs stays declared so rollback is flipping this and deleting that file.
+  # its state in /var/lib/private/matterjs-server still holds the old fabric.
   services.matterjs-server = {
-    enable = true;
+    enable = false;
     extraArgs = [ "--ble-proxy" ];
   };
 
