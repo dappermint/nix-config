@@ -10,6 +10,7 @@
 runCommand "mkspi-firmware" { nativeBuildInputs = [ dtc ]; } ''
   install -Dm644 ${./u-boot-rockchip.bin} $out/u-boot-rockchip.bin
   install -Dm644 ${./rk3328-mkspi.dtb} $out/rockchip/rk3328-mkspi.dtb
+  install -Dm644 ${./rtw8812a_fw.bin} $out/lib/firmware/rtw88/rtw8812a_fw.bin
   fdtput -d $out/rockchip/rk3328-mkspi.dtb /usb@ff600000 phys
   fdtput -d $out/rockchip/rk3328-mkspi.dtb /usb@ff600000 phy-names
 ''

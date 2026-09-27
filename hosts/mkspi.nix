@@ -65,6 +65,10 @@ in
     dtbSource = pkgs.mkspiFirmware;
     name = "rockchip/rk3328-mkspi.dtb";
   };
+  hardware.firmware = [
+    pkgs.mkspiFirmware
+    pkgs.wireless-regdb
+  ];
 
   services.openssh = {
     enable = true;
