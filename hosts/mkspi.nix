@@ -75,6 +75,17 @@ in
     defaultSopsFile = "${self}/secrets/mkspi.yaml";
     age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
     secrets.garage_backup_env = { };
+    secrets.kanidm_idm_admin_password.owner = "kanidm";
+    secrets.kanidm_vaultwarden_secret.owner = "kanidm";
+    secrets.kanidm_gatus_secret.owner = "kanidm";
+    secrets.syncthing_gui_password.owner = "syncthing";
+    # the client side reads the same secret, but only as an env var
+    templates."vaultwarden.env".content = ''
+      SSO_CLIENT_SECRET=${config.sops.placeholder.kanidm_vaultwarden_secret}
+    '';
+    templates."gatus.env".content = ''
+      GATUS_OIDC_SECRET=${config.sops.placeholder.kanidm_gatus_secret}
+    '';
   };
 
   users.users.root.openssh.authorizedKeys.keys = [ sshKey ];
@@ -141,7 +152,9 @@ in
         set -euo pipefail
         TS=$(date +%Y%m%d_%H%M%S)
         ARCHIVE="/tmp/ha_backup_''${TS}.tar.zst"
-        tar --exclude='*.db-wal' --exclude='*.db-shm' --exclude='home-assistant.log*' -cf - -C /var/lib hass | zstd -3 -o "''${ARCHIVE}"
+        # vaultwarden and kanidm come from their own nightly snapshots, not the
+        # live dirs: both hold sqlite dbs that tar would copy mid-write
+        tar --exclude='*.db-wal' --exclude='*.db-shm' --exclude='home-assistant.log*' -cf - -C /var/lib hass -C /var/backup vaultwarden kanidm | zstd -3 -o "''${ARCHIVE}"
         aws --endpoint-url http://100.80.221.44:3900 s3 cp "''${ARCHIVE}" "s3://homeassistant-backups/ha_backup_''${TS}.tar.zst"
         rm -f "''${ARCHIVE}"
       '';
@@ -265,14 +278,198 @@ in
 
   services.tailscale.enable = true;
 
+  # same setup as sbx-intelmac: kanidm behind nginx, provisioned from here
+  services.kanidm = {
+    server.enable = true;
+    package = pkgs.kanidmWithSecretProvisioning_1_11;
+    server.settings = {
+      domain = "id.dappy.lgbt";
+      origin = "https://id.dappy.lgbt";
+      bindaddress = "127.0.0.1:8443";
+      # only nginx talks to this listener, with verification off, so a renewed
+      # cert that kanidm has not reloaded yet breaks nothing
+      tls_chain = "/var/lib/acme/home.dappy.lgbt/fullchain.pem";
+      tls_key = "/var/lib/acme/home.dappy.lgbt/key.pem";
+      online_backup = {
+        path = "/var/backup/kanidm";
+        versions = 3;
+      };
+    };
+    provision = {
+      enable = true;
+      instanceUrl = "https://127.0.0.1:8443";
+      acceptInvalidCerts = true;
+      idmAdminPasswordFile = config.sops.secrets.kanidm_idm_admin_password.path;
+      groups.home_users = { };
+      persons.dappy = {
+        displayName = "Lia Yoffe";
+        mailAddresses = [ "dappy@hey.com" ];
+        groups = [ "home_users" ];
+      };
+      systems.oauth2.vaultwarden = {
+        displayName = "vaultwarden";
+        originUrl = "https://vault.dappy.lgbt/identity/connect/oidc-signin";
+        originLanding = "https://vault.dappy.lgbt/";
+        basicSecretFile = config.sops.secrets.kanidm_vaultwarden_secret.path;
+        preferShortUsername = true;
+        scopeMaps.home_users = [
+          "openid"
+          "profile"
+          "email"
+        ];
+      };
+      systems.oauth2.gatus = {
+        displayName = "status";
+        originUrl = "https://status.dappy.lgbt/authorization-code/callback";
+        originLanding = "https://status.dappy.lgbt/";
+        basicSecretFile = config.sops.secrets.kanidm_gatus_secret.path;
+        # gatus 5.37 sends no code_verifier (security/oidc.go), so kanidm's
+        # mandatory pkce would reject every login. confidential client + state
+        allowInsecureClientDisablePkce = true;
+        scopeMaps.home_users = [ "openid" ];
+      };
+    };
+  };
+  users.users.kanidm.extraGroups = [ "nginx" ];
+
+  services.vaultwarden = {
+    enable = true;
+    # nightly sqlite .backup snapshot, picked up by the garage backup at 04:00
+    backupDir = "/var/backup/vaultwarden";
+    environmentFile = config.sops.templates."vaultwarden.env".path;
+    config = {
+      DOMAIN = "https://vault.dappy.lgbt";
+      ROCKET_ADDRESS = "127.0.0.1";
+      ROCKET_PORT = 8222;
+      SIGNUPS_ALLOWED = false;
+      SSO_ENABLED = true;
+      SSO_ONLY = true;
+      SSO_CLIENT_ID = "vaultwarden";
+      SSO_AUTHORITY = "https://id.dappy.lgbt/oauth2/openid/vaultwarden";
+    };
+  };
+
+  services.syncthing = {
+    enable = true;
+    guiPasswordFile = config.sops.secrets.syncthing_gui_password.path;
+    # devices and folders get paired from the gui; the defaults would delete
+    # them again on every restart
+    overrideDevices = false;
+    overrideFolders = false;
+    settings.gui = {
+      inherit user;
+      # nginx forwards Host: sync.dappy.lgbt, which the gui's dns-rebinding
+      # check rejects. the gui password is what guards it
+      insecureSkipHostcheck = true;
+    };
+  };
+
+  # runs outside conway on purpose, so it still sees conway going down
+  services.gatus = {
+    enable = true;
+    environmentFile = config.sops.templates."gatus.env".path;
+    settings = {
+      web = {
+        address = "127.0.0.1";
+        port = 8080;
+      };
+      security.oidc = {
+        issuer-url = "https://id.dappy.lgbt/oauth2/openid/gatus";
+        redirect-url = "https://status.dappy.lgbt/authorization-code/callback";
+        client-id = "gatus";
+        client-secret = "\${GATUS_OIDC_SECRET}";
+        scopes = [ "openid" ];
+      };
+      endpoints = [
+        {
+          name = "abode";
+          group = "home";
+          url = "https://home.dappy.lgbt/api/";
+          # one cert covers every *.dappy.lgbt name here, so this also catches
+          # a failed acme renewal
+          conditions = [
+            "[STATUS] == 200"
+            "[CERTIFICATE_EXPIRATION] > 240h"
+          ];
+        }
+        {
+          name = "esphome";
+          group = "home";
+          url = "https://esphome.dappy.lgbt/";
+          conditions = [ "[STATUS] == 200" ];
+        }
+        {
+          name = "kanidm";
+          group = "home";
+          url = "https://id.dappy.lgbt/status";
+          conditions = [ "[STATUS] == 200" ];
+        }
+        {
+          name = "vaultwarden";
+          group = "home";
+          url = "https://vault.dappy.lgbt/alive";
+          conditions = [ "[STATUS] == 200" ];
+        }
+        {
+          name = "syncthing";
+          group = "home";
+          url = "https://sync.dappy.lgbt/rest/noauth/health";
+          conditions = [ "[STATUS] == 200" ];
+        }
+        {
+          name = "router";
+          group = "home";
+          url = "icmp://10.14.88.1";
+          conditions = [ "[CONNECTED] == true" ];
+        }
+        {
+          name = "k8s api";
+          group = "conway";
+          url = "tcp://100.120.79.74:6443";
+          conditions = [ "[CONNECTED] == true" ];
+        }
+        {
+          name = "garage s3";
+          group = "conway";
+          url = "tcp://100.80.221.44:3900";
+          conditions = [ "[CONNECTED] == true" ];
+        }
+        {
+          name = "sandb0x.space";
+          group = "sbx";
+          url = "https://sandb0x.space";
+          conditions = [ "[STATUS] == 200" ];
+        }
+      ];
+    };
+  };
+  # both fetch oidc discovery from kanidm through nginx at startup
+  systemd.services.gatus.after = [
+    "kanidm.service"
+    "nginx.service"
+  ];
+  systemd.services.vaultwarden.after = [
+    "kanidm.service"
+    "nginx.service"
+  ];
+
   security.acme = {
     acceptTerms = true;
     defaults.email = "dappy@hey.com";
     certs."home.dappy.lgbt" = {
       dnsProvider = "cloudflare";
+      # the router answers *.dappy.lgbt from static records for split horizon,
+      # so a propagation check through it never sees cloudflare's txt record
+      dnsResolver = "1.1.1.1:53";
       environmentFile = "/var/lib/acme/cf-token";
       group = "nginx";
-      extraDomainNames = [ "esphome.dappy.lgbt" ];
+      extraDomainNames = [
+        "esphome.dappy.lgbt"
+        "id.dappy.lgbt"
+        "vault.dappy.lgbt"
+        "sync.dappy.lgbt"
+        "status.dappy.lgbt"
+      ];
     };
   };
 
@@ -296,6 +493,29 @@ in
         proxyWebsockets = true;
       };
     };
+    virtualHosts."id.dappy.lgbt" = {
+      useACMEHost = "home.dappy.lgbt";
+      forceSSL = true;
+      locations."/".proxyPass = "https://127.0.0.1:8443";
+    };
+    virtualHosts."vault.dappy.lgbt" = {
+      useACMEHost = "home.dappy.lgbt";
+      forceSSL = true;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:8222";
+        proxyWebsockets = true;
+      };
+    };
+    virtualHosts."sync.dappy.lgbt" = {
+      useACMEHost = "home.dappy.lgbt";
+      forceSSL = true;
+      locations."/".proxyPass = "http://127.0.0.1:8384";
+    };
+    virtualHosts."status.dappy.lgbt" = {
+      useACMEHost = "home.dappy.lgbt";
+      forceSSL = true;
+      locations."/".proxyPass = "http://127.0.0.1:8080";
+    };
   };
 
   # reticulum AutoInterface: multicast discovery, unicast reverse peering and
@@ -305,7 +525,11 @@ in
     29716
     29717
     42671
+    # syncthing: local discovery and quic
+    21027
+    22000
   ];
+  networking.firewall.interfaces.eth0.allowedTCPPorts = [ 22000 ];
 
   # home assistant and esphome are reachable through nginx on 443 only: opening
   # 8123 would hand out a plaintext bypass of the tls the acme cert exists for.
