@@ -559,6 +559,33 @@ in
     };
   };
 
+  # nothing opens its ports on eth0, so it is reachable over the tailnet only
+  services.soft-serve = {
+    enable = true;
+    settings = {
+      name = "mkspi";
+      anon-access = "no-access";
+      allow-keyless = false;
+      initial_admin_keys = [ sshKey ];
+      ssh = {
+        listen_addr = ":23231";
+        public_url = "ssh://mkspi:23231";
+      };
+      http = {
+        listen_addr = "127.0.0.1:23232";
+        public_url = "http://127.0.0.1:23232";
+      };
+      git.listen_addr = "127.0.0.1:9418";
+      stats.listen_addr = "127.0.0.1:23233";
+    };
+  };
+  # the module's ExecPaths points at repos/, which does not exist on first
+  # start, so the mount namespace setup fails before soft-serve can create it
+  systemd.services.soft-serve.serviceConfig.StateDirectory = lib.mkForce [
+    "soft-serve"
+    "soft-serve/repos"
+  ];
+
   # reticulum AutoInterface: multicast discovery, unicast reverse peering and
   # unicast data. the module's openMulticastPorts opens 27916 (a typo for 29716)
   # and only multicast 42671, so peers are found but their data is dropped
