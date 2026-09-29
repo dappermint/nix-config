@@ -473,6 +473,7 @@ in
         "vault.dappy.lgbt"
         "sync.dappy.lgbt"
         "status.dappy.lgbt"
+        "bin.dappy.lgbt"
       ];
     };
   };
@@ -520,6 +521,42 @@ in
       forceSSL = true;
       locations."/".proxyPass = "http://127.0.0.1:8080";
     };
+    virtualHosts."bin.dappy.lgbt" = {
+      useACMEHost = "home.dappy.lgbt";
+      forceSSL = true;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:8082";
+        proxyWebsockets = true;
+      };
+    };
+  };
+
+  services.microbin = {
+    enable = true;
+    settings = {
+      MICROBIN_BIND = "127.0.0.1";
+      MICROBIN_PORT = 8082;
+      MICROBIN_PUBLIC_PATH = "https://bin.dappy.lgbt/";
+      MICROBIN_READONLY = false;
+      MICROBIN_QR = true;
+      MICROBIN_ENABLE_BURN_AFTER = true;
+      MICROBIN_DEFAULT_EXPIRY = "24h";
+    };
+  };
+
+  services.blocky = {
+    enable = true;
+    settings = {
+      ports.dns = 53;
+      upstreams.groups.default = [
+        "https://dns.nextdns.io/848374"
+        "9.9.9.9"
+      ];
+      caching = {
+        minTime = "5m";
+        prefetching = true;
+      };
+    };
   };
 
   # reticulum AutoInterface: multicast discovery, unicast reverse peering and
@@ -546,8 +583,12 @@ in
     allowedTCPPorts = [
       80
       443
+      53
     ];
-    allowedUDPPorts = [ 5353 ];
+    allowedUDPPorts = [
+      53
+      5353
+    ];
     trustedInterfaces = [ "tailscale0" ];
     # chromecast fetches tts audio over plain http from internal_url and cannot
     # be pointed at 443: it refuses the lan-only hostname. scoping 8123 to the
