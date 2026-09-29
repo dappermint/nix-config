@@ -70,8 +70,8 @@
         modules = [ ./hosts/droid.nix ];
       };
 
-      formatter.${system} = pkgs.nixfmt;
-      formatter.${linuxSystem} = linuxPkgs.nixfmt;
+      formatter.${system} = pkgs.nixfmt-tree;
+      formatter.${linuxSystem} = linuxPkgs.nixfmt-tree;
 
       packages.${system} = {
         default = meatwizard;
