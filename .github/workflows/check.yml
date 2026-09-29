@@ -10,71 +10,37 @@ concurrency:
   group: check-${{ github.ref }}
   cancel-in-progress: true
 
-# nothing here writes, and the runner is the machine itself: a leaked token
-# with default scope would be a real prize, so pin it to read
 permissions:
   contents: read
 
-# both jobs run on meatwizard's own runner, so no step installs nix: nix-darwin
-# already owns it here and installing over it would damage the live
-# installation. that also makes this better parity than a hosted runner ever
-# had, since the gate now runs the exact lix that switches the machine.
-#
-# the accepted cost is circularity. a commit that breaks modules/github-runners.nix
-# takes down the runner that would have caught it, and recovery is local: fix
-# the module in the checkout, `nh darwin switch /etc/nix-darwin` to get the
-# agent back, then push.
-#
-# one runner also means these two queue rather than run in parallel. together
-# they are ~20s against a warm store, so that costs nothing worth optimising.
+# linux arm bills at 1x where hosted macos bills at 10x, and every host here
+# evaluates fine from linux: darwin configs need no build to produce a drv
+# path. the one thing this cannot do is build the darwin closure, which the
+# weekly lock bump does on hosted macos and nix-switch does on every switch
 jobs:
-  lint:
-    name: lint and evaluate
-    runs-on: [self-hosted, m5]
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          # otherwise the token sits in _work/.git/config until the agent
-          # restarts, which with KeepAlive can be weeks
-          persist-credentials: false
-
-      - name: lint
-        run: nix build --no-link -L .#checks.aarch64-darwin.lint
-
-      - name: evaluate the configuration
-        run: nix build --no-link -L .#checks.aarch64-darwin.eval
-
-  system:
-    name: build the system closure
-    runs-on: [self-hosted, m5]
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          # otherwise the token sits in _work/.git/config until the agent
-          # restarts, which with KeepAlive can be weeks
-          persist-credentials: false
-
-      - name: build and smoke the system
-        run: nix build --no-link -L .#checks.aarch64-darwin.smoke
-
-  # mkspi and droid are aarch64-linux, so this runner can evaluate them but not
-  # build them; eval still catches a broken config before deploy time. on the
-  # self-hosted runner because mkspi pulls abode, a private git+ssh input that a
-  # hosted runner has no key for
-  linux-eval:
-    name: evaluate the linux configurations
-    runs-on: [self-hosted, m5]
+  check:
+    name: lint and evaluate every host
+    runs-on: ubuntu-24.04-arm
+    env:
+      # abode is a private input. a fine-grained token with contents:read on
+      # it; GITHUB_TOKEN is scoped to this repo only
+      NIX_CONFIG: access-tokens = github.com=${{ secrets.NIX_ACCESS_TOKEN }}
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
-      - name: evaluate mkspi
-        run: |
-          nix eval --raw \
-            .#nixosConfigurations.mkspi.config.system.build.toplevel.drvPath
+      # lix, not cppnix: this config is built by lix on the machine, so the gate
+      # has to run the same evaluator
+      - uses: samueldr/lix-gha-installer-action@a0fee77b2a98bb7c5c0ed7ae6d6ad4903dbdad0d # v2026-06-15
+        with:
+          extra_nix_config: |
+            experimental-features = flakes nix-command pipe-operator
+            extra-substituters = https://cache.lix.systems https://nix-community.cachix.org
+            extra-trusted-public-keys = cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
 
-      - name: evaluate droid
-        run: |
-          nix eval --raw \
-            .#homeConfigurations.droid.activationPackage.drvPath
+      - name: lint, evaluate droid and mkspi
+        run: nix flake check -L
+
+      - name: evaluate meatwizard
+        run: nix eval --raw .#darwinConfigurations.meatwizard.system.drvPath

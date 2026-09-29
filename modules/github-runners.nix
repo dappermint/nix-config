@@ -111,7 +111,6 @@ let
   };
 
   repos = [
-    "nix-config"
     "wine-gptk"
     "winecx-gptk"
   ];

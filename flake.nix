@@ -55,6 +55,25 @@
       droid = self.homeConfigurations.droid.activationPackage;
 
       mkspi = self.nixosConfigurations.mkspi.config.system.build.toplevel;
+
+      # per system so the hosted linux ci can run it without a mac
+      lint =
+        p:
+        p.runCommand "lint"
+          {
+            nativeBuildInputs = [
+              p.deadnix
+              p.nixfmt
+              p.statix
+            ];
+          }
+          ''
+            cd ${self}
+            find . -name '*.nix' -print0 | xargs -0 nixfmt --check
+            deadnix --fail .
+            statix check .
+            touch $out
+          '';
     in
     {
       darwinConfigurations.meatwizard = mkHost ./hosts/meatwizard.nix;
@@ -100,6 +119,8 @@
       };
 
       checks.${linuxSystem} = {
+        lint = lint linuxPkgs;
+
         eval =
           linuxPkgs.runCommand "eval-droid"
             {
@@ -122,22 +143,7 @@
       };
 
       checks.${system} = {
-        lint =
-          pkgs.runCommand "lint"
-            {
-              nativeBuildInputs = [
-                pkgs.deadnix
-                pkgs.nixfmt
-                pkgs.statix
-              ];
-            }
-            ''
-              cd ${self}
-              find . -name '*.nix' -print0 | xargs -0 nixfmt --check
-              deadnix --fail .
-              statix check .
-              touch $out
-            '';
+        lint = lint pkgs;
 
         eval =
           pkgs.runCommand "eval-meatwizard"

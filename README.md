@@ -63,6 +63,7 @@ what was left alone and why, and what to watch on the next lix release.
 flake.nix                       inputs, the mkHost router, checks, devshell
 hosts/meatwizard.nix            machine facts: hostname, platform, wifi allowlist, /etc/hosts pin
 hosts/droid.nix                 the phone: username, home directory, its slice of lib/packages.nix
+hosts/*-bootstrap.sh            blank machine to first activation, per platform
 modules/                        generic system modules, none of them name the machine
 home/dappy.nix                  imports only, one file per topic beside it
 home/droid.nix                  the same, for the portable half of those topics
@@ -76,6 +77,24 @@ docs/                           point-in-time reviews, one file per pass
 modules read `config.system.primaryUser` and `users.users.<user>.home`; home
 modules read `config.home.homeDirectory`. no `primaryUsername` specialArg to
 thread around.
+
+## a new mac
+
+`hosts/darwin-bootstrap.sh` takes a blank mac to its first switch: the handful
+of defaults worth having before nix, rosetta, homebrew, lix, `~/.ssh/id_ed25519`
+registered on github for auth and signing, the checkout at `/etc/nix-darwin`,
+the sops age identity, and the first activation. the repo is private, so copy
+the script over by airdrop or usb:
+
+```sh
+HOST=meatwizard bash darwin-bootstrap.sh
+```
+
+a fresh key is not a sops recipient, so the script prints the user and host age
+keys and waits: add them to `.sops.yaml` from a mac that already decrypts, run
+`sops updatekeys secrets/*.yaml`, push, then press enter. restoring the old
+`~/.ssh/id_ed25519` before running skips that step. idempotent, re-run after
+fixing whatever stopped it.
 
 ## droid
 
@@ -114,10 +133,9 @@ sops wants an age key this guest does not hold yet. tmux, starship and neovim
 are droid-only in the other direction: they exist because a phone terminal is
 ~50 columns with a soft keyboard and no window manager.
 
-ci cannot gate any of this. the runner is meatwizard itself, so it builds
-`checks.aarch64-darwin.*` only and `checks.aarch64-linux.eval` has to be built
-from the phone. the `lint` check does cover the whole tree, droid's files
-included, because it lints every `.nix` in the repo.
+ci runs on a hosted `ubuntu-24.04-arm` runner, so it lints the tree and
+evaluates droid and mkspi natively through `checks.aarch64-linux.*`. nothing
+aarch64-linux is built in ci; it only has to evaluate.
 
 ## checks
 
@@ -139,9 +157,11 @@ direnv active or wrap the commit in `nix develop -c`.
   it, and that the generated brewfile still declares awscli
 
 `.pre-commit-config.yaml` mirrors `lint` locally and enforces conventional
-commits on the commit message. ci runs lint and eval on every push, builds the
-system in a second job, and opens a weekly `flake.lock` bump pr only if
-`nix flake check` passes on the bumped tree.
+commits on the commit message. ci lints and evaluates all three hosts on every
+push from a hosted linux runner, and a weekly job on hosted macos opens a
+`flake.lock` bump pr only if `nix flake check`, which builds the darwin
+closure, passes on the bumped tree. both need a `NIX_ACCESS_TOKEN` repo secret
+that can read the private `abode` input.
 
 ## secrets
 

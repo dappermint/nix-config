@@ -13,6 +13,9 @@ jobs:
   update:
     name: bump inputs behind the check gate
     runs-on: macos-latest
+    env:
+      # abode is private; see check.yml
+      NIX_CONFIG: access-tokens = github.com=${{ secrets.NIX_ACCESS_TOKEN }}
     steps:
       - uses: actions/checkout@v7
 
