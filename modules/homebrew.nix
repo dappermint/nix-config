@@ -31,6 +31,10 @@
         name = "crmne/tap";
       }
       {
+        name = "lab421/tap";
+        trusted = true;
+      }
+      {
         name = "netbirdio/tap";
         trusted = true;
       }
@@ -78,6 +82,7 @@
       "bruno"
       "claude-code@latest"
       "claude-status-bar"
+      "clop"
       "dappermint/tap/fluxer@canary"
       "dappermint/tap/whisky-preview"
       "figma"
@@ -85,6 +90,7 @@
       # six browsers installed at once
       "finicky"
       "firefox@nightly"
+      "lab421/tap/forel"
       "freecad"
       "ghostty"
       "google-gemini"
@@ -92,6 +98,9 @@
       "iina"
       "linear"
       "lm-studio"
+      "macpacker"
+      "dappermint/tap/mactap"
+      "macusb"
       "netbirdio/tap/netbird-ui"
       "nordvpn"
       "obs"
@@ -114,6 +123,7 @@
       "tor-browser"
       "transmission"
       "utm"
+      "vorssaint"
       "warp@preview"
       "winbox"
       # ad-hoc signed rather than notarized; the cask's postflight strips the
@@ -131,7 +141,7 @@
     enable = true;
     cleanup = true;
     packages = {
-      Amphetamine = 937984704;
+      Headjust = 6759303637;
       "Windows App" = 1295203466;
       "Balatro+" = 6502451661;
     };
