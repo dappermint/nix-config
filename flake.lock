@@ -105,11 +105,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789418652,
-        "narHash": "sha256-EiVy2WAvffznSgDesV5voWXJ1Jbck37ahLweItNXgVo=",
+        "lastModified": 1791032280,
+        "narHash": "sha256-QxI+sMb5rTRMI8ozwgqll24fco89sGdXfZMncEoCfdA=",
         "owner": "dappermint",
         "repo": "ratatouille",
-        "rev": "7e7826f4544d2b3e15b023876c2417c5a939ac44",
+        "rev": "8b8dbc6e979bdc6e6aebee9c5443f98c127225d0",
         "type": "github"
       },
       "original": {

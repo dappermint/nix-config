@@ -94,7 +94,7 @@
 
       packages.${system} = {
         default = meatwizard;
-        inherit (pkgs) google-sans-flex grok;
+        inherit (pkgs) google-sans-flex;
       };
 
       packages.${linuxSystem} = {
@@ -165,7 +165,7 @@
 
               test -x "$system/activate"
 
-              for bin in local-maintenance maintenance-status nix-cache-push grok; do
+              for bin in local-maintenance maintenance-status nix-cache-push; do
                 test -x "$system/sw/bin/$bin" || {
                   echo "missing $bin on the built system" >&2
                   exit 1
