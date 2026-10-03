@@ -58,7 +58,6 @@
 
   agents = with pkgs; [
     codex
-    grok
   ];
 
   languages = with pkgs; [

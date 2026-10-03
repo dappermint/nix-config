@@ -153,7 +153,7 @@ direnv active or wrap the commit in `nix develop -c`.
 - `lint` runs nixfmt, deadnix and statix over the tree
 - `eval` forces the whole configuration through evaluation without building it
 - `smoke` builds `darwinConfigurations.meatwizard.system` and asserts that
-  `local-maintenance`, `maintenance-status`, `nix-cache-push` and `grok` are on
+  `local-maintenance`, `maintenance-status` and `nix-cache-push` are on
   it, and that the generated brewfile still declares awscli
 
 `.pre-commit-config.yaml` mirrors `lint` locally and enforces conventional
@@ -256,12 +256,3 @@ without fighting the formula, so activation repairs it: reinstall the plist if
 it vanished, bootstrap it if launchd forgot it, and restart the service only
 when the binary hash actually changed.
 
-## bumping grok
-
-```fish
-./packages/grok/update.sh           # latest stable from xai's version pointer
-./packages/grok/update.sh 0.2.120   # a specific version
-```
-
-it rewrites the version and both platform hashes in
-`packages/grok/default.nix`.
