@@ -104,6 +104,7 @@
       "netbirdio/tap/netbird-ui"
       "nordvpn"
       "obs"
+      "onlyoffice"
       "orbstack"
       "orcaslicer"
       "osu"
