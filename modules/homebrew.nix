@@ -97,6 +97,7 @@
       "hermes-desktop"
       "iina"
       "linear"
+      "linphone"
       "lm-studio"
       "macpacker"
       "dappermint/tap/mactap"
