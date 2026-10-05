@@ -83,6 +83,7 @@ in
     secrets.kanidm_vaultwarden_secret.owner = "kanidm";
     secrets.kanidm_gatus_secret.owner = "kanidm";
     secrets.syncthing_gui_password.owner = "syncthing";
+    secrets.wifi_env.owner = "wpa_supplicant";
     # the client side reads the same secret, but only as an env var
     templates."vaultwarden.env".content = ''
       SSO_CLIENT_SECRET=${config.sops.placeholder.kanidm_vaultwarden_secret}
@@ -270,6 +271,8 @@ in
   networking.dhcpcd.extraConfig = ''
     interface eth0-8
     nogateway
+    interface wlu1
+    nogateway
   '';
 
   # abode talks matter itself now (/var/lib/hass/matter/controller.bin);
@@ -278,6 +281,13 @@ in
   services.matterjs-server = {
     enable = false;
     extraArgs = [ "--ble-proxy" ];
+  };
+
+  networking.wireless = {
+    enable = true;
+    interfaces = [ "wlu1" ];
+    secretsFile = config.sops.secrets.wifi_env.path;
+    networks."tel aviv".pskRaw = "ext:psk_telaviv";
   };
 
   services.tailscale.enable = true;
