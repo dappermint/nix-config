@@ -1,6 +1,13 @@
 { config, ... }:
 
 {
+  # openhuman's per-user config.toml defaults these on; env wins for every user dir
+  launchd.user.envVariables = {
+    OPENHUMAN_ANALYTICS_ENABLED = "false";
+    OPENHUMAN_AGENT_TRACING_CAPTURE_CONTENT = "false";
+    OPENHUMAN_AUTO_UPDATE_RPC_MUTATIONS_ENABLED = "false";
+  };
+
   homebrew = {
     enable = true;
 
@@ -106,6 +113,7 @@
       "nordvpn"
       "obs"
       "onlyoffice"
+      "openhuman"
       "orbstack"
       "orcaslicer"
       "osu"
