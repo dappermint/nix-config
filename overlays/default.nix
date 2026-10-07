@@ -4,10 +4,10 @@ final: _prev: {
   mkspiFirmware = final.callPackage ../packages/mkspi-firmware { };
   rsreticulum = final.callPackage ../packages/rsreticulum { };
   omniwm = _prev.omniwm.overrideAttrs (_: rec {
-    version = "0.7.1";
+    version = "0.7.5";
     src = final.fetchurl {
       url = "https://github.com/OmniNull/OmniWM/releases/download/v${version}/OmniWM-v${version}.zip";
-      hash = "sha256-cTXVIMBf1wEt6Mm3WgvZbT+/rYERvie7XDACtgz3YWI=";
+      hash = "sha256-oV/KNBGojdBviTUyjChiY9V6RMe8wiVUd+KTA/qUzM4=";
     };
   });
 
