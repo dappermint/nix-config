@@ -21,7 +21,6 @@ in
   nixpkgs.overlays = [ (import ../overlays) ];
 
   networking.hostName = "mkspi";
-  networking.extraHosts = "10.14.88.234 waves.petahtikva.local";
 
   system.stateVersion = "26.11";
 
@@ -533,7 +532,7 @@ in
       forceSSL = true;
       locations."/".proxyPass = "http://127.0.0.1:8080";
     };
-    virtualHosts."waves.petahtikva.local" = {
+    virtualHosts."waves.petahtikva.lan" = {
       root = "/var/www/esp-sdr";
       locations."/".extraConfig = "try_files $uri $uri/ =404;";
     };
