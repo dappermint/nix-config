@@ -128,6 +128,24 @@ in
     };
   };
 
+  # live 2.4 GHz spectrum from the esp-sdr c6, served at waves.petahtikva.lan
+  systemd.services.waves = {
+    description = "esp-sdr spectrum bridge";
+    wantedBy = [ "multi-user.target" ];
+    environment.WAVES_DEVICE = "/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_8C:FD:49:1A:05:48-if00";
+    serviceConfig = {
+      ExecStart = "${
+        pkgs.python3.withPackages (p: [
+          p.numpy
+          p.pyserial
+        ])
+      }/bin/python3 ${./mkspi-waves.py}";
+      Restart = "always";
+      DynamicUser = true;
+      SupplementaryGroups = [ "dialout" ];
+    };
+  };
+
   # abode replaces home assistant in place: same /var/lib/hass, port 8123
   # and hass user. rollback is flipping these two enables and switching
   services.abode.enable = true;
@@ -225,9 +243,8 @@ in
     themes = [ pkgs.home-assistant-themes.material-you-theme ];
   };
 
-  # the c6 runs rnode154 (a KISS modem over raw 802.15.4, channel 26) instead
-  # of the thread rcp; nothing here uses matter-over-thread. to go back, re-flash
-  # espressif ot_rcp and re-enable openthread-border-router on it
+  # the c6 runs esp-sdr now (systemd.services.waves), so the KISS radio is off. to go
+  # back, re-flash rnode154 and re-enable interfaces.radio
   services.rnsd = {
     enable = true;
     package = pkgs.rsreticulum;
@@ -248,7 +265,7 @@ in
       };
       interfaces.radio = {
         type = "KISSInterface";
-        enabled = true;
+        enabled = false;
         port = "/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_8C:FD:49:1A:05:48-if00";
         speed = 115200;
       };
@@ -532,9 +549,9 @@ in
       forceSSL = true;
       locations."/".proxyPass = "http://127.0.0.1:8080";
     };
-    virtualHosts."waves.petahtikva.lan" = {
-      root = "/var/www/esp-sdr";
-      locations."/".extraConfig = "try_files $uri $uri/ =404;";
+    virtualHosts."waves.petahtikva.lan".locations."/" = {
+      proxyPass = "http://127.0.0.1:8090";
+      extraConfig = "proxy_buffering off;";
     };
 
     virtualHosts."bin.dappy.lgbt" = {
