@@ -3,7 +3,7 @@
 let
   inherit (config.home) homeDirectory;
 
-  repo = "${homeDirectory}/Documents/Werk/repos/personal/sbx/klipper-config/orcaslicer";
+  repo = "${homeDirectory}/Documents/Projects/sbx/klipper-config/orcaslicer";
   orcaDir = "Library/Application Support/OrcaSlicer";
 
   # intelmac links each preset file from the store, which is fine on a host

@@ -7,7 +7,7 @@
 let
   user = config.system.primaryUser;
   home = config.users.users.${user}.home;
-  dest = "${home}/Documents/Werk/repos/personal/sbx/backups/intelmac";
+  dest = "${home}/Documents/Projects/sbx/backups/intelmac";
 
   pull = pkgs.writeShellApplication {
     name = "sbx-backup-pull";
