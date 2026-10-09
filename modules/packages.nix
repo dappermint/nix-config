@@ -6,6 +6,7 @@ let
   # hey-cli publishes darwin artifacts only, so it cannot live in lib/packages.nix
   # without breaking droid's eval
   macos = [
+    pkgs.ardour
     pkgs.hey-cli
     pkgs.macmon
     inputs.ratatouille.packages.${pkgs.stdenv.hostPlatform.system}.default
