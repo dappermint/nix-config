@@ -12,7 +12,10 @@ let
     inputs.ratatouille.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 
-  toys = [ inputs.tart.packages.${pkgs.stdenv.hostPlatform.system}.default ];
+  toys = [
+    inputs.tart.packages.${pkgs.stdenv.hostPlatform.system}.default
+    inputs.waves.packages.${pkgs.stdenv.hostPlatform.system}.default
+  ];
 in
 {
   environment.systemPackages =

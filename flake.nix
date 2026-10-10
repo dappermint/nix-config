@@ -17,6 +17,8 @@
     tart.inputs.nixpkgs.follows = "nixpkgs";
     abode.url = "github:dappermint/abode";
     abode.inputs.nixpkgs.follows = "nixpkgs";
+    waves.url = "github:dappermint/waves";
+    waves.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
