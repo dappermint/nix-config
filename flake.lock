@@ -127,7 +127,8 @@
         "nixpkgs": "nixpkgs",
         "ratatouille": "ratatouille",
         "sops-nix": "sops-nix",
-        "tart": "tart"
+        "tart": "tart",
+        "waves": "waves"
       }
     },
     "sops-nix": {
@@ -167,6 +168,26 @@
       "original": {
         "owner": "dappermint",
         "repo": "tart",
+        "type": "github"
+      }
+    },
+    "waves": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791620203,
+        "narHash": "sha256-UYIRbLwcQSpN8dbMi3J8TxuxvPy/qPey5ZMOlV/Upzw=",
+        "owner": "dappermint",
+        "repo": "waves",
+        "rev": "aad526e6f4a2b7fcf515b5c0137f9de52004cf99",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dappermint",
+        "repo": "waves",
         "type": "github"
       }
     }
