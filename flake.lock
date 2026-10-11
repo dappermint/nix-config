@@ -178,11 +178,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791753682,
-        "narHash": "sha256-jjsZBLn/KS2yYb7amjQ7X3lDXkUEimT/zkdlPqNe4+Q=",
+        "lastModified": 1791756006,
+        "narHash": "sha256-jVaTDG55Qs0PET7IEYFmV9PDH3B8D4hj3Jn2JrifxOI=",
         "owner": "dappermint",
         "repo": "waves",
-        "rev": "f9ac7e6dea1103504604ae639a5acbb16d2a4833",
+        "rev": "a46d935e4ebe5b116c7ff995a1e737c6892b8e1e",
         "type": "github"
       },
       "original": {
