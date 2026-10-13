@@ -3,13 +3,13 @@
 # lix, an ssh key registered with github, the checkout, sops access and the
 # first switch.
 #
-#   bash darwin-bootstrap.sh            # HOST=<name> for anything but meatwizard
+#   bash darwin-bootstrap.sh            # HOST=<name> for anything but apollo
 #
 # the repo is private, so on a blank mac this file arrives by airdrop or usb.
 # idempotent: safe to re-run after fixing whatever stopped it.
 set -euo pipefail
 
-HOST="${HOST:-meatwizard}"
+HOST="${HOST:-apollo}"
 CHECKOUT=/etc/nix-darwin
 REPO=dappermint/nix-config
 KEY="$HOME/.ssh/id_ed25519"

@@ -51,4 +51,4 @@ jobs:
             automated weekly bump of `flake.lock`.
 
             `nix flake check` passed on this tree, which covers lint, full
-            evaluation and a build of `darwinConfigurations.meatwizard.system`.
+            evaluation and a build of `darwinConfigurations.apollo.system`.

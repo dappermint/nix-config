@@ -77,7 +77,7 @@ let
             --unattended --disableupdate --replace \
             --work "$work" \
             --url https://github.com/dappermint/${repo} \
-            --name meatwizard-${repo} \
+            --name apollo-${repo} \
             --labels m5
         fi
 

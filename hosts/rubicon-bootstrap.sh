@@ -8,7 +8,7 @@
 # survives, and so does ~/.config/gh, so this script can authenticate to a
 # private flake without a fresh login.
 #
-#   bash ~/Code/nix-config/hosts/droid-bootstrap.sh
+#   bash ~/Code/nix-config/hosts/rubicon-bootstrap.sh
 #
 # idempotent: safe to re-run.
 set -euo pipefail
@@ -74,7 +74,7 @@ else
 fi
 
 #-----------------------------------------------------------------------------
-log "home-manager: activating droid"
+log "home-manager: activating rubicon"
 # the repo is private, so the fetch needs a token; gh's lives in $HOME and
 # survives a re-provision
 if token=$(gh auth token 2>/dev/null) && [ -n "$token" ]; then
@@ -82,7 +82,7 @@ if token=$(gh auth token 2>/dev/null) && [ -n "$token" ]; then
 fi
 # built straight from the flake's own pinned home-manager rather than whatever
 # `nix run home-manager` resolves to today
-nix build --no-link --print-out-paths "$CHECKOUT#homeConfigurations.droid.activationPackage" \
+nix build --no-link --print-out-paths "$CHECKOUT#homeConfigurations.rubicon.activationPackage" \
   | tail -1 \
   | xargs -I{} {}/activate
 

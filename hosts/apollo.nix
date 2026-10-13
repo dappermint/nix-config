@@ -22,9 +22,9 @@ in
 
   nixpkgs.hostPlatform = "aarch64-darwin";
 
-  networking.hostName = "meatwizard";
-  networking.computerName = "meatwizard";
-  networking.localHostName = "meatwizard";
+  networking.hostName = "apollo";
+  networking.computerName = "apollo";
+  networking.localHostName = "apollo";
 
   system.stateVersion = 7;
   system.primaryUser = user;

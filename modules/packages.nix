@@ -4,7 +4,7 @@ let
   groups = import ../lib/packages.nix { inherit pkgs; };
 
   # hey-cli publishes darwin artifacts only, so it cannot live in lib/packages.nix
-  # without breaking droid's eval
+  # without breaking rubicon's eval
   macos = [
     pkgs.ardour
     pkgs.hey-cli

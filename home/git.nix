@@ -10,7 +10,7 @@ let
   };
   signingKey = "~/.ssh/id_ed25519.pub";
 
-  # nix-darwin keeps the system profile on a stable path. droid is a standalone
+  # nix-darwin keeps the system profile on a stable path. rubicon is a standalone
   # home-manager host with no /run/current-system, so resolve gh out of the
   # package set there instead
   ghBin =
