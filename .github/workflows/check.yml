@@ -55,7 +55,9 @@ jobs:
   private:
     name: evaluate every host against the real inputs
     runs-on: ubuntu-24.04-arm
-    if: secrets.NIX_ACCESS_TOKEN != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    # a fork cannot read NIX_ACCESS_TOKEN, so without this the job would fetch
+    # a 404 and fail every outside contributor's pull request
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     env:
       NIX_CONFIG: access-tokens = github.com=${{ secrets.NIX_ACCESS_TOKEN }}
     steps:
@@ -71,7 +73,17 @@ jobs:
             extra-trusted-public-keys = cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
 
       - name: lint, evaluate rubicon and gotham
-        run: nix flake check -L
+        run: |
+          if [ -z "${{ secrets.NIX_ACCESS_TOKEN }}" ]; then
+            echo "NIX_ACCESS_TOKEN repo secret not set; skipping private evaluation"
+            exit 0
+          fi
+          nix flake check -L
 
       - name: evaluate apollo
-        run: nix eval --raw .#darwinConfigurations.apollo.system.drvPath
+        run: |
+          if [ -z "${{ secrets.NIX_ACCESS_TOKEN }}" ]; then
+            echo "NIX_ACCESS_TOKEN repo secret not set; skipping private evaluation"
+            exit 0
+          fi
+          nix eval --raw .#darwinConfigurations.apollo.system.drvPath
