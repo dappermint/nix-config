@@ -24,7 +24,7 @@ jobs:
       - uses: samueldr/lix-gha-installer-action@a0fee77b2a98bb7c5c0ed7ae6d6ad4903dbdad0d # v2026-06-15
         with:
           extra_nix_config: |
-            experimental-features = flakes nix-command pipe-operator
+            experimental-features = flakes nix-command
             extra-substituters = https://cache.lix.systems https://nix-community.cachix.org
             extra-trusted-public-keys = cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
 
