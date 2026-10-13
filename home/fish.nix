@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 let
-  # as in home/git.nix: droid has no /run/current-system to read nix out of
+  # as in home/git.nix: rubicon has no /run/current-system to read nix out of
   nixBin = if pkgs.stdenv.hostPlatform.isDarwin then "/run/current-system/sw/bin/nix" else "nix";
 in
 {

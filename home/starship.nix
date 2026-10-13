@@ -1,4 +1,4 @@
-# droid only. portrait on a phone is roughly 50 columns, so the prompt is one
+# rubicon only. portrait on a phone is roughly 50 columns, so the prompt is one
 # line of context and one line to type on, with the path truncated hard
 {
   programs.starship = {

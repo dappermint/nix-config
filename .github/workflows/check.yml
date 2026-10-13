@@ -36,8 +36,6 @@ jobs:
         with:
           persist-credentials: false
 
-      # lix, not cppnix: this config is built by lix on the machine, so the gate
-      # has to run the same evaluator
       - uses: samueldr/lix-gha-installer-action@a0fee77b2a98bb7c5c0ed7ae6d6ad4903dbdad0d # v2026-06-15
         with:
           extra_nix_config: |
@@ -48,21 +46,17 @@ jobs:
       - name: formatting
         run: nix fmt $STUB -- --ci
 
-      - name: lint, evaluate droid and mkspi
+      - name: lint, evaluate rubicon and gotham
         run: nix flake check -L $STUB
 
-      - name: evaluate meatwizard
-        run: nix eval --raw $STUB .#darwinConfigurations.meatwizard.system.drvPath
+      - name: evaluate apollo
+        run: nix eval --raw $STUB .#darwinConfigurations.apollo.system.drvPath
 
   private:
     name: evaluate every host against the real inputs
     runs-on: ubuntu-24.04-arm
-    # a fork cannot read NIX_ACCESS_TOKEN, so without this the job would fetch
-    # a 404 and fail every outside contributor's pull request
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    if: secrets.NIX_ACCESS_TOKEN != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     env:
-      # abode and waves are private inputs. a fine-grained token with
-      # contents:read on them; GITHUB_TOKEN is scoped to this repo only
       NIX_CONFIG: access-tokens = github.com=${{ secrets.NIX_ACCESS_TOKEN }}
     steps:
       - uses: actions/checkout@v7
@@ -76,8 +70,8 @@ jobs:
             extra-substituters = https://cache.lix.systems https://nix-community.cachix.org
             extra-trusted-public-keys = cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
 
-      - name: lint, evaluate droid and mkspi
+      - name: lint, evaluate rubicon and gotham
         run: nix flake check -L
 
-      - name: evaluate meatwizard
-        run: nix eval --raw .#darwinConfigurations.meatwizard.system.drvPath
+      - name: evaluate apollo
+        run: nix eval --raw .#darwinConfigurations.apollo.system.drvPath

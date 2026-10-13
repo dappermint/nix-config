@@ -1,4 +1,4 @@
-# droid only for now. a phone terminal has no window manager to split, and
+# rubicon only for now. a phone terminal has no window manager to split, and
 # touch scrolling needs mouse mode on or the scrollback is unreachable
 {
   programs.tmux = {

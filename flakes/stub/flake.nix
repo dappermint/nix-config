@@ -18,7 +18,7 @@
       note = name: "${name} is a private input of this flake and is stubbed out here";
     in
     {
-      # the option has to exist or hosts/mkspi.nix cannot evaluate, and it has
+      # the option has to exist or hosts/gotham.nix cannot evaluate, and it has
       # to warn rather than quietly succeed: a silent no-op leaves a house with
       # its home automation switched off
       nixosModules.default =

@@ -1,5 +1,5 @@
-# package groups shared between hosts. meatwizard takes all of them; droid, the
-# android linux terminal, takes the portable subset, so the phone gets the same
+# package groups shared between hosts. apollo takes all of them; rubicon, the
+# anrubicon linux terminal, takes the portable subset, so the phone gets the same
 # tools under the same names without a second list to keep in sync.
 #
 # anything that only makes sense on one platform stays out of here: macmon,
@@ -27,7 +27,7 @@
     lnav
     micro
     # ssh that survives the phone changing networks or sleeping. the package
-    # carries mosh-server too, so meatwizard is a target by taking the group
+    # carries mosh-server too, so apollo is a target by taking the group
     mosh
     ookla-speedtest
     ouch

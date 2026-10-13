@@ -4,7 +4,7 @@ let
   groups = import ../lib/packages.nix { inherit pkgs; };
 in
 {
-  imports = [ ../home/droid.nix ];
+  imports = [ ../home/rubicon.nix ];
 
   home.username = "droid";
   home.homeDirectory = "/home/droid";

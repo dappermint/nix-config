@@ -20,7 +20,7 @@ in
   nixpkgs.hostPlatform = "aarch64-linux";
   nixpkgs.overlays = [ (import ../overlays) ];
 
-  networking.hostName = "mkspi";
+  networking.hostName = "gotham";
 
   system.stateVersion = "26.11";
 
@@ -77,7 +77,7 @@ in
   };
 
   sops = {
-    defaultSopsFile = "${self}/secrets/mkspi.yaml";
+    defaultSopsFile = "${self}/secrets/gotham.yaml";
     age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
     secrets.garage_backup_env = { };
     secrets.kanidm_idm_admin_password.owner = "kanidm";
@@ -139,7 +139,7 @@ in
           p.numpy
           p.pyserial
         ])
-      }/bin/python3 ${./mkspi-waves.py}";
+      }/bin/python3 ${./gotham-waves.py}";
       Restart = "always";
       DynamicUser = true;
       SupplementaryGroups = [ "dialout" ];
@@ -596,7 +596,7 @@ in
   services.soft-serve = {
     enable = true;
     settings = {
-      name = "mkspi";
+      name = "gotham";
       anon-access = "no-access";
       allow-keyless = false;
       initial_admin_keys = [ sshKey ];
@@ -605,7 +605,7 @@ in
         # the short magicdns name, not the full tail*.ts.net one: it
         # resolves the same on the tailnet and keeps the tailnet id out of
         # a public repo
-        public_url = "ssh://mkspi:23231";
+        public_url = "ssh://gotham:23231";
       };
       http = {
         listen_addr = "127.0.0.1:23232";

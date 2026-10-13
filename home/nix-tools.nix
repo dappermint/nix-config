@@ -13,7 +13,7 @@ let
   nixpkgsBranch = "nixpkgs-unstable";
   nixpkgsMirror = "${config.home.homeDirectory}/Code/nixpkgs";
 
-  # meatwizard bumps the lock in /etc/nix-darwin; droid has no /etc worth
+  # apollo bumps the lock in /etc/nix-darwin; rubicon has no /etc worth
   # writing to and keeps its checkout in $HOME
   checkout =
     if isDarwin then repo.directory else "${config.home.homeDirectory}/${repo.linuxCheckout}";
@@ -39,14 +39,14 @@ let
     nh darwin switch --diff always ${repo.flake} -- --refresh
   '';
 
-  # droid is a standalone home-manager host, so there is no system generation
+  # rubicon is a standalone home-manager host, so there is no system generation
   # to build: nh drives home-manager directly. -c is explicit because nh's
   # default lookup tries user@hostname first, and the hostname here is
   # whatever the terminal app named the guest. --refresh matters for exactly
   # the same reason it does on darwin
   homeSwitch = ''
     ${ghToken}
-    nh home switch --diff always ${repo.flake} -c droid -b bak -- --refresh
+    nh home switch --diff always ${repo.flake} -c rubicon -b bak -- --refresh
   '';
 in
 {

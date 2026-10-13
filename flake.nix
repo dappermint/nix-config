@@ -1,5 +1,5 @@
 {
-  description = "meatwizard nix-darwin system flake";
+  description = "palantir fleet nix system flake";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
@@ -33,7 +33,7 @@
 
       # the system's own package set, so allowUnfree and the overlay list stay
       # declared once in modules/system.nix
-      pkgs = self.darwinConfigurations.meatwizard.pkgs;
+      pkgs = self.darwinConfigurations.apollo.pkgs;
 
       mkHost =
         hostModule:
@@ -42,10 +42,10 @@
           modules = [ hostModule ];
         };
 
-      meatwizard = self.darwinConfigurations.meatwizard.system;
+      apollo = self.darwinConfigurations.apollo.system;
 
-      # droid is a standalone home-manager host, so it has no system to borrow
-      # a package set from the way meatwizard does. same overlay and unfree
+      # rubicon is a standalone home-manager host, so it has no system to borrow
+      # a package set from the way apollo does. same overlay and unfree
       # policy as modules/system.nix, so a package resolves to the same thing
       # on both hosts
       linuxPkgs = import inputs.nixpkgs {
@@ -54,9 +54,9 @@
         overlays = [ (import ./overlays) ];
       };
 
-      droid = self.homeConfigurations.droid.activationPackage;
+      rubicon = self.homeConfigurations.rubicon.activationPackage;
 
-      mkspi = self.nixosConfigurations.mkspi.config.system.build.toplevel;
+      gotham = self.nixosConfigurations.gotham.config.system.build.toplevel;
 
       # per system so the hosted linux ci can run it without a mac
       lint =
@@ -78,30 +78,30 @@
           '';
     in
     {
-      darwinConfigurations.meatwizard = mkHost ./hosts/meatwizard.nix;
+      darwinConfigurations.apollo = mkHost ./hosts/apollo.nix;
 
-      nixosConfigurations.mkspi = inputs.nixpkgs.lib.nixosSystem {
+      nixosConfigurations.gotham = inputs.nixpkgs.lib.nixosSystem {
         specialArgs = { inherit self inputs; };
-        modules = [ ./hosts/mkspi.nix ];
+        modules = [ ./hosts/gotham.nix ];
       };
 
-      homeConfigurations.droid = inputs.home-manager.lib.homeManagerConfiguration {
+      homeConfigurations.rubicon = inputs.home-manager.lib.homeManagerConfiguration {
         pkgs = linuxPkgs;
         extraSpecialArgs = { inherit self inputs; };
-        modules = [ ./hosts/droid.nix ];
+        modules = [ ./hosts/rubicon.nix ];
       };
 
       formatter.${system} = pkgs.nixfmt-tree;
       formatter.${linuxSystem} = linuxPkgs.nixfmt-tree;
 
       packages.${system} = {
-        default = meatwizard;
+        default = apollo;
         inherit (pkgs) google-sans-flex;
       };
 
       packages.${linuxSystem} = {
-        default = droid;
-        inherit mkspi;
+        default = rubicon;
+        inherit gotham;
       };
 
       devShells.${system}.default = pkgs.mkShellNoCC {
@@ -124,19 +124,19 @@
         lint = lint linuxPkgs;
 
         eval =
-          linuxPkgs.runCommand "eval-droid"
+          linuxPkgs.runCommand "eval-rubicon"
             {
-              drv = builtins.unsafeDiscardStringContext droid.drvPath;
+              drv = builtins.unsafeDiscardStringContext rubicon.drvPath;
             }
             ''
               test -n "$drv"
               touch $out
             '';
 
-        eval-mkspi =
-          linuxPkgs.runCommand "eval-mkspi"
+        eval-gotham =
+          linuxPkgs.runCommand "eval-gotham"
             {
-              drv = builtins.unsafeDiscardStringContext mkspi.drvPath;
+              drv = builtins.unsafeDiscardStringContext gotham.drvPath;
             }
             ''
               test -n "$drv"
@@ -148,9 +148,9 @@
         lint = lint pkgs;
 
         eval =
-          pkgs.runCommand "eval-meatwizard"
+          pkgs.runCommand "eval-apollo"
             {
-              drv = builtins.unsafeDiscardStringContext meatwizard.drvPath;
+              drv = builtins.unsafeDiscardStringContext apollo.drvPath;
             }
             ''
               test -n "$drv"
@@ -158,12 +158,12 @@
             '';
 
         smoke =
-          pkgs.runCommand "smoke-meatwizard"
+          pkgs.runCommand "smoke-apollo"
             {
-              brewfile = self.darwinConfigurations.meatwizard.config.homebrew.brewfile;
+              brewfile = self.darwinConfigurations.apollo.config.homebrew.brewfile;
             }
             ''
-              system=${meatwizard}
+              system=${apollo}
 
               test -x "$system/activate"
 

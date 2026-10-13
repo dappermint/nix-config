@@ -1,4 +1,4 @@
-# droid only. meatwizard installs neovim from lib/packages.nix and configures
+# rubicon only. apollo installs neovim from lib/packages.nix and configures
 # it elsewhere; the phone needs the editor to be usable on first open, since
 # there is no second machine to fix it from
 {
