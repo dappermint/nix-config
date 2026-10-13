@@ -21,8 +21,9 @@ nix-switch                      # nh darwin switch --diff always github:dappermi
 nix cannot write a lock into a remote flake. commit and push the bump, then
 `nix-switch`.
 
-the repo is private, so every fetch needs a github token. both helpers borrow
-one from `gh auth token` for the length of the command.
+two of the inputs, `abode` and `waves`, are private, so every fetch needs a
+github token. both helpers borrow one from `gh auth token` for the length of
+the command. see [private inputs](#private-inputs) for building without one.
 
 `nix-switch` also passes `--refresh`, and that is not optional: `tarball-ttl` is
 a week here, so without it nix resolves `github:dappermint/nix-config` from
@@ -61,6 +62,7 @@ what was left alone and why, and what to watch on the next lix release.
 
 ```
 flake.nix                       inputs, the mkHost router, checks, devshell
+flakes/stub/                    stand-ins for the private inputs, for clones without access
 hosts/meatwizard.nix            machine facts: hostname, platform, wifi allowlist, /etc/hosts pin
 hosts/droid.nix                 the phone: username, home directory, its slice of lib/packages.nix
 hosts/*-bootstrap.sh            blank machine to first activation, per platform
@@ -83,8 +85,7 @@ thread around.
 `hosts/darwin-bootstrap.sh` takes a blank mac to its first switch: the handful
 of defaults worth having before nix, rosetta, homebrew, lix, `~/.ssh/id_ed25519`
 registered on github for auth and signing, the checkout at `/etc/nix-darwin`,
-the sops age identity, and the first activation. the repo is private, so copy
-the script over by airdrop or usb:
+the sops age identity, and the first activation:
 
 ```sh
 HOST=meatwizard bash darwin-bootstrap.sh
@@ -157,11 +158,44 @@ direnv active or wrap the commit in `nix develop -c`.
   it, and that the generated brewfile still declares awscli
 
 `.pre-commit-config.yaml` mirrors `lint` locally and enforces conventional
-commits on the commit message. ci lints and evaluates all three hosts on every
-push from a hosted linux runner, and a weekly job on hosted macos opens a
-`flake.lock` bump pr only if `nix flake check`, which builds the darwin
-closure, passes on the bumped tree. both need a `NIX_ACCESS_TOKEN` repo secret
-that can read the private `abode` input.
+commits on the commit message.
+
+ci runs on hosted runners only, never on a self-hosted one, so a workflow from
+an untrusted fork cannot reach a real machine. `check.yml` is two jobs on
+hosted linux arm:
+
+- `public` carries no secrets and runs the formatter, lint and every host
+  against `flakes/stub`. this is the job a fork pull request gets
+- `private` evaluates against the real `abode` and `waves`, and is skipped on
+  pull requests from forks, where the token is unavailable and every fetch
+  would 404
+
+a weekly job on hosted macos opens a `flake.lock` bump pr only if `nix flake
+check`, which builds the darwin closure, passes on the bumped tree. the jobs
+that use the real inputs need a `NIX_ACCESS_TOKEN` repo secret with
+`contents:read` on `abode` and `waves`.
+
+## private inputs
+
+`abode` and `waves` are private repositories. everything else here is public,
+and the tree is written so that a clone without access to them still
+evaluates: swap both for the in-repo stub.
+
+```fish
+set stub --override-input abode ./flakes/stub --override-input waves ./flakes/stub
+nix flake check $stub
+nix build $stub .#darwinConfigurations.meatwizard.system
+```
+
+`flakes/stub` declares `services.abode.enable` so `hosts/mkspi.nix` evaluates,
+and ships a `waves` placeholder that builds but exits non-zero if run. both
+announce themselves, so a stubbed build cannot be mistaken for a real one.
+flake inputs are fetched lazily, so the stubbed path never reaches github for
+either private repo.
+
+this is what ci runs on pull requests from forks, which have no access to the
+token. it is not what the machine switches to: `nix-switch` uses the real
+inputs.
 
 ## secrets
 
