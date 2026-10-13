@@ -15,7 +15,10 @@ rustPlatform.buildRustPackage rec {
     hash = "sha256-gdup7PaYOQnBE3Mm4adpjQh5W3DaXWrdmuUhj5cF0ZE=";
   };
 
-  cargoLock.lockFile = "${src}/Cargo.lock";
+  # cargoHash, not cargoLock.lockFile: the lockfile lives inside a fetched
+  # src, so reading it needs the src realised, and a pure eval on a fresh
+  # clone has no store path to read it from yet
+  cargoHash = "sha256-n7r/80mLl/AiBxnkwT7MLQUmNnBNUmNEtwPWBpkT1hQ=";
 
   cargoBuildFlags = [
     "-p"
