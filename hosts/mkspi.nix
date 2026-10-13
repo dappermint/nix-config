@@ -602,6 +602,9 @@ in
       initial_admin_keys = [ sshKey ];
       ssh = {
         listen_addr = ":23231";
+        # the short magicdns name, not the full tail*.ts.net one: it
+        # resolves the same on the tailnet and keeps the tailnet id out of
+        # a public repo
         public_url = "ssh://mkspi:23231";
       };
       http = {
