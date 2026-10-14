@@ -128,6 +128,7 @@
       "rekordbox"
       "shottr"
       "dappermint/tap/sideloadly"
+      "secretive"
       "signal@beta"
       "spotify"
       "crmne/tap/spotifast"
