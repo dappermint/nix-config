@@ -153,6 +153,7 @@ in
         forceLimitAdTracking = true;
       };
       "com.apple.CrashReporter".DialogType = "none";
+      "com.apple.sharingd".DiscoverableMode = "Contacts Only";
       "com.apple.TimeMachine".DoNotOfferNewDisksForBackup = true;
 
       # cc.ffitch.shottr cannot live here: CustomUserPreferences aborts
@@ -178,6 +179,7 @@ in
 
     defaults write "/Library/Application Support/CrashReporter/DiagnosticMessagesHistory.plist" AutoSubmit -bool false
     defaults write "/Library/Application Support/CrashReporter/DiagnosticMessagesHistory.plist" ThirdPartyDataSubmit -bool false
+    pkill -HUP socketfilterfw 2>/dev/null || true
 
     # shottr stores prefs in an app-sandbox container that SIP shields from
     # every writer lacking full disk access, root included. re-applied on each

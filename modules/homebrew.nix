@@ -1,8 +1,13 @@
 { config, ... }:
 
 {
+  environment.variables = {
+    HOMEBREW_NO_ANALYTICS = "1";
+  };
+
   # openhuman's per-user config.toml defaults these on; env wins for every user dir
   launchd.user.envVariables = {
+    HOMEBREW_NO_ANALYTICS = "1";
     OPENHUMAN_ANALYTICS_ENABLED = "false";
     OPENHUMAN_AGENT_TRACING_CAPTURE_CONTENT = "false";
     OPENHUMAN_AUTO_UPDATE_RPC_MUTATIONS_ENABLED = "false";
