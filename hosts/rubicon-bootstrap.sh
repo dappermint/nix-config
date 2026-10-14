@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# rebuild droid from nothing.
+# rebuild rubicon from nothing.
 #
 # the android terminal app re-provisions this guest from a cloud-init seed
 # (/dev/vdb) and a rootfs backup (/dev/vdc -> /mnt/backup). when it does,
@@ -18,7 +18,6 @@ FLAKE_REF="github:dappermint/nix-config"
 
 log() { printf '\n\033[1;34m==>\033[0m %s\n' "$*"; }
 
-#-----------------------------------------------------------------------------
 log "apt: base system and the toolchains nix does not own here"
 sudo apt-get update -qq
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
@@ -27,7 +26,6 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
   golang-go fish git curl wget ca-certificates xz-utils \
   man-db less bash-completion
 
-#-----------------------------------------------------------------------------
 if [ ! -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
   log "lix: fresh install"
   # always the lix installer, never cppnix-then-upgrade: upgrade-lix.sh dies on
@@ -41,7 +39,6 @@ fi
 # shellcheck disable=SC1091
 . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
 
-#-----------------------------------------------------------------------------
 log "nix.conf: ensuring settings"
 # applied here rather than through an installer flag, so this keeps working if
 # the installer's flags change
@@ -64,7 +61,6 @@ extra-trusted-public-keys = cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY
 CONF
 [ -n "$conf_changed" ] && sudo systemctl restart nix-daemon.socket
 
-#-----------------------------------------------------------------------------
 if [ ! -d "$CHECKOUT/.git" ]; then
   log "checkout: cloning $FLAKE_REF into $CHECKOUT"
   mkdir -p "$(dirname "$CHECKOUT")"
@@ -73,7 +69,6 @@ else
   log "checkout: already at $CHECKOUT"
 fi
 
-#-----------------------------------------------------------------------------
 log "home-manager: activating rubicon"
 # the repo is private, so the fetch needs a token; gh's lives in $HOME and
 # survives a re-provision
@@ -86,7 +81,6 @@ nix build --no-link --print-out-paths "$CHECKOUT#homeConfigurations.rubicon.acti
   | tail -1 \
   | xargs -I{} {}/activate
 
-#-----------------------------------------------------------------------------
 if [ ! -x "$HOME/.cargo/bin/rustup" ]; then
   log "rust: installing via rustup"
   # rustup owns its own toolchain updates, so it stays outside nix
@@ -96,7 +90,6 @@ else
   log "rust: already installed, skipping"
 fi
 
-#-----------------------------------------------------------------------------
 log "shell: making fish the login shell"
 # debian's /usr/bin/fish, not the nix one: it is a stable path already in
 # /etc/shells, and it reads the same home-manager config either way

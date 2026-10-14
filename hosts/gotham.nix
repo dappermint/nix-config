@@ -150,7 +150,6 @@ in
   # and hass user. rollback is flipping these two enables and switching
   services.abode.enable = true;
 
-  # Daily snapshot backup of Home Assistant to Garage S3 over Tailscale
   systemd.services.home-assistant-backup = {
     description = "Backup Home Assistant config to Garage S3";
     path = with pkgs; [

@@ -121,8 +121,6 @@ let
   };
 in
 {
-  # generated from repos rather than listed by hand, so adding a runner cannot
-  # half-land with its token declaration missing
   sops.secrets = lib.listToAttrs (
     map (repo: lib.nameValuePair "github_runner_token_${repo}" runnerSecret) repos
   );
