@@ -1,9 +1,7 @@
 { lib, pkgs, ... }:
 
 let
-  # git and jj sign the same commits as the same person, so the identity and
-  # signing key are declared once rather than kept in sync by hand. the key is
-  # the same ed25519 that backs sops
+  # same ed25519 that backs sops
   identity = {
     name = "millia ampora";
     email = "198710911+dappermint@users.noreply.github.com";

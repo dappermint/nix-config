@@ -5,7 +5,6 @@
 #
 #   bash darwin-bootstrap.sh            # HOST=<name> for anything but apollo
 #
-# the repo is private, so on a blank mac this file arrives by airdrop or usb.
 # idempotent: safe to re-run after fixing whatever stopped it.
 set -euo pipefail
 
@@ -21,7 +20,6 @@ log() { printf '\n\033[1;34m==>\033[0m %s\n' "$*"; }
 # the first build runs for a while, don't let idle sleep kill it
 caffeinate -dimsu -w $$ &
 
-#-----------------------------------------------------------------------------
 log "defaults: the ones worth having before nix-darwin takes over"
 # same values as modules/defaults.nix, so the switch is a no-op for these.
 # key repeat and trackpad only apply after a logout
@@ -48,13 +46,11 @@ killall Dock Finder 2>/dev/null || true
 # caps lock -> control, live immediately
 hidutil property --set '{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":30064771129,"HIDKeyboardModifierMappingDst":30064771296}]}' >/dev/null
 
-#-----------------------------------------------------------------------------
 if [ ! -e /Library/Apple/usr/libexec/oah/libRosettaRuntime ]; then
   log "rosetta: installing"
   softwareupdate --install-rosetta --agree-to-license
 fi
 
-#-----------------------------------------------------------------------------
 if [ ! -x /opt/homebrew/bin/brew ]; then
   log "homebrew: fresh install (brings the command line tools and git)"
   # NONINTERACTIVE skips the prompt but still needs sudo cached up front
@@ -64,7 +60,6 @@ else
   log "homebrew: already installed, skipping"
 fi
 
-#-----------------------------------------------------------------------------
 if [ ! -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
   log "lix: fresh install"
   curl -sSf -L https://install.lix.systems/lix | sh -s -- install --no-confirm
@@ -79,7 +74,6 @@ tool() { echo "$(nix build --no-link --print-out-paths "nixpkgs#$1")/bin/$1"; }
 GH=$(tool gh)
 S2A=$(tool ssh-to-age)
 
-#-----------------------------------------------------------------------------
 if [ ! -f "$KEY" ]; then
   log "ssh: generating $KEY"
   # no passphrase: sops-nix derives its age identity from this key during
@@ -98,7 +92,6 @@ if [ ! -s "$HOME/.config/sops/age/keys.txt" ]; then
   (umask 077 && "$S2A" -private-key -i "$KEY" > "$HOME/.config/sops/age/keys.txt")
 fi
 
-#-----------------------------------------------------------------------------
 log "github: auth and key registration"
 scopes=admin:public_key,admin:ssh_signing_key
 if ! "$GH" auth status -h github.com >/dev/null 2>&1; then
@@ -113,7 +106,6 @@ pub=$(cut -d' ' -f1,2 "$KEY.pub")
 "$GH" api user/ssh_signing_keys --jq '.[].key' | grep -qxF "$pub" \
   || "$GH" ssh-key add "$KEY.pub" --type signing --title "$HOST"
 
-#-----------------------------------------------------------------------------
 export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=accept-new"
 if [ ! -d "$CHECKOUT/.git" ]; then
   log "checkout: cloning $REPO into $CHECKOUT"
@@ -123,7 +115,6 @@ else
   log "checkout: already at $CHECKOUT"
 fi
 
-#-----------------------------------------------------------------------------
 log "sops: checking this mac can decrypt"
 user_age=$("$S2A" < "$KEY.pub")
 host_age=$("$S2A" < /etc/ssh/ssh_host_ed25519_key.pub)
@@ -141,7 +132,6 @@ EOF
   git -C "$CHECKOUT" pull --ff-only
 done
 
-#-----------------------------------------------------------------------------
 log "nix-darwin: building $HOST"
 # private flake inputs (abode) need a token; borrowed for this process only
 NIX_CONFIG="$NIX_CONFIG
@@ -166,7 +156,6 @@ log "nix-darwin: activating"
 sudo /nix/var/nix/profiles/default/bin/nix-env -p /nix/var/nix/profiles/system --set "$sys"
 sudo "$sys/activate"
 
-#-----------------------------------------------------------------------------
 fish=/run/current-system/sw/bin/fish
 if [ "$(dscl . -read "/Users/$USER" UserShell | awk '{print $2}')" != "$fish" ]; then
   log "shell: making fish the login shell"

@@ -45,7 +45,7 @@ in
 
       clownway_netbird_host = { };
       clownway_gitlab_host = { };
-      # not exported globally — the conway repos pull these in via direnv
+      # not exported globally - the conway repos pull these in via direnv
       clownway_gitlab_token = userSecret;
       clownway_netbird_token = userSecret;
       aws_sso_start_url = { };

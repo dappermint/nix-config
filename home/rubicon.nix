@@ -1,4 +1,4 @@
-# rubicon's user environment: the anrubicon linux terminal guest on the phone.
+# rubicon's user environment: the android linux terminal guest on the phone.
 #
 # left out of the apollo set on purpose: aws, clownops, kube and obs are
 # work infrastructure that is not reachable from the phone, fonts and zed are
@@ -19,10 +19,10 @@
   home.stateVersion = "26.11";
 
   # the terminal app never logs in: ttyd_uds.service runs
-  # `setpriv --reuid=rubicon ... /bin/bash -l` hardcoded and exports
+  # `setpriv --reuid=droid ... /bin/bash -l` hardcoded and exports
   # SHELL=/bin/bash, so it never reads the login shell out of /etc/passwd and
   # chsh cannot change what a tab opens. patching that unit would work until
-  # the next re-provision reverts everything outside /home/rubicon, so the hop
+  # the next re-provision reverts everything outside /home/droid, so the hop
   # to fish lives in $HOME instead
   home.file.".bash_profile".text = ''
     [ -f "$HOME/.profile" ] && . "$HOME/.profile"

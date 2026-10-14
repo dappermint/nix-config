@@ -40,8 +40,6 @@ in
       sbxrdp = "sdl-freerdp /v:10.212.240.196 /u:sbx /p:$SBX_RDP_PASSWORD /cert:ignore +clipboard +dynamic-resolution";
     });
 
-    # abbreviations, not aliases: these expand in place so the flags are
-    # visible and editable before the command runs
     shellAbbrs = {
       du = "dust";
       gl = "serie";
