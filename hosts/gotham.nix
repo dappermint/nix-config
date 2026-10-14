@@ -85,6 +85,7 @@ in
     secrets.kanidm_gatus_secret.owner = "kanidm";
     secrets.syncthing_gui_password.owner = "syncthing";
     secrets.wifi_env.owner = "wpa_supplicant";
+    secrets.ninerouter_env = { };
     # the client side reads the same secret, but only as an env var
     templates."vaultwarden.env".content = ''
       SSO_CLIENT_SECRET=${config.sops.placeholder.kanidm_vaultwarden_secret}
@@ -143,6 +144,26 @@ in
       Restart = "always";
       DynamicUser = true;
       SupplementaryGroups = [ "dialout" ];
+    };
+  };
+
+  systemd.services.ninerouter = {
+    description = "9router llm proxy";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "network.target" ];
+    serviceConfig = {
+      ExecStart = "${pkgs._9router}/bin/9router -n -t --skip-update --host 127.0.0.1";
+      Restart = "always";
+      EnvironmentFile = config.sops.secrets.ninerouter_env.path;
+      User = "dappy";
+      Group = "users";
+      StateDirectory = "ninerouter";
+      WorkingDirectory = "/var/lib/ninerouter";
+    };
+    environment = {
+      HOME = "/var/lib/ninerouter";
+      XDG_DATA_HOME = "/var/lib/ninerouter";
+      XDG_CONFIG_HOME = "/var/lib/ninerouter";
     };
   };
 
@@ -308,6 +329,11 @@ in
   };
 
   services.tailscale.enable = true;
+
+  services.zerotierone = {
+    enable = true;
+    joinNetworks = [ "f3797ba7a813d7ad" ];
+  };
 
   # same setup as sbx-intelmac: kanidm behind nginx, provisioned from here
   services.kanidm = {
@@ -501,6 +527,7 @@ in
         "sync.dappy.lgbt"
         "status.dappy.lgbt"
         "bin.dappy.lgbt"
+        "9r.dappy.lgbt"
       ];
     };
   };
@@ -561,6 +588,14 @@ in
         proxyWebsockets = true;
       };
     };
+    virtualHosts."9r.dappy.lgbt" = {
+      useACMEHost = "home.dappy.lgbt";
+      forceSSL = true;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:20128";
+        proxyWebsockets = true;
+      };
+    };
   };
 
   services.microbin = {
@@ -580,6 +615,18 @@ in
     enable = true;
     settings = {
       ports.dns = 53;
+      # split-horizon: the *.dappy.lgbt names live on the zt overlay, not the
+      # lan, so zt clients (and the mac when off-lan) resolve them to the zt ip
+      customDNS.mapping = {
+        "9r.dappy.lgbt" = "10.212.240.225";
+        "home.dappy.lgbt" = "10.212.240.225";
+        "esphome.dappy.lgbt" = "10.212.240.225";
+        "id.dappy.lgbt" = "10.212.240.225";
+        "vault.dappy.lgbt" = "10.212.240.225";
+        "sync.dappy.lgbt" = "10.212.240.225";
+        "status.dappy.lgbt" = "10.212.240.225";
+        "bin.dappy.lgbt" = "10.212.240.225";
+      };
       upstreams.groups.default = [
         "https://dns.nextdns.io/848374"
         "9.9.9.9"
