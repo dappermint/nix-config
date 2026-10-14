@@ -74,6 +74,8 @@
     opentofu
     sops
     sshpass
+    step-ca
+    step-cli
     upcloud-cli
     vault
     yamllint
