@@ -26,12 +26,8 @@ in
   system.tools.darwin-uninstaller.enable = false;
 
   nix = {
-    # ponytail: drop once nixpkgs-unstable has 31a68c07fe (lix -z,noexecstack breaks ld64)
-    package = pkgs.lixPackageSets.latest.lix.overrideAttrs (o: {
-      env = o.env // {
-        NIX_LDFLAGS = "";
-      };
-    });
+    # ponytail: upstream input until nixpkgs-unstable ships lixPackageSets.lix_2_96
+    package = inputs.lix.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
     channel.enable = false;
 
