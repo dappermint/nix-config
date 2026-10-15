@@ -196,11 +196,11 @@ in
         set -euo pipefail
         TS=$(date +%Y%m%d_%H%M%S)
         ARCHIVE="/tmp/ha_backup_''${TS}.tar.zst"
+        trap 'rm -f "''${ARCHIVE}"' EXIT
         # vaultwarden and kanidm come from their own nightly snapshots, not the
         # live dirs: both hold sqlite dbs that tar would copy mid-write
         tar --exclude='*.db-wal' --exclude='*.db-shm' --exclude='home-assistant.log*' -cf - -C /var/lib hass -C /var/backup vaultwarden kanidm | zstd -3 -o "''${ARCHIVE}"
         aws --endpoint-url http://100.80.221.44:3900 s3 cp "''${ARCHIVE}" "s3://homeassistant-backups/ha_backup_''${TS}.tar.zst"
-        rm -f "''${ARCHIVE}"
       '';
     };
   };
