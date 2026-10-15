@@ -134,6 +134,7 @@ in
 
     CustomUserPreferences = {
       NSGlobalDomain = {
+        SLSMenuBarUseBlurredAppearance = true;
         QLPanelAnimationDuration = 0.0;
         NSToolbarTitleViewRolloverDelay = 0.0;
       };
@@ -164,7 +165,7 @@ in
 
   system.keyboard = {
     enableKeyMapping = true;
-    remapCapsLockToControl = true;
+    remapCapsLockToControl = false;
   };
 
   networking.applicationFirewall = {

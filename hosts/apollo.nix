@@ -17,6 +17,7 @@ in
     inputs.sops-nix.darwinModules.sops
     ../modules/gdrive-mount.nix
     ../modules/secrets.nix
+    ../modules/kanata.nix
     inputs.home-manager.darwinModules.home-manager
   ];
 
@@ -39,6 +40,8 @@ in
       "6ix7even"
     ];
   };
+
+  services.kanata.enable = true;
 
   home-manager = {
     useGlobalPkgs = true;
