@@ -75,7 +75,7 @@ in
     flags = [ "--disable-up-arrow" ];
     settings = {
       enter_accept = true;
-      sync.records = true;
+      sync_address = "https://atuin.dappy.lgbt";
     };
   };
 
