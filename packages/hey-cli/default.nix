@@ -58,5 +58,6 @@ stdenvNoCC.mkDerivation {
     license = lib.licenses.mit;
     platforms = builtins.attrNames artifacts;
     mainProgram = "hey";
+    sourceProvenance = [ lib.sourceTypes.binaryNativeCode ];
   };
 }
