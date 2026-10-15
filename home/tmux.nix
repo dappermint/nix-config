@@ -8,7 +8,6 @@
     prefix = "C-a";
     mouse = true;
     baseIndex = 1;
-    escapeTime = 10;
     historyLimit = 50000;
     keyMode = "vi";
     terminal = "tmux-256color";

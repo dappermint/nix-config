@@ -88,31 +88,35 @@ in
     shellWrapperName = "y";
   };
 
-  home.file.".config/fastfetch/config.jsonc".text = builtins.toJSON {
-    "$schema" = "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json";
-    modules = [
-      "title"
-      "separator"
-      "os"
-      "host"
-      "kernel"
-      "uptime"
-      "packages"
-      "shell"
-      "terminal"
-      {
-        type = "command";
-        key = "Nix";
-        text = ''echo "Lix $(${nixBin} --version | head -1 | awk '{print $NF}')"'';
-      }
-      "cpu"
-      "gpu"
-      "memory"
-      "disk"
-      "battery"
-      "datetime"
-      "break"
-      "colors"
-    ];
+  programs.fastfetch = {
+    enable = true;
+    package = null;
+    settings = {
+      "$schema" = "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json";
+      modules = [
+        "title"
+        "separator"
+        "os"
+        "host"
+        "kernel"
+        "uptime"
+        "packages"
+        "shell"
+        "terminal"
+        {
+          type = "command";
+          key = "Nix";
+          text = ''echo "Lix $(${nixBin} --version | head -1 | awk '{print $NF}')"'';
+        }
+        "cpu"
+        "gpu"
+        "memory"
+        "disk"
+        "battery"
+        "datetime"
+        "break"
+        "colors"
+      ];
+    };
   };
 }
