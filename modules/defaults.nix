@@ -179,7 +179,6 @@ in
 
     defaults write "/Library/Application Support/CrashReporter/DiagnosticMessagesHistory.plist" AutoSubmit -bool false
     defaults write "/Library/Application Support/CrashReporter/DiagnosticMessagesHistory.plist" ThirdPartyDataSubmit -bool false
-    pkill -HUP socketfilterfw 2>/dev/null || true
 
     # shottr stores prefs in an app-sandbox container that SIP shields from
     # every writer lacking full disk access, root included. re-applied on each
@@ -197,5 +196,9 @@ in
     # running macOS version, so keep it pinned to whatever we booted
     launchctl asuser "$(id -u -- ${user})" sudo --user=${user} -- \
       defaults write com.apple.SetupAssistant LastSeenCloudProductVersion -string "$(sw_vers -productVersion)"
+  '';
+
+  system.activationScripts.postActivation.text = ''
+    pkill -HUP socketfilterfw 2>/dev/null || true
   '';
 }
