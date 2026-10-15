@@ -28,10 +28,6 @@
         trusted = true;
       }
       {
-        name = "apple/apple";
-        trusted = true;
-      }
-      {
         name = "bjarneo/cliamp";
         trusted = true;
       }
