@@ -482,6 +482,12 @@ in
           conditions = [ "[STATUS] == 200" ];
         }
         {
+          name = "atuin";
+          group = "home";
+          url = "https://atuin.dappy.lgbt/";
+          conditions = [ "[STATUS] == 200" ];
+        }
+        {
           name = "router";
           group = "home";
           url = "icmp://10.14.88.1";
@@ -536,6 +542,7 @@ in
         "status.dappy.lgbt"
         "bin.dappy.lgbt"
         "9r.dappy.lgbt"
+        "atuin.dappy.lgbt"
       ];
     };
   };
@@ -596,6 +603,11 @@ in
         proxyWebsockets = true;
       };
     };
+    virtualHosts."atuin.dappy.lgbt" = {
+      useACMEHost = "home.dappy.lgbt";
+      forceSSL = true;
+      locations."/".proxyPass = "http://127.0.0.1:8888";
+    };
     virtualHosts."9r.dappy.lgbt" = {
       useACMEHost = "home.dappy.lgbt";
       forceSSL = true;
@@ -605,6 +617,15 @@ in
       };
     };
   };
+
+  services.atuin = {
+    enable = true;
+    database = {
+      createLocally = false;
+      uri = "sqlite:///var/lib/atuin/atuin.db";
+    };
+  };
+  systemd.services.atuin.serviceConfig.StateDirectory = "atuin";
 
   services.microbin = {
     enable = true;
