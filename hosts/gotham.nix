@@ -159,6 +159,10 @@ in
       Group = "users";
       StateDirectory = "ninerouter";
       WorkingDirectory = "/var/lib/ninerouter";
+      NoNewPrivileges = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      PrivateTmp = true;
     };
     environment = {
       HOME = "/var/lib/ninerouter";
