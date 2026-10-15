@@ -125,7 +125,7 @@ in
       ShowDayOfWeek = false;
     };
 
-    CustomSystemPreferences."com.apple.SoftwareUpdate" = {
+    CustomSystemPreferences."/Library/Preferences/com.apple.SoftwareUpdate" = {
       AutomaticCheckEnabled = true;
       AutomaticDownload = true;
       CriticalUpdateInstall = true;
