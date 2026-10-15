@@ -32,10 +32,6 @@
         trusted = true;
       }
       {
-        name = "can1357/tap";
-        trusted = true;
-      }
-      {
         name = "dappermint/tap";
         trusted = true;
       }
@@ -77,7 +73,6 @@
       # difference, so it stays identical to what the hosted runners have.
       "mingw-w64"
       "dappermint/tap/occam"
-      "can1357/tap/omp"
       "netbirdio/tap/netbird"
       "rustnet"
       "steipete/tap/remindctl"
