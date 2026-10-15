@@ -20,7 +20,9 @@ in
   home.activation.fontDefaults = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     run /usr/bin/defaults write NSGlobalDomain NSFixedPitchFont -string "${fonts.monoPostScriptName}"
     run /usr/bin/defaults write dev.warp.Warp-Preview FontName -string '"${fonts.monoFamily}"'
-    run ${pkgs.yq-go}/bin/yq -i '.terminal.font_family = "${fonts.monoFamily}" | .desktop.font_family = "${fonts.uiFamily}"' "$HOME/.hermes/config.yaml"
+    if [ -f "$HOME/.hermes/config.yaml" ]; then
+      run ${pkgs.yq-go}/bin/yq -i '.terminal.font_family = "${fonts.monoFamily}" | .desktop.font_family = "${fonts.uiFamily}"' "$HOME/.hermes/config.yaml"
+    fi
     bruno="$HOME/Library/Application Support/bruno/preferences.json"
     if [ -f "$bruno" ]; then
       ${pkgs.jq}/bin/jq '.preferences.font.codeFont = "${fonts.monoFamily}"' "$bruno" > "$bruno.tmp" && run mv "$bruno.tmp" "$bruno"
