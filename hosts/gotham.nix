@@ -88,14 +88,16 @@ in
     secrets.kanidm_gatus_secret.owner = "kanidm";
     secrets.syncthing_gui_password.owner = "syncthing";
     secrets.wifi_env.owner = "wpa_supplicant";
-    secrets.ninerouter_env = { };
+    secrets.ninerouter_env.restartUnits = [ "ninerouter.service" ];
     # the client side reads the same secret, but only as an env var
     templates."vaultwarden.env".content = ''
       SSO_CLIENT_SECRET=${config.sops.placeholder.kanidm_vaultwarden_secret}
     '';
+    templates."vaultwarden.env".restartUnits = [ "vaultwarden.service" ];
     templates."gatus.env".content = ''
       GATUS_OIDC_SECRET=${config.sops.placeholder.kanidm_gatus_secret}
     '';
+    templates."gatus.env".restartUnits = [ "gatus.service" ];
   };
 
   users.users.root.openssh.authorizedKeys.keys = [ sshKey ];
