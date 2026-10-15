@@ -1,36 +1,40 @@
-final: _prev: {
+final: prev: {
   google-sans-flex = final.callPackage ../packages/google-sans-flex { };
   hey-cli = final.callPackage ../packages/hey-cli { };
   mkspiFirmware = final.callPackage ../packages/mkspi-firmware { };
   rsreticulum = final.callPackage ../packages/rsreticulum { };
   # nixpkgs trails npm; the lock is regenerated from the tarball's package.json
-  _9router = _prev._9router.overrideAttrs (_: rec {
-    version = "0.5.99";
-    src = final.fetchzip {
-      url = "https://registry.npmjs.org/9router/-/9router-${version}.tgz";
-      hash = "sha256-uz1EiuxtYbWANgMsYO8VdDJVtiMyiJPCScLOOkYhNjQ=";
-    };
-    npmDeps = final.fetchNpmDeps {
-      name = "9router-${version}-npm-deps";
-      src = ../packages/9router;
-      hash = "sha256-R3RFTB7Trm75fbVsCtFo+wb/jRTrIG4ZC5kKDQdQHKo=";
-    };
-    postPatch = ''
-      ${final.lib.getExe' final.nodejs "node"} --eval '
-        const pkg = require("./package.json");
-        delete pkg.devDependencies;
-        require("fs").writeFileSync("package.json", JSON.stringify(pkg, null, 2));
-      '
-      cp ${../packages/9router/package-lock.json} package-lock.json
-    '';
-  });
-  omniwm = _prev.omniwm.overrideAttrs (_: rec {
-    version = "0.7.6";
-    src = final.fetchurl {
-      url = "https://github.com/OmniNull/OmniWM/releases/download/v${version}/OmniWM-v${version}.zip";
-      hash = "sha256-7IxhRqbyGnnhxArHDWESF2K5PPU80wjmPrROis4g/Nw=";
-    };
-  });
+  _9router = prev._9router.overrideAttrs (
+    finalAttrs: _: {
+      version = "0.5.99";
+      src = final.fetchzip {
+        url = "https://registry.npmjs.org/9router/-/9router-${finalAttrs.version}.tgz";
+        hash = "sha256-uz1EiuxtYbWANgMsYO8VdDJVtiMyiJPCScLOOkYhNjQ=";
+      };
+      npmDeps = final.fetchNpmDeps {
+        name = "9router-${finalAttrs.version}-npm-deps";
+        src = ../packages/9router;
+        hash = "sha256-R3RFTB7Trm75fbVsCtFo+wb/jRTrIG4ZC5kKDQdQHKo=";
+      };
+      postPatch = ''
+        ${final.lib.getExe' final.nodejs "node"} --eval '
+          const pkg = require("./package.json");
+          delete pkg.devDependencies;
+          require("fs").writeFileSync("package.json", JSON.stringify(pkg, null, 2));
+        '
+        cp ${../packages/9router/package-lock.json} package-lock.json
+      '';
+    }
+  );
+  omniwm = prev.omniwm.overrideAttrs (
+    finalAttrs: _: {
+      version = "0.7.6";
+      src = final.fetchurl {
+        url = "https://github.com/OmniNull/OmniWM/releases/download/v${finalAttrs.version}/OmniWM-v${finalAttrs.version}.zip";
+        hash = "sha256-7IxhRqbyGnnhxArHDWESF2K5PPU80wjmPrROis4g/Nw=";
+      };
+    }
+  );
 
   # matter.js resolves a node's A/AAAA by the service instance name instead of
   # the SRV target host, so wifi/ip commissioning stalls forever at 18.1
@@ -40,10 +44,10 @@ final: _prev: {
   # the npm rebuild would not fit in mkspi's ram and the mac cannot build
   # aarch64-linux
   matterjs-server =
-    final.runCommand "matterjs-server-${_prev.matterjs-server.version}"
+    final.runCommand "matterjs-server-${prev.matterjs-server.version}"
       {
-        inherit (_prev.matterjs-server) meta;
-        src = _prev.matterjs-server;
+        inherit (prev.matterjs-server) meta;
+        src = prev.matterjs-server;
       }
       ''
         cp -r --no-preserve=mode $src $out
