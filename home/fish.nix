@@ -14,6 +14,16 @@ in
   programs.man.generateCaches = false;
 
   programs.fish = {
+    # tern (like kitty) loads its integration by putting its dir on
+    # XDG_DATA_DIRS, but nix-darwin's set-environment overwrites that var in
+    # nixos-env-preinit before fish reads vendor_conf.d, so it never loads and
+    # tern's native prompt falls back to fish's default one
+    interactiveShellInit = ''
+      if set -q KITTY_FISH_XDG_DATA_DIR; and not functions -q __ksi_setup
+          source $KITTY_FISH_XDG_DATA_DIR/fish/vendor_conf.d/kitty-shell-integration.fish
+      end
+    '';
+
     # shadowing coreutils is only safe because these take the invocations
     # muscle memory produces, and because eza and bat both drop their
     # decorations automatically when they are not writing to a tty, so pipes
