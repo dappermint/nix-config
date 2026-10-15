@@ -8,6 +8,7 @@ let
   user = config.system.primaryUser;
   home = config.users.users.${user}.home;
   mountPoint = "${home}/GoogleDrive";
+  stateDir = "${home}/.local/state/rclone";
 
   mountScript = pkgs.writeShellApplication {
     name = "gdrive-mount";
@@ -18,6 +19,10 @@ let
     ];
     text = ''
       mkdir -p "${mountPoint}"
+      # rclone saves refreshed tokens back into its config, and the sops
+      # render under /run/secrets is root-owned
+      install -d -m 700 "${stateDir}"
+      install -m 600 "${config.sops.templates."rclone.conf".path}" "${stateDir}/rclone.conf"
 
       if /sbin/mount | grep -q "${mountPoint}"; then
         echo "Google Drive is already mounted at ${mountPoint}"
@@ -26,7 +31,7 @@ let
 
       echo "Mounting Google Drive to ${mountPoint} via rclone nfsmount..."
       exec rclone nfsmount gdrive: "${mountPoint}" \
-        --config "${config.sops.templates."rclone.conf".path}" \
+        --config "${stateDir}/rclone.conf" \
         --vfs-cache-mode full \
         --vfs-cache-max-size 10G \
         --vfs-cache-max-age 24h \
@@ -60,10 +65,8 @@ in
       Label = "org.${user}.gdrive-mount";
       ProgramArguments = [ "${mountScript}/bin/gdrive-mount" ];
       RunAtLoad = true;
-      KeepAlive = {
-        SuccessfulExit = false;
-        NetworkState = true;
-      };
+      KeepAlive.SuccessfulExit = false;
+      ThrottleInterval = 300;
       ProcessType = "Background";
       StandardOutPath = "${home}/Library/Logs/gdrive-mount.log";
       StandardErrorPath = "${home}/Library/Logs/gdrive-mount.log";
