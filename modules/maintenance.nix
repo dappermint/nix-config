@@ -152,7 +152,7 @@ let
             (
               trap 'rmdir "$cache_state_dir/lock"' EXIT
               case "$staging_dir" in
-                ${pkgs.lib.escapeShellArg "${home}/.cache/nix-cache-staging"})
+                ${pkgs.lib.escapeShellArg stagingDir})
                   /usr/bin/find "$staging_dir" -mindepth 1 -delete
                   echo "cleared oversized nix-cache staging directory"
                   ;;
