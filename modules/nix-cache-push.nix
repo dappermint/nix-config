@@ -23,8 +23,6 @@ let
       pkgs.gnugrep
     ];
     text = ''
-      set -euo pipefail
-
       mkdir -p "${cfg.logDir}" "${cfg.stateDir}"
 
       ${shell.rotateLog}
