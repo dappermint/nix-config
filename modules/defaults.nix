@@ -194,8 +194,7 @@ in
 
     # SetupAssistant replays the iCloud sign-in pane whenever this lags the
     # running macOS version, so keep it pinned to whatever we booted
-    launchctl asuser "$(id -u -- ${user})" sudo --user=${user} -- \
-      defaults write com.apple.SetupAssistant LastSeenCloudProductVersion -string "$(sw_vers -productVersion)"
+    ${asUser} defaults write com.apple.SetupAssistant LastSeenCloudProductVersion -string "$(sw_vers -productVersion)"
   '';
 
   system.activationScripts.postActivation.text = ''
