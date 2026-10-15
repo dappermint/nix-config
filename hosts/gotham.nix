@@ -111,7 +111,6 @@ in
     enable = true;
     libraries = with pkgs; [
       libusb1
-      zlib
       ncurses
     ];
   };
@@ -626,16 +625,11 @@ in
       ports.dns = 53;
       # split-horizon: the *.dappy.lgbt names live on the zt overlay, not the
       # lan, so zt clients (and the mac when off-lan) resolve them to the zt ip
-      customDNS.mapping = {
-        "9r.dappy.lgbt" = "10.212.240.225";
-        "home.dappy.lgbt" = "10.212.240.225";
-        "esphome.dappy.lgbt" = "10.212.240.225";
-        "id.dappy.lgbt" = "10.212.240.225";
-        "vault.dappy.lgbt" = "10.212.240.225";
-        "sync.dappy.lgbt" = "10.212.240.225";
-        "status.dappy.lgbt" = "10.212.240.225";
-        "bin.dappy.lgbt" = "10.212.240.225";
-      };
+      customDNS.mapping =
+        let
+          cert = config.security.acme.certs."home.dappy.lgbt";
+        in
+        lib.genAttrs ([ cert.domain ] ++ cert.extraDomainNames) (_: "10.212.240.225");
       upstreams.groups.default = [
         "https://dns.nextdns.io/848374"
         "9.9.9.9"
@@ -730,7 +724,6 @@ in
   services.journald.settings.Journal.SystemMaxUse = "200M";
 
   documentation.enable = false;
-  documentation.nixos.enable = false;
 
   nix.package = inputs.lix.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
