@@ -31,9 +31,11 @@ in
     [ -f "$ws" ] && run ${pkgs.gnused}/bin/sed -i 's/^gui.qt.font_name: [^,]*/gui.qt.font_name: ${fonts.monoFamily}/' "$ws"
   '';
 
-  xdg.configFile."ghostty/config".text = ''
-    font-family = ${fonts.monoFamily}
-  '';
+  programs.ghostty = {
+    enable = true;
+    package = null;
+    settings.font-family = fonts.monoFamily;
+  };
 
   home.file."${zenProfile}/user.js".text = ''
     ${zenPrefs}
