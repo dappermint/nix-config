@@ -234,9 +234,9 @@ in
   };
 
   launchd.daemons.nix-pressure-gc = {
+    command = "${nixPressureGc}/bin/nix-pressure-gc";
     serviceConfig = {
       Label = "org.nixos.nix-pressure-gc";
-      ProgramArguments = [ "${nixPressureGc}/bin/nix-pressure-gc" ];
       RunAtLoad = true;
       StartInterval = 21600;
       Nice = 10;
