@@ -71,6 +71,15 @@ in
 
   programs.atuin = {
     enable = true;
+    # hydra has no darwin build of 18.23.0: checkPhase fails on a sandbox pty test
+    # and takes 20+ min compiling test crates. linux hosts use the hydra cache
+    package =
+      if pkgs.stdenv.hostPlatform.isDarwin then
+        pkgs.atuin.overrideAttrs (_: {
+          doCheck = false;
+        })
+      else
+        pkgs.atuin;
     enableFishIntegration = true;
     flags = [ "--disable-up-arrow" ];
     settings = {
