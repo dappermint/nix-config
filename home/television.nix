@@ -1,5 +1,4 @@
-{ ... }:
-{
+_: {
   home.file.".config/television/config.toml".text = ''
     tick_rate = 50
     default_channel = "files"
