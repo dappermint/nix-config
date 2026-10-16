@@ -43,6 +43,14 @@ in
 
   services.kanata.enable = true;
 
+  launchd.daemons.dev-volume-unlock = {
+    script = ''
+      uuid=93FCCC39-80B5-4DF9-91C6-85534DEC4CE2
+      /usr/bin/security find-generic-password -s "$uuid" -w | /usr/sbin/diskutil apfs unlockVolume "$uuid" -stdinpassphrase
+    '';
+    serviceConfig.RunAtLoad = true;
+  };
+
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
