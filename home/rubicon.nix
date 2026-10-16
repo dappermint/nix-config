@@ -5,6 +5,7 @@
 # gui concerns, and sops wants an age key this guest does not hold yet
 {
   imports = [
+    ./claude.nix
     ./fish.nix
     ./git.nix
     ./neovim.nix

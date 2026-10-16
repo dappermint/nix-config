@@ -19,6 +19,10 @@
     abode.inputs.nixpkgs.follows = "nixpkgs";
     waves.url = "github:dappermint/waves";
     waves.inputs.nixpkgs.follows = "nixpkgs";
+    claude-config = {
+      url = "github:dappermint/claude-config";
+      flake = false;
+    };
     # no nixpkgs follows: lix asserts lowdown < 3.0.0, which unstable is past
     lix.url = "https://git.lix.systems/lix-project/lix/archive/2.96.0.tar.gz";
   };

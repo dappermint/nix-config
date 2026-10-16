@@ -1,6 +1,7 @@
 {
   imports = [
     ./aws.nix
+    ./claude.nix
     ./clownops.nix
     ./fish.nix
     ./fonts.nix
