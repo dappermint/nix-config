@@ -10,7 +10,7 @@ nix system flake managing personal machines across darwin, nixos, and home-manag
 | `gotham` | edge iot / sbc | `aarch64-linux` | `nixosConfigurations.gotham` |
 | `rubicon` | mobile terminal | `aarch64-linux` | `homeConfigurations.rubicon` |
 
-- `apollo`: primary apple silicon macbook running nix-darwin, aerospace/omniwm, and personal dev toolchains.
+- `apollo`: primary apple silicon macbook running nix-darwin, omniwm, and personal dev toolchains.
 - `gotham`: headless rk3328 rockchip sbc running nixos, home assistant, esphome, soft-serve, and telemetry.
 - `rubicon`: avf linux guest on phone running standalone home-manager with fish, tmux, and neovim.
 
