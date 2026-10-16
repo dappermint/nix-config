@@ -7,9 +7,7 @@
 
 let
   cfg = config.services.kanata;
-  user = config.system.primaryUser;
-  home = config.users.users.${user}.home;
-
+  driverPkg = cfg.package.passthru.darwinDriver;
   configFile = pkgs.writeText "kanata.kbd" cfg.config;
 in
 {
@@ -42,22 +40,42 @@ in
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ cfg.package ];
 
-    launchd.user.agents.kanata = {
+    # macos only activates driverkit extensions from apps in /Applications
+    system.activationScripts.preActivation.text = ''
+      rm -rf /Applications/.Karabiner-VirtualHIDDevice-Manager.app
+      cp -R "${driverPkg}/Applications/.Karabiner-VirtualHIDDevice-Manager.app" /Applications/
+
+      mkdir -p "/Library/Application Support/org.pqrs"
+      rm -rf "/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice"
+      cp -R "${driverPkg}/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice" "/Library/Application Support/org.pqrs/"
+    '';
+
+    system.activationScripts.postActivation.text = ''
+      /Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager activate || true
+    '';
+
+    launchd.daemons.karabiner-vhid-daemon = {
+      command = ''"/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-VirtualHIDDevice-Daemon.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon"'';
       serviceConfig = {
-        Label = "org.${user}.kanata";
-        ProgramArguments = [
-          "${cfg.package}/bin/kanata"
-          "-c"
-          "${configFile}"
-          "--no-wait"
-          "--release-grab-on-lock"
-        ];
+        Label = "org.pqrs.Karabiner-VirtualHIDDevice-Daemon";
         KeepAlive = true;
         RunAtLoad = true;
         ProcessType = "Interactive";
-        StandardOutPath = "${home}/Library/Logs/kanata.log";
-        StandardErrorPath = "${home}/Library/Logs/kanata.err.log";
-        EnvironmentVariables.HOME = home;
+        StandardOutPath = "/Library/Logs/karabiner-vhid-daemon.log";
+        StandardErrorPath = "/Library/Logs/karabiner-vhid-daemon.err.log";
+      };
+    };
+
+    # root, since the vhid daemon's socket is root-only
+    launchd.daemons.kanata = {
+      command = "${cfg.package}/bin/kanata -c ${configFile} --no-wait --release-grab-on-lock";
+      serviceConfig = {
+        Label = "org.kanata.kanata";
+        KeepAlive = true;
+        RunAtLoad = true;
+        ProcessType = "Interactive";
+        StandardOutPath = "/Library/Logs/kanata.log";
+        StandardErrorPath = "/Library/Logs/kanata.err.log";
       };
     };
   };
