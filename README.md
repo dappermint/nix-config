@@ -32,10 +32,10 @@ nh darwin switch --diff always /etc/nix-darwin
 
 ## private inputs & public builds
 
-`abode` and `waves` are private inputs. for unauthenticated clones and fork pull requests, swap both for the in-repo stub:
+`abode`, `waves` and `claude-config` are private inputs. for unauthenticated clones and fork pull requests, swap them for the in-repo stub:
 
 ```fish
-set stub --override-input abode ./flakes/stub --override-input waves ./flakes/stub
+set stub --override-input abode ./flakes/stub --override-input waves ./flakes/stub --override-input claude-config ./flakes/stub
 nix flake check $stub
 nix eval $stub .#darwinConfigurations.apollo.system.drvPath
 ```

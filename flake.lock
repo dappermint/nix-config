@@ -20,6 +20,22 @@
         "type": "github"
       }
     },
+    "claude-config": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792131827,
+        "narHash": "sha256-KTSyWF01clO9SwpM08QcSuAKkejzIp+fmUV8khNEXwI=",
+        "owner": "dappermint",
+        "repo": "claude-config",
+        "rev": "3e594112d97cf5bbeeac3d4f74bb374a7346c4e4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dappermint",
+        "repo": "claude-config",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -296,6 +312,7 @@
     "root": {
       "inputs": {
         "abode": "abode",
+        "claude-config": "claude-config",
         "home-manager": "home-manager",
         "lix": "lix",
         "nix-darwin": "nix-darwin",

@@ -54,6 +54,7 @@ in
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
+    extraSpecialArgs = { inherit inputs; };
     backupFileExtension = "hm-backup";
     users.${user} = import ../home/dappy.nix;
   };

@@ -15,7 +15,7 @@ permissions:
 
 # two jobs rather than one, because the private inputs split the tree in half.
 #
-# the public job is what a fork PR gets: no secrets, abode and waves swapped
+# the public job is what a fork PR gets: no secrets, the private inputs swapped
 # for flakes/stub, and it must stay that way. no self-hosted runner is used
 # anywhere in this file either, so a workflow from an untrusted fork cannot
 # reach a real machine. the private job carries the token and is skipped on
@@ -30,7 +30,7 @@ jobs:
     name: lint and evaluate without the private inputs
     runs-on: ubuntu-24.04-arm
     env:
-      STUB: --override-input abode ./flakes/stub --override-input waves ./flakes/stub
+      STUB: --override-input abode ./flakes/stub --override-input waves ./flakes/stub --override-input claude-config ./flakes/stub
     steps:
       - uses: actions/checkout@v7
         with:
