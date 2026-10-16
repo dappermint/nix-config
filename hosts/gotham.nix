@@ -89,6 +89,7 @@ in
     secrets.syncthing_gui_password.owner = "syncthing";
     secrets.wifi_env.owner = "wpa_supplicant";
     secrets.ninerouter_env.restartUnits = [ "ninerouter.service" ];
+    secrets.netbird_setup_key = { };
     # the client side reads the same secret, but only as an env var
     templates."vaultwarden.env".content = ''
       SSO_CLIENT_SECRET=${config.sops.placeholder.kanidm_vaultwarden_secret}
@@ -337,6 +338,21 @@ in
   };
 
   services.tailscale.enable = true;
+
+  # conway joins only so its honcho can reach 9r.dappy.lgbt; the netbird acl
+  # lets k8s in on tcp 443 and nothing out, so no dns or routes from it here
+  services.netbird.clients.conway = {
+    port = 51820;
+    login = {
+      enable = true;
+      setupKeyFile = config.sops.secrets.netbird_setup_key.path;
+    };
+    environment = {
+      NB_MANAGEMENT_URL = "https://netbird.clownway.org:33073";
+      NB_DISABLE_DNS = "true";
+      NB_DISABLE_CLIENT_ROUTES = "true";
+    };
+  };
 
   services.zerotierone = {
     enable = true;
