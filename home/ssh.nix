@@ -57,13 +57,21 @@ in
       }
       // lib.optionalAttrs isDarwin { IdentityAgent = secretiveSock; };
 
-      # enclave key first, the file ed25519 stays as break-glass until every
-      # host trusts the enclave key (it also backs sops, so it never goes away)
-      "* !railway.new" = lib.mkIf isDarwin {
-        IdentityFile = [
-          "~/.ssh/id_enclave.pub"
-          "~/.ssh/id_ed25519"
-        ];
+      # the enclave key wants touch id per connection, so only offer it when a
+      # human is at a terminal. ssh points match-exec stdin at /dev/null, hence
+      # fd 2. ansible forks, agents and nix copy stay on the file ed25519
+      # instead of queueing dozens of prompts
+      enclave-interactive = lib.mkIf isDarwin (
+        lib.hm.dag.entryBefore [ "ed25519" ] {
+          header = ''Match host "*,!railway.new" exec "test -t 2"'';
+          IdentityFile = "~/.ssh/id_enclave.pub";
+        }
+      );
+
+      # also backs sops, so it never goes away
+      ed25519 = lib.mkIf isDarwin {
+        header = "Host * !railway.new";
+        IdentityFile = "~/.ssh/id_ed25519";
       };
 
       # throwaway identity for public/anonymous services, never the main key
