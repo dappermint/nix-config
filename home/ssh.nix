@@ -1,4 +1,23 @@
 {
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+
+let
+  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+  secretiveSock = "${config.home.homeDirectory}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
+in
+{
+  # secure enclave key held by Secretive, every signature needs touch id
+  home.file.".ssh/id_enclave.pub" = lib.mkIf isDarwin {
+    text = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPltwbYS6FRFdE7ZGAdOfewqsvHLX1H9jQEXt+/tXoc1JzE/pAwZUldTzhaoZ9alMAaV+cXIFZyAT3Bn87gEgeE= dappy\n";
+  };
+
+  # git and jj sign through ssh-keygen -Y, which only reads SSH_AUTH_SOCK
+  home.sessionVariables = lib.mkIf isDarwin { SSH_AUTH_SOCK = secretiveSock; };
+
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
@@ -21,6 +40,16 @@
         ControlMaster = "auto";
         ControlPersist = "10m";
         ControlPath = "~/.ssh/cm-%r@%h:%p";
+      }
+      // lib.optionalAttrs isDarwin { IdentityAgent = secretiveSock; };
+
+      # enclave key first, the file ed25519 stays as break-glass until every
+      # host trusts the enclave key (it also backs sops, so it never goes away)
+      "* !railway.new" = lib.mkIf isDarwin {
+        IdentityFile = [
+          "~/.ssh/id_enclave.pub"
+          "~/.ssh/id_ed25519"
+        ];
       };
 
       # throwaway identity for public/anonymous services, never the main key

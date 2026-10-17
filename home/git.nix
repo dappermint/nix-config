@@ -1,12 +1,13 @@
 { lib, pkgs, ... }:
 
 let
-  # same ed25519 that backs sops
   identity = {
     name = "millia ampora";
     email = "198710911+dappermint@users.noreply.github.com";
   };
-  signingKey = "~/.ssh/id_ed25519.pub";
+  # secure enclave key on apollo (see ssh.nix), the sops ed25519 elsewhere
+  signingKey =
+    if pkgs.stdenv.hostPlatform.isDarwin then "~/.ssh/id_enclave.pub" else "~/.ssh/id_ed25519.pub";
 
   # nix-darwin keeps the system profile on a stable path. rubicon is a standalone
   # home-manager host with no /run/current-system, so resolve gh out of the
@@ -15,6 +16,12 @@ let
     if pkgs.stdenv.hostPlatform.isDarwin then "/run/current-system/sw/bin/gh" else lib.getExe pkgs.gh;
 in
 {
+  # the ed25519 stays listed so commits signed before the enclave key still verify
+  home.file.".ssh/allowed_signers".text = ''
+    ${identity.email} ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7KvZLKybxYKt5Vu5UPcQ4zxIq+FPRyAKQgnvOpzy6Z
+    ${identity.email} ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPltwbYS6FRFdE7ZGAdOfewqsvHLX1H9jQEXt+/tXoc1JzE/pAwZUldTzhaoZ9alMAaV+cXIFZyAT3Bn87gEgeE=
+  '';
+
   programs.jujutsu = {
     enable = true;
     settings = {
@@ -47,6 +54,7 @@ in
       user.email = identity.email;
       user.signingkey = signingKey;
       gpg.format = "ssh";
+      gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
       commit.gpgsign = true;
       tag.gpgsign = true;
       init.defaultBranch = "main";
