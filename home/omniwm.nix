@@ -1,5 +1,23 @@
+{ config, pkgs, ... }:
+
+let
+  devApp = "${config.home.homeDirectory}/Applications/OmniWM Dev.app";
+in
 {
-  programs.omniwm = {
+  # stable dropped for the local dev build, which ships its own ctl matching its ipc
+  home.packages = [
+    (pkgs.writeShellScriptBin "omniwmctl" ''exec "${devApp}/Contents/MacOS/omniwmctl" "$@"'')
+  ];
+
+  launchd.agents.omniwm-dev = {
     enable = true;
+    config = {
+      ProgramArguments = [
+        "/usr/bin/open"
+        "-a"
+        devApp
+      ];
+      RunAtLoad = true;
+    };
   };
 }
