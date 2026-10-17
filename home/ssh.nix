@@ -18,6 +18,20 @@ in
   # git and jj sign through ssh-keygen -Y, which only reads SSH_AUTH_SOCK
   home.sessionVariables = lib.mkIf isDarwin { SSH_AUTH_SOCK = secretiveSock; };
 
+  # same for gui apps (zed, lazygit from the dock), which never see shell env
+  launchd.agents.secretive-ssh-auth-sock = lib.mkIf isDarwin {
+    enable = true;
+    config = {
+      ProgramArguments = [
+        "/bin/launchctl"
+        "setenv"
+        "SSH_AUTH_SOCK"
+        secretiveSock
+      ];
+      RunAtLoad = true;
+    };
+  };
+
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
