@@ -31,7 +31,7 @@ add kind name file=homebrew:
 # prune stale build artifacts across dev repos and system caches
 clean:
     @echo "==> pruning stale swift .build and derived data..."
-    @find /Volumes/onyx /Volumes/Dev -maxdepth 5 -type d -name ".build" -mtime +14 -prune -exec rm -rf {} + 2>/dev/null || true
+    @find /Volumes/onyx -maxdepth 5 -type d -name ".build" -mtime +14 -prune -exec rm -rf {} + 2>/dev/null || true
     @rm -rf ~/Library/Developer/Xcode/DerivedData/* 2>/dev/null || true
     @echo "==> pruning uv, go, and brew caches..."
     @which uv >/dev/null 2>&1 && uv cache prune 2>/dev/null || true
