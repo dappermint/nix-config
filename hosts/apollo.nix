@@ -45,13 +45,16 @@ in
 
   launchd.daemons.dev-volume-unlock = {
     script = ''
-      target=$(/usr/sbin/diskutil info "Dev" 2>/dev/null | awk -F': *' '/Volume UUID:/{print $2}')
-      if [ -n "$target" ]; then
-        pass=$(/usr/bin/security find-generic-password -s "$target" -w 2>/dev/null || /usr/bin/security find-generic-password -s "Dev" -w 2>/dev/null || true)
-        if [ -n "$pass" ]; then
-          echo "$pass" | /usr/sbin/diskutil apfs unlockVolume "$target" -stdinpassphrase || true
+      dev_uuid=$(/usr/sbin/diskutil info "Dev" 2>/dev/null | awk -F': *' '/Volume UUID:/{print $2}')
+      for vol in "Dev" "onyx"; do
+        target=$(/usr/sbin/diskutil info "$vol" 2>/dev/null | awk -F': *' '/Volume UUID:/{print $2}')
+        if [ -n "$target" ]; then
+          pass=$(/usr/bin/security find-generic-password -s "$target" -w 2>/dev/null || /usr/bin/security find-generic-password -s "$vol" -w 2>/dev/null || ([ -n "$dev_uuid" ] && /usr/bin/security find-generic-password -s "$dev_uuid" -w 2>/dev/null) || /usr/bin/security find-generic-password -s "93FCCC39-80B5-4DF9-91C6-85534DEC4CE2" -w 2>/dev/null || true)
+          if [ -n "$pass" ]; then
+            echo "$pass" | /usr/sbin/diskutil apfs unlockVolume "$target" -stdinpassphrase || true
+          fi
         fi
-      fi
+      done
     '';
     serviceConfig.RunAtLoad = true;
   };

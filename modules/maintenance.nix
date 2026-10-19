@@ -137,9 +137,11 @@ let
       fi
 
       if [ "$free_percent" -lt ${toString cleanupFreePercent} ]; then
-        if [ -d /Volumes/Dev ]; then
-          /usr/bin/find /Volumes/Dev -maxdepth 5 -type d -name ".build" -mtime +14 -prune -exec rm -rf {} + 2>/dev/null || true
-        fi
+        for d in /Volumes/onyx /Volumes/Dev; do
+          if [ -d "$d" ]; then
+            /usr/bin/find "$d" -maxdepth 5 -type d -name ".build" -mtime +14 -prune -exec rm -rf {} + 2>/dev/null || true
+          fi
+        done
         if [ -d "$HOME/Library/Developer/Xcode/DerivedData" ]; then
           /usr/bin/find "$HOME/Library/Developer/Xcode/DerivedData" -mindepth 1 -maxdepth 1 -mtime +14 -exec rm -rf {} + 2>/dev/null || true
         fi
