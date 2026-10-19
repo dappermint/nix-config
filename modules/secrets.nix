@@ -17,6 +17,19 @@ let
   };
 
   awsRegion = "eu-north-1";
+
+  # plain files read by scripts and skills by path, so the paths stay as they were
+  configFiles = [
+    "cf_sandb0x_token"
+    "dappyhas"
+    "ha_token"
+    "phonepw"
+    "sbx-ha-admin-pw"
+    "sbx-mqtt-creds"
+    "sbx_ha_console_pw"
+    "sbx_kanidm_idm_admin_pw"
+    "sbx_nvr_admin_pw"
+  ];
 in
 {
   sops = {
@@ -26,40 +39,51 @@ in
       "${home}/.ssh/id_ed25519"
     ];
 
-    secrets = {
-      upcloud_token = { };
+    secrets =
+      lib.listToAttrs (
+        map (
+          n:
+          lib.nameValuePair (lib.replaceStrings [ "-" ] [ "_" ] n) (
+            userSecret // { path = "${home}/.config/${n}"; }
+          )
+        ) configFiles
+      )
+      // {
+        upcloud_token = { };
+        anthropic_api_key = { };
+        typesafe_api_key = { };
 
-      "nix-cache-priv-key" = {
-        key = "nix_cache_priv_key";
-        owner = "root";
-        mode = "0400";
+        "nix-cache-priv-key" = {
+          key = "nix_cache_priv_key";
+          owner = "root";
+          mode = "0400";
+        };
+
+        conway_kubeconfig = userSecret // {
+          path = "${home}/.kube/conway";
+        };
+
+        youtube_stream_key = userSecret // {
+          path = "${home}/.config/obs/youtube-stream-key";
+        };
+
+        clownway_netbird_host = { };
+        clownway_gitlab_host = { };
+        # not exported globally - the conway repos pull these in via direnv
+        clownway_gitlab_token = userSecret;
+        clownway_netbird_token = userSecret;
+        aws_sso_start_url = { };
+        aws_sso_account_id = { };
+
+        nix_cache_reader_access_key_id = { };
+        nix_cache_reader_secret_access_key = { };
+        nix_cache_writer_access_key_id = { };
+        nix_cache_writer_secret_access_key = { };
+        sbx_rdp_password = userSecret;
+        gdrive_client_id = { };
+        gdrive_client_secret = userSecret;
+        gdrive_refresh_token = userSecret;
       };
-
-      conway_kubeconfig = userSecret // {
-        path = "${home}/.kube/conway";
-      };
-
-      youtube_stream_key = userSecret // {
-        path = "${home}/.config/obs/youtube-stream-key";
-      };
-
-      clownway_netbird_host = { };
-      clownway_gitlab_host = { };
-      # not exported globally - the conway repos pull these in via direnv
-      clownway_gitlab_token = userSecret;
-      clownway_netbird_token = userSecret;
-      aws_sso_start_url = { };
-      aws_sso_account_id = { };
-
-      nix_cache_reader_access_key_id = { };
-      nix_cache_reader_secret_access_key = { };
-      nix_cache_writer_access_key_id = { };
-      nix_cache_writer_secret_access_key = { };
-      sbx_rdp_password = userSecret;
-      gdrive_client_id = { };
-      gdrive_client_secret = userSecret;
-      gdrive_refresh_token = userSecret;
-    };
 
     templates = {
       "rclone.conf" = userSecret // {
@@ -79,6 +103,8 @@ in
           set -gx CLOWNWAY_NETBIRD_HOST '${placeholder.clownway_netbird_host}'
           set -gx CLOWNWAY_GITLAB_HOST '${placeholder.clownway_gitlab_host}'
           set -gx SBX_RDP_PASSWORD '${placeholder.sbx_rdp_password}'
+          set -gx ANTHROPIC_API_KEY '${placeholder.anthropic_api_key}'
+          set -gx TYPESAFE_API_KEY '${placeholder.typesafe_api_key}'
         '';
       };
 

@@ -1,8 +1,30 @@
-{ config, ... }:
+{ config, lib, ... }:
 
 {
   environment.variables = {
     HOMEBREW_NO_ANALYTICS = "1";
+  };
+
+  # after the nix profiles (1000) and before /usr/bin (1200), so a brew build
+  # dependency never shadows the declared nix package of the same name
+  environment.systemPath = lib.mkOrder 1100 [
+    "${config.homebrew.prefix}/bin:${config.homebrew.prefix}/sbin"
+  ];
+
+  launchd.user.agents.occmixer.serviceConfig = {
+    Label = "com.dappermint.occmixer";
+    ProgramArguments = [
+      "${config.homebrew.prefix}/opt/occam/bin/occmixer"
+      "--layout"
+      "7.1.4"
+      "--frames"
+      "128"
+    ];
+    RunAtLoad = true;
+    KeepAlive.SuccessfulExit = false;
+    ThrottleInterval = 10;
+    StandardOutPath = "/tmp/occmixer.log";
+    StandardErrorPath = "/tmp/occmixer.log";
   };
 
   # openhuman's per-user config.toml defaults these on; env wins for every user dir
@@ -72,7 +94,10 @@
       # steam's CM login stall was traced to exactly this kind of PE toolchain
       # difference, so it stays identical to what the hosted runners have.
       "mingw-w64"
-      "dappermint/tap/occam"
+      {
+        name = "dappermint/tap/occam";
+        start_service = true;
+      }
       "netbirdio/tap/netbird"
       "rustnet"
       "steipete/tap/remindctl"

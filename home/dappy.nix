@@ -1,3 +1,5 @@
+{ config, pkgs, ... }:
+
 {
   imports = [
     ./aws.nix
@@ -16,6 +18,15 @@
     ./television.nix
     ./uv.nix
     ./zed.nix
+  ];
+
+  home.sessionPath = [
+    "${config.home.homeDirectory}/.local/bin"
+    "${config.home.homeDirectory}/.bun/bin"
+  ];
+
+  home.packages = [
+    (pkgs.writeScriptBin "openhuman-sync" (builtins.readFile ./openhuman-sync.sh))
   ];
 
   home.stateVersion = "26.11";

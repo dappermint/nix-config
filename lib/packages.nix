@@ -70,6 +70,7 @@
   infra = with pkgs; [
     ansible
     ansible-lint
+    cloudflared
     freerdp
     opentofu
     sops

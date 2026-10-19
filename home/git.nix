@@ -49,6 +49,21 @@ in
 
   programs.git = {
     enable = true;
+    ignores = [
+      "**/.claude"
+      "**/.aider*"
+      "**/.cursor"
+      "**/.continue"
+      "**/.copilot"
+      "**/.codeium"
+      "**/.antigravitycli"
+      "**/CLAUDE.md"
+      "**/AGENTS.md"
+      "**/agents.md"
+      "**/gemini.md"
+      "**/.gemini.md"
+      "**/.direnv"
+    ];
     settings = {
       user.name = identity.name;
       user.email = identity.email;

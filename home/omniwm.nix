@@ -9,6 +9,8 @@ in
     (pkgs.writeShellScriptBin "omniwmctl" ''exec "${devApp}/Contents/MacOS/omniwmctl" "$@"'')
   ];
 
+  home.sessionVariables.OMNIWM_SIGNING_IDENTITY = "Hermes Local Signing";
+
   launchd.agents.omniwm-dev = {
     enable = true;
     config = {

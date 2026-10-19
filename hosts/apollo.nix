@@ -56,6 +56,30 @@ in
     serviceConfig.RunAtLoad = true;
   };
 
+  launchd.user.agents.hermes-webui.serviceConfig =
+    let
+      h = "/Users/${user}/.hermes";
+      python = "${h}/hermes-agent/venv/bin/python";
+    in
+    {
+      Label = "org.${user}.hermes-webui";
+      ProgramArguments = [
+        python
+        "${h}/hermes-webui/bootstrap.py"
+        "--foreground"
+        "--no-browser"
+      ];
+      WorkingDirectory = "${h}/hermes-webui";
+      EnvironmentVariables = {
+        HERMES_WEBUI_PYTHON = python;
+        PATH = "${h}/node/bin:${h}/node:${h}/hermes-agent/venv/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/sbin:/usr/local/bin";
+      };
+      RunAtLoad = true;
+      KeepAlive = true;
+      StandardOutPath = "${h}/logs/webui.log";
+      StandardErrorPath = "${h}/logs/webui.log";
+    };
+
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;

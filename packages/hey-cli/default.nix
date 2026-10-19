@@ -6,16 +6,16 @@
 }:
 
 let
-  version = "1.4.1";
+  version = "1.4.3";
 
   artifacts = {
     aarch64-darwin = {
       platform = "darwin_arm64";
-      hash = "sha256-4C2WA5KQJDNJ2xBqA/FSS+MTM3HfBK1xNP4P6FeB4ZA=";
+      hash = "sha256-v4IGtRTb3xqO5ZyRyzZi8ecd47cYObFl7FVFuFt830g=";
     };
     x86_64-darwin = {
       platform = "darwin_amd64";
-      hash = "sha256-288HPs0mZ7W180Xk/L9uQUcoB6DGh8QItzBkr66hIAE=";
+      hash = "sha256-l3BEu3glKks5E/b432/DQkpM037fpXl7hyIxtoWgerg=";
     };
   };
 
