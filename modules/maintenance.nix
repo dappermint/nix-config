@@ -137,6 +137,16 @@ let
       fi
 
       if [ "$free_percent" -lt ${toString cleanupFreePercent} ]; then
+        if [ -d /Volumes/Dev ]; then
+          /usr/bin/find /Volumes/Dev -maxdepth 5 -type d -name ".build" -mtime +14 -prune -exec rm -rf {} + 2>/dev/null || true
+        fi
+        if [ -d "$HOME/Library/Developer/Xcode/DerivedData" ]; then
+          /usr/bin/find "$HOME/Library/Developer/Xcode/DerivedData" -mindepth 1 -maxdepth 1 -mtime +14 -exec rm -rf {} + 2>/dev/null || true
+        fi
+        if [ -d "$HOME/.hermes/installs" ]; then
+          /usr/bin/find "$HOME/.hermes/installs" -mindepth 1 -maxdepth 1 -mtime +14 -exec rm -rf {} + 2>/dev/null || true
+        fi
+
         if due "$state_dir/go-cache-clean" $((3 * 86400)); then
           if go clean -cache; then
             mark_done "$state_dir/go-cache-clean"

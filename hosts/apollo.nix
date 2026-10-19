@@ -45,8 +45,13 @@ in
 
   launchd.daemons.dev-volume-unlock = {
     script = ''
-      uuid=93FCCC39-80B5-4DF9-91C6-85534DEC4CE2
-      /usr/bin/security find-generic-password -s "$uuid" -w | /usr/sbin/diskutil apfs unlockVolume "$uuid" -stdinpassphrase
+      target=$(/usr/sbin/diskutil info "Dev" 2>/dev/null | awk -F': *' '/Volume UUID:/{print $2}')
+      if [ -n "$target" ]; then
+        pass=$(/usr/bin/security find-generic-password -s "$target" -w 2>/dev/null || /usr/bin/security find-generic-password -s "Dev" -w 2>/dev/null || true)
+        if [ -n "$pass" ]; then
+          echo "$pass" | /usr/sbin/diskutil apfs unlockVolume "$target" -stdinpassphrase || true
+        fi
+      fi
     '';
     serviceConfig.RunAtLoad = true;
   };

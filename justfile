@@ -27,3 +27,15 @@ add kind name file=homebrew:
     lines.insert(at, '      "' + name + '"')
     open(path, "w").write("\n".join(lines))
     print("added " + name + " to " + kind)
+
+# prune stale build artifacts across dev repos and system caches
+clean:
+    @echo "==> pruning stale swift .build and derived data..."
+    @find /Volumes/Dev -maxdepth 5 -type d -name ".build" -mtime +14 -prune -exec rm -rf {} + 2>/dev/null || true
+    @rm -rf ~/Library/Developer/Xcode/DerivedData/* 2>/dev/null || true
+    @echo "==> pruning uv, go, and brew caches..."
+    @which uv >/dev/null 2>&1 && uv cache prune 2>/dev/null || true
+    @which go >/dev/null 2>&1 && go clean -cache 2>/dev/null || true
+    @which brew >/dev/null 2>&1 && brew cleanup --prune=all 2>/dev/null || true
+    @echo "==> checking local-maintenance status..."
+    @which local-maintenance >/dev/null 2>&1 && local-maintenance --status || true

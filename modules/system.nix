@@ -127,6 +127,11 @@ in
     done
   '';
 
+  environment.variables = {
+    CCACHE_DIR = "/Volumes/Wine/ccache";
+    CCACHE_MAXSIZE = "15G";
+  };
+
   programs.fish.enable = true;
 
   programs.nix-index.enable = true;
