@@ -23,6 +23,10 @@ final: prev: {
           require("fs").writeFileSync("package.json", JSON.stringify(pkg, null, 2));
         '
         cp ${../packages/9router/package-lock.json} package-lock.json
+        # upstream only serves gemini-4-argon to the antigravity cli user agent
+        sed -i -E 's#antigravity/ide/(\$\{[[:alnum:]_$]+\}|[0-9.]+) darwin/arm64#antigravity/cli/1.4.2 darwin/arm64#g' \
+          app/.next-cli-build/server/chunks/*.js
+        grep -q 'antigravity/cli/1.4.2' app/.next-cli-build/server/chunks/*.js
       '';
     }
   );
