@@ -11,6 +11,19 @@
     "${config.homebrew.prefix}/bin:${config.homebrew.prefix}/sbin"
   ];
 
+  # brew services treats the exited menu job as stopped and re-bootstraps it on
+  # every bundle, which launchd rejects while the label is loaded
+  launchd.user.agents.occam.serviceConfig = {
+    Label = "sh.brew.occam";
+    ProgramArguments = [
+      "${config.homebrew.prefix}/opt/occam/bin/occam"
+      "menu"
+    ];
+    RunAtLoad = true;
+    StandardOutPath = "${config.homebrew.prefix}/var/log/occam.log";
+    StandardErrorPath = "${config.homebrew.prefix}/var/log/occam.err";
+  };
+
   launchd.user.agents.occmixer.serviceConfig = {
     Label = "com.dappermint.occmixer";
     ProgramArguments = [
@@ -94,10 +107,7 @@
       # steam's CM login stall was traced to exactly this kind of PE toolchain
       # difference, so it stays identical to what the hosted runners have.
       "mingw-w64"
-      {
-        name = "dappermint/tap/occam";
-        start_service = true;
-      }
+      "dappermint/tap/occam"
       "netbirdio/tap/netbird"
       "rustnet"
       "steipete/tap/remindctl"
