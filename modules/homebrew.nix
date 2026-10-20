@@ -24,22 +24,6 @@
     StandardErrorPath = "${config.homebrew.prefix}/var/log/occam.err";
   };
 
-  launchd.user.agents.occmixer.serviceConfig = {
-    Label = "com.dappermint.occmixer";
-    ProgramArguments = [
-      "${config.homebrew.prefix}/opt/occam/bin/occmixer"
-      "--layout"
-      "7.1.4"
-      "--frames"
-      "128"
-    ];
-    RunAtLoad = true;
-    KeepAlive.SuccessfulExit = false;
-    ThrottleInterval = 10;
-    StandardOutPath = "/tmp/occmixer.log";
-    StandardErrorPath = "/tmp/occmixer.log";
-  };
-
   # openhuman's per-user config.toml defaults these on; env wins for every user dir
   launchd.user.envVariables = {
     HOMEBREW_NO_ANALYTICS = "1";
