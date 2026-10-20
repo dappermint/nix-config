@@ -189,6 +189,9 @@ in
     ${asUser} defaults write cc.ffitch.shottr KeyboardShortcuts_area -string ${lib.escapeShellArg shottrShortcuts.KeyboardShortcuts_area} 2>/dev/null || shottrOk=0
     ${asUser} defaults write cc.ffitch.shottr KeyboardShortcuts_fullscreen -string ${lib.escapeShellArg shottrShortcuts.KeyboardShortcuts_fullscreen} 2>/dev/null || shottrOk=0
     ${asUser} defaults write cc.ffitch.shottr KeyboardShortcuts_ocr -string ${lib.escapeShellArg shottrShortcuts.KeyboardShortcuts_ocr} 2>/dev/null || shottrOk=0
+    ${asUser} defaults write cc.ffitch.shottr afterGrabCopy -bool true 2>/dev/null || shottrOk=0
+    ${asUser} defaults write cc.ffitch.shottr afterGrabShow -bool true 2>/dev/null || shottrOk=0
+    ${asUser} defaults write cc.ffitch.shottr copyOnEsc -bool true 2>/dev/null || shottrOk=0
     if [ "$shottrOk" -eq 0 ]; then
       echo "shottr: container not writable, shortcuts left as-is (grant full disk access to enforce)" >&2
     fi
