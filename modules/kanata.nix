@@ -74,7 +74,7 @@ in
         KeepAlive = true;
         RunAtLoad = true;
         ProcessType = "Interactive";
-        StandardOutPath = "/Library/Logs/kanata.log";
+        StandardOutPath = "/dev/null";
         StandardErrorPath = "/Library/Logs/kanata.err.log";
       };
     };
