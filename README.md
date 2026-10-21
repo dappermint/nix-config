@@ -11,8 +11,16 @@ nix system flake managing personal machines across darwin, nixos, and home-manag
 | `rubicon` | mobile terminal | `aarch64-linux` | `homeConfigurations.rubicon` |
 
 - `apollo`: primary apple silicon macbook running nix-darwin, omniwm, and personal dev toolchains.
-- `gotham`: headless rk3328 rockchip sbc running nixos, home assistant, esphome, soft-serve, and telemetry.
+- `gotham`: headless rk3328 rockchip sbc running nixos: home assistant (abode), esphome, kanidm, vaultwarden, atuin, microbin, soft-serve, blocky dns and 9router behind nginx.
 - `rubicon`: avf linux guest on phone running standalone home-manager with fish, tmux, and neovim.
+
+## layout
+
+- `hosts/`: one file (or directory) per machine, only wiring and host-specific values
+- `modules/`: nix-darwin modules shared by apollo, each behind `services.<name>.enable`
+- `home/`: home-manager, one file per program, imported from `home/dappy.nix` and `home/rubicon.nix`
+- `lib/`: shared values (package sets, fonts, ssh public keys)
+- `packages/`, `overlays/`: things nixpkgs does not ship or ships differently
 
 ## workflow
 
