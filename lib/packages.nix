@@ -44,7 +44,6 @@
   ];
 
   vcs = with pkgs; [
-    gh
     git-filter-repo
     glab
     jjui

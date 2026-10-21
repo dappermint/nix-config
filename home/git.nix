@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 
 let
   keys = import ../lib/keys.nix;
@@ -10,19 +10,8 @@ let
   signingKey =
     if pkgs.stdenv.hostPlatform.isDarwin then "~/.ssh/id_enclave.pub" else "~/.ssh/id_ed25519.pub";
 
-  # nix-darwin keeps the system profile on a stable path. rubicon is a standalone
-  # home-manager host with no /run/current-system, so resolve gh out of the
-  # package set there instead
-  ghBin =
-    if pkgs.stdenv.hostPlatform.isDarwin then "/run/current-system/sw/bin/gh" else lib.getExe pkgs.gh;
 in
 {
-  # the ed25519 stays listed so commits signed before the enclave key still verify
-  home.file.".ssh/allowed_signers".text = ''
-    ${identity.email} ${keys.ed25519}
-    ${identity.email} ${keys.enclave}
-  '';
-
   programs.jujutsu = {
     enable = true;
     settings = {
@@ -65,14 +54,19 @@ in
       "**/.gemini.md"
       "**/.direnv"
     ];
+    signing = {
+      key = signingKey;
+      format = "ssh";
+      signByDefault = true;
+      # the ed25519 stays listed so commits signed before the enclave key still verify
+      allowedSigners = ''
+        ${identity.email} ${keys.ed25519}
+        ${identity.email} ${keys.enclave}
+      '';
+    };
     settings = {
       user.name = identity.name;
       user.email = identity.email;
-      user.signingkey = signingKey;
-      gpg.format = "ssh";
-      gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
-      commit.gpgsign = true;
-      tag.gpgsign = true;
       init.defaultBranch = "main";
       push.autoSetupRemote = true;
       push.default = "simple";
@@ -101,8 +95,18 @@ in
       commit.verbose = true;
       log.date = "iso";
       core.untrackedCache = true;
-      credential."https://github.com".helper = "!${ghBin} auth git-credential";
-      credential."https://gist.github.com".helper = "!${ghBin} auth git-credential";
     };
+  };
+
+  programs.gh = {
+    enable = true;
+    settings = {
+      git_protocol = "https";
+      aliases.co = "pr checkout";
+    };
+    gitCredentialHelper.hosts = [
+      "https://github.com"
+      "https://gist.github.com"
+    ];
   };
 }
