@@ -1,12 +1,12 @@
-{ config, ... }:
+_:
 
 {
   # ssh targets come from the sops-rendered secrets.fish, so the justfile never
   # names a host. the :? expansions make a missing value a hard failure instead
   # of an ssh to nowhere
-  home.file."justfile".text = ''
+  xdg.configFile."just/justfile".text = ''
     default:
-        @just --list
+        @just -g --list
 
     # update everything: netbird + gitlab
     clownupdate: clownupdate-netbird clownupdate-gitlab
@@ -43,6 +43,6 @@
   '';
 
   programs.fish.functions.clownupdate = ''
-    just --justfile ${config.home.homeDirectory}/justfile clownupdate $argv
+    just -g clownupdate $argv
   '';
 }
