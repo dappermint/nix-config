@@ -6,6 +6,18 @@
 }:
 
 let
+  # every https vhost: one cert, one upstream, nothing else
+  sites = {
+    "home.dappy.lgbt" = "http://127.0.0.1:8123";
+    "esphome.dappy.lgbt" = "http://127.0.0.1:6052";
+    "id.dappy.lgbt" = "https://127.0.0.1:8443";
+    "vault.dappy.lgbt" = "http://127.0.0.1:8222";
+    "sync.dappy.lgbt" = "http://127.0.0.1:8384";
+    "status.dappy.lgbt" = "http://127.0.0.1:8080";
+    "bin.dappy.lgbt" = "http://127.0.0.1:8082";
+    "atuin.dappy.lgbt" = "http://127.0.0.1:8888";
+    "9r.dappy.lgbt" = "http://127.0.0.1:20128";
+  };
   keys = import ../../lib/keys.nix;
   user = "dappy";
 in
@@ -253,16 +265,7 @@ in
       dnsResolver = "1.1.1.1:53";
       environmentFile = "/var/lib/acme/cf-token";
       group = "nginx";
-      extraDomainNames = [
-        "esphome.dappy.lgbt"
-        "id.dappy.lgbt"
-        "vault.dappy.lgbt"
-        "sync.dappy.lgbt"
-        "status.dappy.lgbt"
-        "bin.dappy.lgbt"
-        "9r.dappy.lgbt"
-        "atuin.dappy.lgbt"
-      ];
+      extraDomainNames = lib.remove "home.dappy.lgbt" (lib.attrNames sites);
     };
   };
 
@@ -270,71 +273,21 @@ in
     enable = true;
     recommendedProxySettings = true;
     recommendedTlsSettings = true;
-    virtualHosts."home.dappy.lgbt" = {
-      useACMEHost = "home.dappy.lgbt";
-      forceSSL = true;
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:8123";
-        proxyWebsockets = true;
+    virtualHosts =
+      lib.mapAttrs (_: upstream: {
+        useACMEHost = "home.dappy.lgbt";
+        forceSSL = true;
+        locations."/" = {
+          proxyPass = upstream;
+          proxyWebsockets = true;
+        };
+      }) sites
+      // {
+        "waves.petahtikva.lan".locations."/" = {
+          proxyPass = "http://127.0.0.1:8090";
+          extraConfig = "proxy_buffering off;";
+        };
       };
-    };
-    virtualHosts."esphome.dappy.lgbt" = {
-      useACMEHost = "home.dappy.lgbt";
-      forceSSL = true;
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:6052";
-        proxyWebsockets = true;
-      };
-    };
-    virtualHosts."id.dappy.lgbt" = {
-      useACMEHost = "home.dappy.lgbt";
-      forceSSL = true;
-      locations."/".proxyPass = "https://127.0.0.1:8443";
-    };
-    virtualHosts."vault.dappy.lgbt" = {
-      useACMEHost = "home.dappy.lgbt";
-      forceSSL = true;
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:8222";
-        proxyWebsockets = true;
-      };
-    };
-    virtualHosts."sync.dappy.lgbt" = {
-      useACMEHost = "home.dappy.lgbt";
-      forceSSL = true;
-      locations."/".proxyPass = "http://127.0.0.1:8384";
-    };
-    virtualHosts."status.dappy.lgbt" = {
-      useACMEHost = "home.dappy.lgbt";
-      forceSSL = true;
-      locations."/".proxyPass = "http://127.0.0.1:8080";
-    };
-    virtualHosts."waves.petahtikva.lan".locations."/" = {
-      proxyPass = "http://127.0.0.1:8090";
-      extraConfig = "proxy_buffering off;";
-    };
-
-    virtualHosts."bin.dappy.lgbt" = {
-      useACMEHost = "home.dappy.lgbt";
-      forceSSL = true;
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:8082";
-        proxyWebsockets = true;
-      };
-    };
-    virtualHosts."atuin.dappy.lgbt" = {
-      useACMEHost = "home.dappy.lgbt";
-      forceSSL = true;
-      locations."/".proxyPass = "http://127.0.0.1:8888";
-    };
-    virtualHosts."9r.dappy.lgbt" = {
-      useACMEHost = "home.dappy.lgbt";
-      forceSSL = true;
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:20128";
-        proxyWebsockets = true;
-      };
-    };
   };
 
   services.atuin = {
