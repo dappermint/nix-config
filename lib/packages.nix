@@ -36,7 +36,6 @@
     rsync
     sd
     tealdeer
-    television
     trippy
     xh
     yq-go
