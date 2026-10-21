@@ -88,7 +88,7 @@
 
       nixosConfigurations.gotham = inputs.nixpkgs.lib.nixosSystem {
         specialArgs = { inherit self inputs; };
-        modules = [ ./hosts/gotham.nix ];
+        modules = [ ./hosts/gotham ];
       };
 
       homeConfigurations.rubicon = inputs.home-manager.lib.homeManagerConfiguration {
