@@ -42,41 +42,15 @@
     };
 
     taps = [
-      {
-        name = "basecamp/tap";
-        trusted = true;
-      }
-      {
-        name = "bjarneo/cliamp";
-        trusted = true;
-      }
-      {
-        name = "dappermint/tap";
-        trusted = true;
-      }
-      {
-        name = "crmne/tap";
-      }
-      {
-        name = "lab421/tap";
-        trusted = true;
-      }
-      {
-        name = "netbirdio/tap";
-        trusted = true;
-      }
-      {
-        name = "saragordic/tap";
-        trusted = true;
-      }
-      {
-        name = "skyhook-io/tap";
-        trusted = true;
-      }
-      {
-        name = "steipete/tap";
-        trusted = true;
-      }
+      "basecamp/tap"
+      "bjarneo/cliamp"
+      "dappermint/tap"
+      "crmne/tap"
+      "lab421/tap"
+      "netbirdio/tap"
+      "saragordic/tap"
+      "skyhook-io/tap"
+      "steipete/tap"
     ];
 
     brews = [
