@@ -47,7 +47,7 @@ in
     script = ''
       target=$(/usr/sbin/diskutil info "onyx" 2>/dev/null | awk -F': *' '/Volume UUID:/{print $2}')
       if [ -n "$target" ]; then
-        pass=$(/usr/bin/security find-generic-password -s "$target" -w 2>/dev/null || /usr/bin/security find-generic-password -s "onyx" -w 2>/dev/null || /usr/bin/security find-generic-password -s "93FCCC39-80B5-4DF9-91C6-85534DEC4CE2" -w 2>/dev/null || true)
+        pass=$(/usr/bin/security find-generic-password -s "$target" -w 2>/dev/null || /usr/bin/security find-generic-password -s "onyx" -w 2>/dev/null || true)
         if [ -n "$pass" ]; then
           echo "$pass" | /usr/sbin/diskutil apfs unlockVolume "$target" -stdinpassphrase || true
         fi
