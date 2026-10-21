@@ -32,7 +32,7 @@ jobs:
     env:
       STUB: --override-input abode ./flakes/stub --override-input waves ./flakes/stub --override-input claude-config ./flakes/stub
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
@@ -60,8 +60,9 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     env:
       NIX_CONFIG: access-tokens = github.com=${{ secrets.NIX_ACCESS_TOKEN }}
+      NIX_ACCESS_TOKEN: ${{ secrets.NIX_ACCESS_TOKEN }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
@@ -74,7 +75,7 @@ jobs:
 
       - name: lint, evaluate rubicon and gotham
         run: |
-          if [ -z "${{ secrets.NIX_ACCESS_TOKEN }}" ]; then
+          if [ -z "$NIX_ACCESS_TOKEN" ]; then
             echo "NIX_ACCESS_TOKEN repo secret not set; skipping private evaluation"
             exit 0
           fi
@@ -82,7 +83,7 @@ jobs:
 
       - name: evaluate apollo
         run: |
-          if [ -z "${{ secrets.NIX_ACCESS_TOKEN }}" ]; then
+          if [ -z "$NIX_ACCESS_TOKEN" ]; then
             echo "NIX_ACCESS_TOKEN repo secret not set; skipping private evaluation"
             exit 0
           fi
