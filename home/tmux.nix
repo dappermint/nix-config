@@ -10,6 +10,7 @@
     baseIndex = 1;
     historyLimit = 50000;
     keyMode = "vi";
+    customPaneNavigationAndResize = true;
     terminal = "tmux-256color";
 
     extraConfig = ''
@@ -25,10 +26,6 @@
       bind - split-window -v -c "#{pane_current_path}"
       bind r source-file ~/.config/tmux/tmux.conf \; display "reloaded"
 
-      bind -r H resize-pane -L 5
-      bind -r J resize-pane -D 5
-      bind -r K resize-pane -U 5
-      bind -r L resize-pane -R 5
 
       # the status bar costs a whole row on a screen that has very few
       set -g status-style "bg=default,fg=colour245"
