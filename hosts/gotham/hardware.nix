@@ -20,8 +20,6 @@
 
   boot.tmp.useTmpfs = true;
 
-  boot.tmp.tmpfsSize = "50%";
-
   boot.loader.grub.enable = false;
 
   boot.loader.generic-extlinux-compatible.enable = true;
@@ -59,7 +57,6 @@
   # and prevents micro-sd wear from swap thrashing
   zramSwap = {
     enable = true;
-    algorithm = "zstd";
     memoryPercent = 150;
   };
 }

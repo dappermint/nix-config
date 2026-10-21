@@ -61,7 +61,6 @@ in
       trusted-users = [ user ];
 
       auto-optimise-store = true;
-      keep-outputs = false;
       keep-derivations = false;
 
       min-free = 5368709120;
@@ -81,7 +80,6 @@ in
       log-lines = 50;
 
       narinfo-cache-positive-ttl = 86400;
-      narinfo-cache-negative-ttl = 3600;
       tarball-ttl = 604800;
 
       secret-key-files = [ config.sops.secrets."nix-cache-priv-key".path ];

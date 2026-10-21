@@ -80,7 +80,6 @@ in
         })
       else
         pkgs.atuin;
-    enableFishIntegration = true;
     flags = [ "--disable-up-arrow" ];
     settings = {
       enter_accept = true;
@@ -90,18 +89,15 @@ in
 
   programs.fzf = {
     enable = true;
-    enableFishIntegration = true;
     historyWidget.command = "";
   };
 
   programs.zoxide = {
     enable = true;
-    enableFishIntegration = true;
   };
 
   programs.yazi = {
     enable = true;
-    enableFishIntegration = true;
     # upstream's default became "y" in stateVersion 26.05. pinned explicitly so
     # it does not silently change under us on a stateVersion bump
     shellWrapperName = "y";

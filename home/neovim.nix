@@ -8,8 +8,6 @@
 
     # debian's own vim stays on /usr/bin/vim; the terminal app's recovery paths
     # assume it is there
-    viAlias = false;
-    vimAlias = false;
 
     withRuby = false;
     withPython3 = false;
