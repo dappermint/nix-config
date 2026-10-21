@@ -12,7 +12,7 @@ in
 {
   # secure enclave key held by Secretive, every signature needs touch id
   home.file.".ssh/id_enclave.pub" = lib.mkIf isDarwin {
-    text = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPltwbYS6FRFdE7ZGAdOfewqsvHLX1H9jQEXt+/tXoc1JzE/pAwZUldTzhaoZ9alMAaV+cXIFZyAT3Bn87gEgeE= dappy\n";
+    text = "${(import ../lib/keys.nix).enclave} dappy\n";
   };
 
   # git and jj sign through ssh-keygen -Y, which only reads SSH_AUTH_SOCK

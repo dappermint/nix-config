@@ -1,6 +1,7 @@
 { lib, pkgs, ... }:
 
 let
+  keys = import ../lib/keys.nix;
   identity = {
     name = "millia ampora";
     email = "198710911+dappermint@users.noreply.github.com";
@@ -18,8 +19,8 @@ in
 {
   # the ed25519 stays listed so commits signed before the enclave key still verify
   home.file.".ssh/allowed_signers".text = ''
-    ${identity.email} ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7KvZLKybxYKt5Vu5UPcQ4zxIq+FPRyAKQgnvOpzy6Z
-    ${identity.email} ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPltwbYS6FRFdE7ZGAdOfewqsvHLX1H9jQEXt+/tXoc1JzE/pAwZUldTzhaoZ9alMAaV+cXIFZyAT3Bn87gEgeE=
+    ${identity.email} ${keys.ed25519}
+    ${identity.email} ${keys.enclave}
   '';
 
   programs.jujutsu = {

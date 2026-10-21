@@ -9,8 +9,7 @@
 
 let
   user = "dappy";
-  sshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7KvZLKybxYKt5Vu5UPcQ4zxIq+FPRyAKQgnvOpzy6Z";
-  enclaveKey = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPltwbYS6FRFdE7ZGAdOfewqsvHLX1H9jQEXt+/tXoc1JzE/pAwZUldTzhaoZ9alMAaV+cXIFZyAT3Bn87gEgeE=";
+  keys = import ../lib/keys.nix;
 in
 {
   imports = [
@@ -103,15 +102,15 @@ in
   };
 
   users.users.root.openssh.authorizedKeys.keys = [
-    sshKey
-    enclaveKey
+    keys.ed25519
+    keys.enclave
   ];
   users.users.${user} = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];
     openssh.authorizedKeys.keys = [
-      sshKey
-      enclaveKey
+      keys.ed25519
+      keys.enclave
     ];
   };
 
@@ -692,7 +691,7 @@ in
       name = "gotham";
       anon-access = "no-access";
       allow-keyless = false;
-      initial_admin_keys = [ sshKey ];
+      initial_admin_keys = [ keys.ed25519 ];
       ssh = {
         listen_addr = ":23231";
         # the short magicdns name, not the full tail*.ts.net one: it
