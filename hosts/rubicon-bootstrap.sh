@@ -53,7 +53,7 @@ while IFS= read -r line; do
   fi
 done <<'CONF'
 experimental-features = nix-command flakes
-trusted-users = root droid
+trusted-users = root
 auto-optimise-store = true
 warn-dirty = false
 extra-substituters = https://cache.lix.systems
