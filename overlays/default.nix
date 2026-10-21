@@ -4,32 +4,15 @@ final: prev: {
   mkspiFirmware = final.callPackage ../packages/mkspi-firmware { };
   rsreticulum = final.callPackage ../packages/rsreticulum { };
   # nixpkgs trails npm; the lock is regenerated from the tarball's package.json
-  _9router = prev._9router.overrideAttrs (
-    finalAttrs: _: {
-      version = "0.5.99";
-      src = final.fetchzip {
-        url = "https://registry.npmjs.org/9router/-/9router-${finalAttrs.version}.tgz";
-        hash = "sha256-uz1EiuxtYbWANgMsYO8VdDJVtiMyiJPCScLOOkYhNjQ=";
-      };
-      npmDeps = final.fetchNpmDeps {
-        name = "9router-${finalAttrs.version}-npm-deps";
-        src = ../packages/9router;
-        hash = "sha256-R3RFTB7Trm75fbVsCtFo+wb/jRTrIG4ZC5kKDQdQHKo=";
-      };
-      postPatch = ''
-        ${final.lib.getExe' final.nodejs "node"} --eval '
-          const pkg = require("./package.json");
-          delete pkg.devDependencies;
-          require("fs").writeFileSync("package.json", JSON.stringify(pkg, null, 2));
-        '
-        cp ${../packages/9router/package-lock.json} package-lock.json
-        # upstream only serves gemini-4-argon to the antigravity cli user agent
-        sed -i -E 's#antigravity/ide/(\$\{[[:alnum:]_$]+\}|[0-9.]+) darwin/arm64#antigravity/cli/1.4.2 darwin/arm64#g' \
-          app/.next-cli-build/server/chunks/*.js
-        grep -q 'antigravity/cli/1.4.2' app/.next-cli-build/server/chunks/*.js
-      '';
-    }
-  );
+  # nixpkgs carries the package; this only keeps the user agent patch
+  _9router = prev._9router.overrideAttrs (old: {
+    postPatch = old.postPatch + ''
+      # upstream only serves gemini-4-argon to the antigravity cli user agent
+      sed -i -E 's#antigravity/ide/(\$\{[[:alnum:]_$]+\}|[0-9.]+) darwin/arm64#antigravity/cli/1.4.2 darwin/arm64#g' \
+        app/.next-cli-build/server/chunks/*.js
+      grep -q 'antigravity/cli/1.4.2' app/.next-cli-build/server/chunks/*.js
+    '';
+  });
   omniwm = prev.omniwm.overrideAttrs (
     finalAttrs: _: {
       version = "0.7.6";
