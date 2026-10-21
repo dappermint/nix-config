@@ -38,7 +38,7 @@
           p.numpy
           p.pyserial
         ])
-      }/bin/python3 ${../gotham-waves.py}";
+      }/bin/python3 ${./waves.py}";
       Restart = "always";
       DynamicUser = true;
       SupplementaryGroups = [ "dialout" ];
