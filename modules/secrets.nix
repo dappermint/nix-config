@@ -155,7 +155,7 @@ in
     install -d -o ${user} -g staff ${home}/.aws ${home}/.config ${home}/.config/rclone ${home}/.config/obs ${home}/.kube
   '';
 
-  programs.fish.shellInit = ''
+  programs.fish.interactiveShellInit = ''
     test -r "${config.sops.templates."secrets.fish".path}"; and source "${
       config.sops.templates."secrets.fish".path
     }"
