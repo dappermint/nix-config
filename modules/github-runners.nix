@@ -62,8 +62,6 @@ let
         work="$RUNNER_ROOT/_work"
         mkdir -p "$RUNNER_ROOT" "$work"
 
-        find "$work" -mindepth 1 -delete
-
         # config.sh only runs when the runner is not registered yet, which is
         # why a registration token being valid for an hour is survivable: it is
         # spent once. mint a fresh one with
@@ -131,7 +129,7 @@ in
 
   system.activationScripts.extraActivation.text = lib.mkAfter (
     lib.concatMapStringsSep "\n" (repo: ''
-      install -d -o ${user} -g staff ${lib.escapeShellArg (stateDir repo)}
+      install -d -m 0700 -o ${user} -g staff ${lib.escapeShellArg (stateDir repo)}
     '') repos
   );
 }
