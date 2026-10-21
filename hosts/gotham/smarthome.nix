@@ -14,6 +14,7 @@
     wantedBy = [ "multi-user.target" ];
     after = [ "network.target" ];
     environment = {
+      HOME = "/var/lib/esphome";
       NIX_LD = "/run/current-system/sw/share/nix-ld/lib/ld.so";
       NIX_LD_LIBRARY_PATH = "/run/current-system/sw/share/nix-ld/lib";
     };
@@ -21,7 +22,9 @@
     serviceConfig = {
       ExecStart = "${pkgs.esphome-device-builder}/bin/esphome-device-builder --host 127.0.0.1 --port 6052 /var/lib/esphome";
       Restart = "always";
-      User = "root";
+      DynamicUser = true;
+      # platformio flashes over the usb serial ports
+      SupplementaryGroups = [ "dialout" ];
       WorkingDirectory = "/var/lib/esphome";
       StateDirectory = "esphome";
     };

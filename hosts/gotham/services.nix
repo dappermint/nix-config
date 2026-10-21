@@ -18,14 +18,10 @@ in
       ExecStart = "${pkgs._9router}/bin/9router -n -t --skip-update --host 127.0.0.1";
       Restart = "always";
       EnvironmentFile = config.sops.secrets.ninerouter_env.path;
-      User = "dappy";
-      Group = "users";
+      DynamicUser = true;
+      ProtectHome = true;
       StateDirectory = "ninerouter";
       WorkingDirectory = "/var/lib/ninerouter";
-      NoNewPrivileges = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      PrivateTmp = true;
     };
     environment = {
       HOME = "/var/lib/ninerouter";
