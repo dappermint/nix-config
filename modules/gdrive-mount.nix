@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -55,24 +56,28 @@ let
   };
 in
 {
-  environment.systemPackages = [
-    mountScript
-    unmountScript
-  ];
+  options.services.gdrive-mount.enable = lib.mkEnableOption "the rclone google drive mount";
 
-  launchd.user.agents.gdrive-mount = {
-    serviceConfig = {
-      Label = "org.${user}.gdrive-mount";
-      ProgramArguments = [ "${mountScript}/bin/gdrive-mount" ];
-      RunAtLoad = true;
-      KeepAlive.SuccessfulExit = false;
-      ThrottleInterval = 300;
-      ProcessType = "Background";
-      StandardOutPath = "${home}/Library/Logs/gdrive-mount.log";
-      StandardErrorPath = "${home}/Library/Logs/gdrive-mount.log";
-      EnvironmentVariables = {
-        HOME = home;
-        PATH = "/run/current-system/sw/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+  config = lib.mkIf config.services.gdrive-mount.enable {
+    environment.systemPackages = [
+      mountScript
+      unmountScript
+    ];
+
+    launchd.user.agents.gdrive-mount = {
+      serviceConfig = {
+        Label = "org.${user}.gdrive-mount";
+        ProgramArguments = [ "${mountScript}/bin/gdrive-mount" ];
+        RunAtLoad = true;
+        KeepAlive.SuccessfulExit = false;
+        ThrottleInterval = 300;
+        ProcessType = "Background";
+        StandardOutPath = "${home}/Library/Logs/gdrive-mount.log";
+        StandardErrorPath = "${home}/Library/Logs/gdrive-mount.log";
+        EnvironmentVariables = {
+          HOME = home;
+          PATH = "/run/current-system/sw/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+        };
       };
     };
   };

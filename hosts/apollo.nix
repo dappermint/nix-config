@@ -42,6 +42,10 @@ in
   };
 
   services.kanata.enable = true;
+  services.gdrive-mount.enable = true;
+  services.gh-runners.enable = true;
+  services.maintenance.enable = true;
+  services.sbx-backup-pull.enable = true;
 
   launchd.daemons.dev-volume-unlock = {
     script = ''

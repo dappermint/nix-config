@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -218,45 +219,49 @@ let
   };
 in
 {
-  system.activationScripts.extraActivation.text = ''
-    install -d -o ${user} -g staff "${logDir}"
-    install -d -o ${user} -g staff "${stateDir}"
-  '';
+  options.services.maintenance.enable = lib.mkEnableOption "the weekly local maintenance job";
 
-  launchd.user.agents.local-maintenance = {
-    serviceConfig = {
-      Label = "org.${user}.local-maintenance";
-      ProgramArguments = [ "${userMaintenance}/bin/local-maintenance" ];
-      RunAtLoad = true;
-      StartCalendarInterval = {
-        Hour = 10;
-        Minute = 0;
-      };
-      Nice = 10;
-      LowPriorityIO = true;
-      ProcessType = "Background";
-      EnvironmentVariables = {
-        HOME = home;
-        LOCAL_MAINTENANCE_BACKGROUND = "1";
-        PATH = "/run/current-system/sw/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+  config = lib.mkIf config.services.maintenance.enable {
+    system.activationScripts.extraActivation.text = ''
+      install -d -o ${user} -g staff "${logDir}"
+      install -d -o ${user} -g staff "${stateDir}"
+    '';
+
+    launchd.user.agents.local-maintenance = {
+      serviceConfig = {
+        Label = "org.${user}.local-maintenance";
+        ProgramArguments = [ "${userMaintenance}/bin/local-maintenance" ];
+        RunAtLoad = true;
+        StartCalendarInterval = {
+          Hour = 10;
+          Minute = 0;
+        };
+        Nice = 10;
+        LowPriorityIO = true;
+        ProcessType = "Background";
+        EnvironmentVariables = {
+          HOME = home;
+          LOCAL_MAINTENANCE_BACKGROUND = "1";
+          PATH = "/run/current-system/sw/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+        };
       };
     };
-  };
 
-  launchd.daemons.nix-pressure-gc = {
-    command = "${nixPressureGc}/bin/nix-pressure-gc";
-    serviceConfig = {
-      Label = "org.nixos.nix-pressure-gc";
-      RunAtLoad = true;
-      StartInterval = 21600;
-      Nice = 10;
-      LowPriorityIO = true;
-      ProcessType = "Background";
+    launchd.daemons.nix-pressure-gc = {
+      command = "${nixPressureGc}/bin/nix-pressure-gc";
+      serviceConfig = {
+        Label = "org.nixos.nix-pressure-gc";
+        RunAtLoad = true;
+        StartInterval = 21600;
+        Nice = 10;
+        LowPriorityIO = true;
+        ProcessType = "Background";
+      };
     };
-  };
 
-  environment.systemPackages = [
-    userMaintenance
-    maintenanceStatus
-  ];
+    environment.systemPackages = [
+      userMaintenance
+      maintenanceStatus
+    ];
+  };
 }

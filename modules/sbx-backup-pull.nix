@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 # sbx-intelmac has no route out of the space, so the mac pulls. the source is a
 # restic repo now, which is content-addressed and encrypted, so this mirrors it
@@ -30,22 +35,26 @@ let
   };
 in
 {
-  launchd.user.agents.sbx-backup-pull = {
-    serviceConfig = {
-      Label = "org.${user}.sbx-backup-pull";
-      ProgramArguments = [ "${pull}/bin/sbx-backup-pull" ];
-      StartCalendarInterval = {
-        Hour = 9;
-        Minute = 30;
-      };
-      Nice = 10;
-      LowPriorityIO = true;
-      ProcessType = "Background";
-      StandardOutPath = "${home}/Library/Logs/sbx-backup-pull.log";
-      StandardErrorPath = "${home}/Library/Logs/sbx-backup-pull.log";
-      EnvironmentVariables.HOME = home;
-    };
-  };
+  options.services.sbx-backup-pull.enable = lib.mkEnableOption "the nightly sbx backup pull";
 
-  environment.systemPackages = [ pull ];
+  config = lib.mkIf config.services.sbx-backup-pull.enable {
+    launchd.user.agents.sbx-backup-pull = {
+      serviceConfig = {
+        Label = "org.${user}.sbx-backup-pull";
+        ProgramArguments = [ "${pull}/bin/sbx-backup-pull" ];
+        StartCalendarInterval = {
+          Hour = 9;
+          Minute = 30;
+        };
+        Nice = 10;
+        LowPriorityIO = true;
+        ProcessType = "Background";
+        StandardOutPath = "${home}/Library/Logs/sbx-backup-pull.log";
+        StandardErrorPath = "${home}/Library/Logs/sbx-backup-pull.log";
+        EnvironmentVariables.HOME = home;
+      };
+    };
+
+    environment.systemPackages = [ pull ];
+  };
 }

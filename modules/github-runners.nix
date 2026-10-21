@@ -119,17 +119,21 @@ let
   };
 in
 {
-  sops.secrets = lib.listToAttrs (
-    map (repo: lib.nameValuePair "github_runner_token_${repo}" runnerSecret) repos
-  );
+  options.services.gh-runners.enable = lib.mkEnableOption "the self-hosted github runners";
 
-  launchd.user.agents = lib.listToAttrs (
-    map (repo: lib.nameValuePair "github-runner-${repo}" (runnerAgent repo)) repos
-  );
+  config = lib.mkIf config.services.gh-runners.enable {
+    sops.secrets = lib.listToAttrs (
+      map (repo: lib.nameValuePair "github_runner_token_${repo}" runnerSecret) repos
+    );
 
-  system.activationScripts.extraActivation.text = lib.mkAfter (
-    lib.concatMapStringsSep "\n" (repo: ''
-      install -d -m 0700 -o ${user} -g staff ${lib.escapeShellArg (stateDir repo)}
-    '') repos
-  );
+    launchd.user.agents = lib.listToAttrs (
+      map (repo: lib.nameValuePair "github-runner-${repo}" (runnerAgent repo)) repos
+    );
+
+    system.activationScripts.extraActivation.text = lib.mkAfter (
+      lib.concatMapStringsSep "\n" (repo: ''
+        install -d -m 0700 -o ${user} -g staff ${lib.escapeShellArg (stateDir repo)}
+      '') repos
+    );
+  };
 }
