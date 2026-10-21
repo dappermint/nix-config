@@ -137,5 +137,8 @@ in
   programs.nix-index.enable = true;
   programs.nix-index-database.comma.enable = true;
 
-  security.pam.services.sudo_local.touchIdAuth = true;
+  security.pam.services.sudo_local = {
+    touchIdAuth = true;
+    reattach = true;
+  };
 }
