@@ -17,9 +17,13 @@ let
       ];
 in
 {
+  targets.darwin.defaults = {
+    NSGlobalDomain.NSFixedPitchFont = fonts.monoPostScriptName;
+    "dev.warp.Warp-Preview".FontName = "\"${fonts.monoFamily}\"";
+  };
+
+  # apps that keep their font in a file rather than in defaults
   home.activation.fontDefaults = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run /usr/bin/defaults write NSGlobalDomain NSFixedPitchFont -string "${fonts.monoPostScriptName}"
-    run /usr/bin/defaults write dev.warp.Warp-Preview FontName -string '"${fonts.monoFamily}"'
     if [ -f "$HOME/.hermes/config.yaml" ]; then
       run ${pkgs.yq-go}/bin/yq -i '.terminal.font_family = "${fonts.monoFamily}" | .desktop.font_family = "${fonts.uiFamily}"' "$HOME/.hermes/config.yaml"
     fi
