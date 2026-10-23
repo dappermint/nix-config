@@ -273,6 +273,26 @@
         "type": "github"
       }
     },
+    "pixeldish": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792742808,
+        "narHash": "sha256-LLnF2+N+5pLY5rFDl0HEEVm8aNPMhxi7gWY5NcfVII0=",
+        "owner": "dappermint",
+        "repo": "pixeldish",
+        "rev": "c0dbbbf96f4fa9a55611f15938bc84eb04b907e9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dappermint",
+        "repo": "pixeldish",
+        "type": "github"
+      }
+    },
     "pre-commit-hooks": {
       "flake": false,
       "locked": {
@@ -318,6 +338,7 @@
         "nix-darwin": "nix-darwin",
         "nix-index-database": "nix-index-database",
         "nixpkgs": "nixpkgs_3",
+        "pixeldish": "pixeldish",
         "ratatouille": "ratatouille",
         "sops-nix": "sops-nix",
         "tart": "tart",

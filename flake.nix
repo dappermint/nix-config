@@ -19,6 +19,8 @@
     abode.inputs.nixpkgs.follows = "nixpkgs";
     waves.url = "github:dappermint/waves";
     waves.inputs.nixpkgs.follows = "nixpkgs";
+    pixeldish.url = "github:dappermint/pixeldish";
+    pixeldish.inputs.nixpkgs.follows = "nixpkgs";
     claude-config = {
       url = "github:dappermint/claude-config";
       flake = false;

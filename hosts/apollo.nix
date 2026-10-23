@@ -18,6 +18,7 @@ in
     ../modules/gdrive-mount.nix
     ../modules/secrets.nix
     ../modules/kanata.nix
+    ../modules/pixeldish.nix
     inputs.home-manager.darwinModules.home-manager
   ];
 

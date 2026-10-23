@@ -111,7 +111,6 @@
       "orbstack"
       "orcaslicer"
       "osu"
-      "dappermint/tap/pixeldish"
       "skyhook-io/tap/radar-desktop"
       "raycast"
       "rekordbox"
