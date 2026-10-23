@@ -95,6 +95,7 @@
       "freecad"
       "ghostty"
       "google-gemini"
+      "helium-browser"
       "hermes-desktop"
       "iina"
       "linear"

@@ -280,11 +280,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792748256,
-        "narHash": "sha256-BiWszeuJAJ1ZoGbv8kmJmSEFL2Uw0D15wynDx2XC4es=",
+        "lastModified": 1792748852,
+        "narHash": "sha256-4iNUlTG1DIUZ7LmbAVISajTvac35RLEnyQ3sgJ3W2Mo=",
         "owner": "dappermint",
         "repo": "pixeldish",
-        "rev": "3414f1ca3b23ef42b77bbe42980cc1ec00a1a9bd",
+        "rev": "07cc209ee7bec2dfbe706627416191814014d7df",
         "type": "github"
       },
       "original": {
