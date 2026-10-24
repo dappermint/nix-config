@@ -280,6 +280,9 @@ in
         locations."/" = {
           proxyPass = upstream;
           proxyWebsockets = true;
+          extraConfig = ''
+            if ($http_content_encoding ~* br) { return 415; }
+          '';
         };
       }) sites
       // {
