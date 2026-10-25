@@ -31,7 +31,10 @@
     networks."tel aviv".pskRaw = "ext:psk_telaviv";
   };
 
-  services.tailscale.enable = true;
+  services.tailscale = {
+    enable = true;
+    extraSetFlags = [ "--netfilter-mode=nodivert" ];
+  };
 
   # conway joins only so its honcho can reach 9r.dappy.lgbt; the netbird acl
   # lets k8s in on tcp 443 and nothing out, so no dns or routes from it here
