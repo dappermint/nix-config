@@ -31,6 +31,25 @@ final: prev: {
       '';
     }
   );
+  # ponytail: cloudflared bump ahead of nixpkgs; drop when nixpkgs-unstable hits 2026.10.3+
+  cloudflared = prev.cloudflared.overrideAttrs (
+    finalAttrs: _: {
+      version = "2026.10.3";
+      src = final.fetchFromGitHub {
+        owner = "cloudflare";
+        repo = "cloudflared";
+        tag = finalAttrs.version;
+        hash = "sha256-k1OMkHHItOT5VHhQqgC8ODm/RCJEtwtZi0Lxyf/esLg=";
+      };
+      vendorHash = "sha256-KqTLXEm0jxJ1TsyYzxAwYMe8niIgJxBHQPz/aZKmS40=";
+      ldflags = [
+        "-s"
+        "-w"
+        "-X main.Version=${finalAttrs.version}"
+        "-X github.com/cloudflare/cloudflared/cmd/cloudflared/updater.BuiltForPackageManager=nixpkgs"
+      ];
+    }
+  );
   omniwm = prev.omniwm.overrideAttrs (
     finalAttrs: _: {
       version = "0.7.6";
