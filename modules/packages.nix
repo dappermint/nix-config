@@ -50,6 +50,7 @@ let
   # without breaking rubicon's eval
   macos = [
     pkgs.ardour
+    pkgs.ghidra
     pkgs.hey-cli
     pkgs.macmon
     inputs.ratatouille.packages.${pkgs.stdenv.hostPlatform.system}.default
