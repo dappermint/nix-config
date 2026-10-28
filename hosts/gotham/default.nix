@@ -35,7 +35,15 @@ in
       PasswordAuthentication = false;
       KbdInteractiveAuthentication = false;
     };
+    # authorized_keys below stays as the fallback if the ca key is ever lost
+    extraConfig = ''
+      TrustedUserCAKeys /etc/ssh/ssh_user_ca.pub
+      HostCertificate /etc/ssh/ssh_host_ed25519_key-cert.pub
+    '';
   };
+  environment.etc."ssh/ssh_user_ca.pub".text = "${keys.ca} dappy-ca\n";
+  # public, signed with: ssh-keygen -s dappy-ca.pub -U -h -I gotham -n gotham -V +52w
+  environment.etc."ssh/ssh_host_ed25519_key-cert.pub".source = ./ssh_host_ed25519_key-cert.pub;
 
   sops = {
     defaultSopsFile = "${self}/secrets/gotham.yaml";

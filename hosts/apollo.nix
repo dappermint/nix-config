@@ -1,6 +1,7 @@
 { inputs, ... }:
 
 let
+  keys = import ../lib/keys.nix;
   user = "dappy";
 in
 {
@@ -23,6 +24,20 @@ in
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
+
+  # short magicdns names only, the tailnet id stays out of this public repo
+  programs.ssh.knownHosts = {
+    dappy-ca = {
+      certAuthority = true;
+      hostNames = [ "gotham" ];
+      publicKey = keys.ca;
+    };
+    # soft-serve has its own ssh server and can't present a host cert
+    gotham-soft-serve = {
+      hostNames = [ "[gotham]:23231" ];
+      publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFhHYJnq4JNNXePhPiw5cJCDqxwQH0e2knk65wjlob6Q";
+    };
+  };
 
   networking.hostName = "apollo";
   networking.computerName = "apollo";

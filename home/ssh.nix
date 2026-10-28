@@ -14,6 +14,14 @@ in
   home.file.".ssh/id_enclave.pub" = lib.mkIf isDarwin {
     text = "${(import ../lib/keys.nix).enclave} dappy\n";
   };
+  home.file.".ssh/dappy-ca.pub" = lib.mkIf isDarwin {
+    text = "${(import ../lib/keys.nix).ca} dappy-ca\n";
+  };
+
+  # an 8h login cert from the enclave ca, one touch id per working day
+  programs.fish.functions.ssh-cert = lib.mkIf isDarwin ''
+    ssh-keygen -s ~/.ssh/dappy-ca.pub -U -I dappy@apollo -n dappy,root -V +8h ~/.ssh/id_enclave.pub
+  '';
 
   # git and jj sign through ssh-keygen -Y, which only reads SSH_AUTH_SOCK
   home.sessionVariables = lib.mkIf isDarwin { SSH_AUTH_SOCK = secretiveSock; };
@@ -65,6 +73,7 @@ in
         lib.hm.dag.entryBefore [ "ed25519" ] {
           header = ''Match host "*,!railway.new" exec "test -t 2"'';
           IdentityFile = "~/.ssh/id_enclave.pub";
+          CertificateFile = "~/.ssh/id_enclave-cert.pub";
         }
       );
 
