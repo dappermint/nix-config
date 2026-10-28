@@ -50,6 +50,7 @@ in
       )
       // {
         upcloud_token = { };
+        onyx_passphrase = { };
         anthropic_api_key = { };
         typesafe_api_key = { };
 

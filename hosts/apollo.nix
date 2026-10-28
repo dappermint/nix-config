@@ -1,4 +1,9 @@
-{ inputs, ... }:
+{
+  inputs,
+  config,
+  lib,
+  ...
+}:
 
 let
   user = "dappy";
@@ -60,6 +65,15 @@ in
     '';
     serviceConfig.RunAtLoad = true;
   };
+
+  # after sops-nix's mkAfter install step, so the secret file exists
+  system.activationScripts.postActivation.text = lib.mkOrder 2000 ''
+    pass=$(cat ${config.sops.secrets.onyx_passphrase.path})
+    for svc in onyx 0AF7ABD2-E122-4594-9263-9B03C6219218; do
+      /usr/bin/security add-generic-password -U -a onyx -s "$svc" -l onyx -w "$pass" /Library/Keychains/System.keychain
+    done
+    unset pass
+  '';
 
   launchd.user.agents.hermes-webui.serviceConfig =
     let
