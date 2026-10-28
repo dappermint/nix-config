@@ -6,7 +6,10 @@
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/5b6489f7-09bc-415d-9d7f-40035d6c202b";
     fsType = "f2fs";
-    options = [ "noatime" ];
+    options = [
+      "noatime"
+      "nodiscard"
+    ];
   };
 
   fileSystems."/boot" = {
@@ -51,9 +54,18 @@
   ];
 
   # 1gb of ddr3: zstd zram at 150% with high swappiness keeps ram footprint small
-  # and prevents micro-sd wear from swap thrashing
+  # and prevents micro-sd wear from swap thrashing. the card swapfile sits below
+  # zram so it only catches real memory pressure
   zramSwap = {
     enable = true;
     memoryPercent = 150;
   };
+
+  swapDevices = [
+    {
+      device = "/var/lib/swapfile";
+      size = 4096;
+      priority = 1;
+    }
+  ];
 }
