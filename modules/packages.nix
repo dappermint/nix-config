@@ -46,11 +46,24 @@ let
     end tell' >/dev/null
   '';
 
+  # nix-darwin copies the bundle into /Applications/Nix Apps, which breaks the
+  # relative support/launch.sh lookup in the stock MacOS/Ghidra symlink
+  ghidra = pkgs.symlinkJoin {
+    name = "ghidra-${pkgs.ghidra.version}";
+    paths = [ pkgs.ghidra ];
+    postBuild = ''
+      exe=$out/Applications/Ghidra.app/Contents/MacOS/Ghidra
+      rm "$exe"
+      printf '#!/bin/sh\nexec ${pkgs.ghidra}/bin/ghidra "$@"\n' > "$exe"
+      chmod +x "$exe"
+    '';
+  };
+
   # hey-cli publishes darwin artifacts only, so it cannot live in lib/packages.nix
   # without breaking rubicon's eval
   macos = [
     pkgs.ardour
-    pkgs.ghidra
+    ghidra
     pkgs.hey-cli
     pkgs.macmon
     inputs.ratatouille.packages.${pkgs.stdenv.hostPlatform.system}.default
