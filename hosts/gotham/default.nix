@@ -81,7 +81,7 @@ in
     ];
   };
 
-  services.journald.settings.Journal.SystemMaxUse = "200M";
+  services.journald.settings.Journal.SystemMaxUse = "1G";
 
   documentation.enable = false;
 
@@ -113,7 +113,7 @@ in
   nix.gc = {
     automatic = true;
     dates = "weekly";
-    options = "--delete-older-than 7d";
+    options = "--delete-older-than 30d";
   };
 
   security.sudo.wheelNeedsPassword = lib.mkDefault false;
