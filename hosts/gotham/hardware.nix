@@ -4,12 +4,9 @@
   # lustrated over armbian: its u-boot stays in the sd card gap (sector 64)
   # and reads extlinux.conf from the fat partition
   fileSystems."/" = {
-    device = "/dev/disk/by-uuid/e1d0f926-4f56-485e-acbd-2b1ed387b6bf";
-    fsType = "ext4";
-    options = [
-      "noatime"
-      "commit=60"
-    ];
+    device = "/dev/disk/by-uuid/5b6489f7-09bc-415d-9d7f-40035d6c202b";
+    fsType = "f2fs";
+    options = [ "noatime" ];
   };
 
   fileSystems."/boot" = {
