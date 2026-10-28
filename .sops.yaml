@@ -10,7 +10,7 @@ creation_rules:
     age:
       - *apollo
       - *gotham_host
-  - path_regex: secrets/[^/]+\.yaml$
+  - path_regex: secrets/[^/]+\.(yaml|json)$
     age:
       - *apollo
       - *apollo_host

@@ -2,6 +2,7 @@
   self,
   config,
   lib,
+  pkgs,
   ...
 }:
 
@@ -50,7 +51,11 @@ in
       )
       // {
         upcloud_token = { };
-        onyx_passphrase = { };
+        keychain = {
+          sopsFile = "${self}/secrets/keychain.json";
+          format = "json";
+          key = "";
+        };
         anthropic_api_key = { };
         typesafe_api_key = { };
 
@@ -154,6 +159,25 @@ in
   # so hand them to the user first; extraActivation runs before the secrets
   system.activationScripts.extraActivation.text = lib.mkAfter ''
     install -d -o ${user} -g staff ${home}/.aws ${home}/.config ${home}/.config/rclone ${home}/.config/obs ${home}/.kube
+  '';
+
+  # sops is the source of truth for adopted keychain items (just keychain-adopt);
+  # mkOrder 2000 runs after sops-nix's mkAfter install step, and items are only
+  # rewritten when they differ so the switch stays prompt-free
+  system.activationScripts.postActivation.text = lib.mkOrder 2000 ''
+    src=${config.sops.secrets.keychain.path}
+    ${pkgs.jq}/bin/jq -r 'keys[]' "$src" | while read -r name; do
+      item() { ${pkgs.jq}/bin/jq -r --arg n "$name" ".[\$n].$1" "$src"; }
+      svc=$(item service) acct=$(item account) pw=$(item password)
+      if [ "$(item keychain)" = system ]; then
+        run=() file=/Library/Keychains/System.keychain
+      else
+        run=(launchctl asuser "$(id -u ${user})" sudo --user=${user} --) file=${home}/Library/Keychains/login.keychain-db
+      fi
+      [ "$("''${run[@]}" /usr/bin/security find-generic-password -s "$svc" -a "$acct" -w "$file" 2>/dev/null)" = "$pw" ] \
+        || "''${run[@]}" /usr/bin/security add-generic-password -U -s "$svc" -a "$acct" -l "$svc" -w "$pw" "$file" \
+        || echo "keychain: failed to sync $name" >&2
+    done
   '';
 
   programs.fish.interactiveShellInit = ''

@@ -1,9 +1,4 @@
-{
-  inputs,
-  config,
-  lib,
-  ...
-}:
+{ inputs, ... }:
 
 let
   user = "dappy";
@@ -57,7 +52,7 @@ in
     script = ''
       target=$(/usr/sbin/diskutil info "onyx" 2>/dev/null | awk -F': *' '/Volume UUID:/{print $2}')
       if [ -n "$target" ]; then
-        pass=$(/usr/bin/security find-generic-password -s "$target" -w 2>/dev/null || /usr/bin/security find-generic-password -s "onyx" -w 2>/dev/null || true)
+        pass=$(/usr/bin/security find-generic-password -s onyx -w 2>/dev/null || true)
         if [ -n "$pass" ]; then
           echo "$pass" | /usr/sbin/diskutil apfs unlockVolume "$target" -stdinpassphrase || true
         fi
@@ -65,15 +60,6 @@ in
     '';
     serviceConfig.RunAtLoad = true;
   };
-
-  # after sops-nix's mkAfter install step, so the secret file exists
-  system.activationScripts.postActivation.text = lib.mkOrder 2000 ''
-    pass=$(cat ${config.sops.secrets.onyx_passphrase.path})
-    for svc in onyx 0AF7ABD2-E122-4594-9263-9B03C6219218; do
-      /usr/bin/security add-generic-password -U -a onyx -s "$svc" -l onyx -w "$pass" /Library/Keychains/System.keychain
-    done
-    unset pass
-  '';
 
   launchd.user.agents.hermes-webui.serviceConfig =
     let

@@ -28,6 +28,23 @@ add kind name file=homebrew:
     open(path, "w").write("\n".join(lines))
     print("added " + name + " to " + kind)
 
+# copy a keychain item into sops so every switch restores it; rerun after an app rotates it
+keychain-adopt name service account="" keychain="login":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    export SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt
+    case "{{ keychain }}" in
+      login) file=~/Library/Keychains/login.keychain-db ;;
+      system) file=/Library/Keychains/System.keychain ;;
+      *) echo "keychain must be login or system" >&2; exit 1 ;;
+    esac
+    printf %s "$(security find-generic-password -s '{{ service }}' -a '{{ account }}' -w "$file")" \
+      | jq -Rs --arg s '{{ service }}' --arg a '{{ account }}' --arg k '{{ keychain }}' \
+        '{service: $s, account: $a, keychain: $k, password: .}' \
+      | sops set --value-stdin secrets/keychain.json '["{{ name }}"]'
+    git add secrets/keychain.json
+    echo "adopted {{ name }}, commit + push + nix-switch to apply"
+
 # prune stale build artifacts across dev repos and system caches
 clean:
     @echo "==> pruning stale swift .build and derived data..."
