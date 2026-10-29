@@ -8,7 +8,14 @@
     # the look the brew install had when it moved under nix
     pattern = {
       shape = "Pipes";
-      palette = "Van Helsing";
+      palette = "Custom";
+      custom = [
+        "#17191B"
+        "#2E3236"
+        "#9EA4AC"
+        "#B3A6BC"
+        "#D2D0CB"
+      ];
     };
     saved = [
       {
