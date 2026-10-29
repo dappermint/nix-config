@@ -39,6 +39,7 @@ in
     enable = true;
     package = null;
     settings.font-family = fonts.monoFamily;
+    settings.theme = "dracula-pro-nosferatu";
   };
 
   home.file."${zenProfile}/user.js".text = ''
