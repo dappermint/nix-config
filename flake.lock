@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1790645798,
-        "narHash": "sha256-yf3YQsjzv5QG0EnhXP8/ffb9seD+ZVilt5Su3+jLeMs=",
+        "lastModified": 1793287188,
+        "narHash": "sha256-6rfceSaVo+Mm07ZmRoftYO0X1faD7qcYM0IxxoFEKJI=",
         "owner": "dappermint",
         "repo": "abode",
-        "rev": "a17e647ba7e586e39ce953c34c17bd3867773813",
+        "rev": "9209b00920fadbd1c5f07751c709b2c5d3ce056a",
         "type": "github"
       },
       "original": {
