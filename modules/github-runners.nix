@@ -34,7 +34,8 @@ let
     pkgs.gzip
     pkgs.xz
     pkgs.curl
-    pkgs.ccache
+    # ccache 4.14.2 pulls linux-only elfutils into its checks, drop once nixpkgs guards it
+    (pkgs.ccache.overrideAttrs { doCheck = false; })
     pkgs.bison
     pkgs.flex
     pkgs.pkg-config
