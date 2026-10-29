@@ -71,7 +71,8 @@ in
       # instead of queueing dozens of prompts
       enclave-interactive = lib.mkIf isDarwin (
         lib.hm.dag.entryBefore [ "ed25519" ] {
-          header = ''Match host "*,!railway.new" exec "test -t 2"'';
+          # soft-serve (23231) logs in with whichever key comes first and only knows the file ed25519
+          header = ''Match host "*,!railway.new" exec "test -t 2 && test %p != 23231"'';
           IdentityFile = "~/.ssh/id_enclave.pub";
           CertificateFile = "~/.ssh/id_enclave-cert.pub";
         }
